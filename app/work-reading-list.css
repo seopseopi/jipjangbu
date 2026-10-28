@@ -24,9 +24,9 @@
 .work-property-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 185px), 1fr)); align-items: start; gap: 12px 18px; min-width: 0; }
 .work-property-building-group { display: block; min-width: 0; }
 .work-property-building { display: block; margin-bottom: 4px; color: var(--ink); font-size: var(--text-small); font-weight: 600; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; }
-.work-reading-list .work-property-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 138px), 1fr)); align-items: start; gap: 4px 6px; }
-.work-reading-list .work-property-list > li { max-width: 100%; padding: 0; border: 0; }
-.work-reading-list .work-property-list .history-link { display: flex; align-items: center; gap: 6px; width: 100%; min-height: 32px; padding: 4px 0; border-radius: 3px; background: transparent; color: var(--ink); font-size: var(--text-small); line-height: 1.55; }
+.work-reading-list .work-property-list { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 4px 6px; }
+.work-reading-list .work-property-list > li { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; max-width: 100%; padding: 0; border: 0; }
+.work-reading-list .work-property-list .history-link { display: inline-flex; align-items: center; gap: 6px; width: auto; min-height: 32px; padding: 4px 0; border-radius: 3px; background: transparent; color: var(--ink); font-size: var(--text-small); line-height: 1.55; }
 .work-reading-list .work-property-list .history-link > .ui-icon { color: var(--muted); }
 .work-reading-list .work-property-list .history-link:hover { background: transparent; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .work-property-address { flex: 1; min-width: 0; overflow-wrap: anywhere; }

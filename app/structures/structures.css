@@ -101,6 +101,8 @@
   border: 1px solid #d9e1e6;
   border-radius: 16px;
 }
+.structure-plan-select { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; }
+.structure-plan-select select { max-width: 100%; min-height: 42px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface, #fff); color: var(--ink); font: inherit; }
 .structure-real-heading {
   display: flex;
   justify-content: space-between;
