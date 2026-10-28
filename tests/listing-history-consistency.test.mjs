@@ -102,9 +102,15 @@ const property = (overrides = {}) => ({ propertyType: "아파트", buildingName:
 const key = (detail = property()) => [detail.propertyType, detail.buildingName, detail.buildingDong, detail.unitNumber].join("|");
 const payload = (overrides = {}) => ({ workDate: "2026-09-13", customerId: "synthetic-customer", workType: "매물등록", content: "합성 최초 등록", details: [property()], ...overrides });
 async function mutate(method, value, id, expectedStatus = method === "POST" ? 201 : 200) {
+  let editRevision;
+  if (method === "PUT") {
+    const response = await detailRoute.GET(new Request(`https://synthetic.invalid/api/work-logs/${id}`), { params: Promise.resolve({ id }) });
+    assert.equal(response.status, 200);
+    editRevision = (await response.json()).workLog.revision;
+  }
   const bodyValue = method === "DELETE"
     ? { revision: (await deletionStore.getDeletionPreview(globalThis[Symbol.for(bindingKey)], "work", id)).revision }
-    : value;
+    : method === "PUT" ? { ...value, revision: editRevision } : value;
   const request = new Request(`https://synthetic.invalid/api/work-logs${id ? `/${id}` : ""}`, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(bodyValue) });
   const result = method === "POST" ? await workRoute.POST(request) : await detailRoute[method](request, { params: Promise.resolve({ id }) });
   const body = await result.json();
@@ -457,8 +463,9 @@ test("묶음 업무 상세는 업무 내용과 모든 물건을 같은 조회 �
   assert.equal(body.workLog.content, "합성 최초 등록");
   assert.deepEqual(body.workLog.details.map((detail) => detail.unit_number), ["1503", "1504", "1505"]);
   assert.deepEqual(body.workLog.details.map((detail) => detail.sequence), [1, 2, 3]);
+  assert.match(body.workLog.revision, /^[a-f0-9]{64}$/);
   assert.equal(db.batches.length - before, 1);
-  assert.equal(db.batches.at(-1).length, 2);
+  assert.equal(db.batches.at(-1).length, 3);
 });
 
 test("매물 이력 API는 기존 이벤트 필드·업무일 정렬을 보존하며 연결 업무의 생성·저장 시각을 함께 반환한다", async (t) => {

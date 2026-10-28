@@ -8,7 +8,7 @@
 .workflow-feedback.is-error > .ui-icon { color: var(--seal); }
 .workflow-refresh, .workflow-limit-note, .schedule-preview-note, .calendar-result-summary { margin: 0; padding: 12px 22px; color: var(--muted); font-size: var(--text-small); line-height: 1.7; }
 .workflow-refresh { background: var(--wash); }
-.workflow-limit-note { border-top: 1px solid var(--line); background: var(--gold-soft); color: var(--gold); }
+.workflow-limit-note { border-top: 1px solid var(--rule); background: var(--gold-soft); color: var(--gold); }
 .calendar-result-summary { padding: 0 0 14px; font-weight: 600; color: var(--ink-2); }
 .calendar-controls .calendar-today { width: auto; padding-inline: 13px; font-size: var(--text-small); }
 .listing-table b { word-break: keep-all; overflow-wrap: anywhere; }

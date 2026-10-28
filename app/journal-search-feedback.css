@@ -28,7 +28,7 @@
 .journal-export-note {
   margin: 0;
   padding: 14px 22px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--rule);
   color: var(--muted);
   font-size: var(--text-small, 14px);
   line-height: 1.7;

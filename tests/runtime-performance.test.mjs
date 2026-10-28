@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createHmac } from "node:crypto";
+import { attachTestSession } from "./helpers/security-session.mjs";
 import { readFileSync, readdirSync } from "node:fs";
 import { registerHooks } from "node:module";
 import { DatabaseSync } from "node:sqlite";
@@ -85,10 +85,9 @@ function securityEnvironment(db, bucket = {}) {
       ...bucket,
     },
   };
-  const encoded = Buffer.from(JSON.stringify({ u: "test-admin", exp: Date.now() + 60_000 })).toString("base64url");
-  const signature = createHmac("sha256", Buffer.from(env.APP_SESSION_SECRET, "hex")).update(encoded).digest("base64url");
+  const token = attachTestSession(env);
   const request = (path, method = "GET") => new Request(`https://test.invalid${path}`, {
-    method, headers: { Cookie: `jipjangbu_session=${encoded}.${signature}` },
+    method, headers: { Cookie: `jipjangbu_session=${token}` },
   });
   return { env, writes, request };
 }
@@ -262,7 +261,8 @@ test("백업 읽기 실패나 잘못된 batch 결과는 변경을 차단하고 �
   assert.equal(writes.length, 0);
   assert.equal(await handleSecurityRequest(request("/api/customers", "POST"), env, { waitUntil() {} }), null);
   assert.equal(writes.length, 1);
-  env.DB = { prepare() { return {}; }, async batch() { return [{ success: false, results: [] }]; } };
+  const authPrepare = env.DB.prepare.bind(env.DB);
+  env.DB = { prepare(sql) { return sql.startsWith("SELECT id FROM auth_sessions") ? authPrepare(sql) : {}; }, async batch() { return [{ success: false, results: [] }]; } };
   assert.equal((await handleSecurityRequest(request("/api/customers", "POST"), env, { waitUntil() {} })).status, 503);
   assert.equal(writes.length, 1);
 });

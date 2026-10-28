@@ -93,6 +93,32 @@ test("the actual work submit preserves all entered fields and reports a failed s
   assert.equal(saving, false);
 });
 
+test("editing sends the read revision and preserves the draft when a concurrent edit conflicts", async () => {
+  const details = [structuredClone(property)];
+  const before = structuredClone(details);
+  let sent, error = "", saving = false, closed = false;
+  const submit = namedHandler(workModal, "submit", {
+    ...draft, details, content: "작성 중인 메모", item: { id: "synthetic-work", revision: "original-revision" },
+    saving: false, savePendingRef: { current: false }, customers, lookups: { workTypes }, findWorkDraftIssue,
+    onBusyChange: undefined, savingMountedRef: { current: true },
+    setErrorField: () => {}, setError: (message) => { error = message; }, setSaving: (value) => { saving = value; },
+    jsonFetch: async (url, init) => {
+      sent = { url, method: init.method, body: JSON.parse(init.body) };
+      throw Object.assign(new Error("충돌"), { status: 409 });
+    },
+    onSaved: () => { closed = true; },
+  });
+  await submit({ preventDefault() {} });
+  assert.equal(sent.method, "PUT");
+  assert.equal(sent.body.revision, "original-revision");
+  assert.equal(sent.body.content, "작성 중인 메모");
+  assert.deepEqual(details, before);
+  assert.match(error, /다른 기기/);
+  assert.match(error, /복사.*최신 업무/);
+  assert.equal(closed, false);
+  assert.equal(saving, false);
+});
+
 const removalButton = find(workModal, (node) => ts.isJsxElement(node) && node.openingElement.attributes.properties.some((attribute) => ts.isJsxAttribute(attribute) && attribute.name.text === "className" && attribute.initializer?.text === "remove-detail"));
 const removal = find(removalButton, (node) => ts.isJsxAttribute(node) && node.name.text === "onClick").initializer.expression.getText(ast);
 function removeHarness(detail, allow) {

@@ -180,6 +180,10 @@ test("매물 열 정렬은 전체 검색 결과에서 적용한 뒤 1,000건을 
   assert.equal(byName[0].id, "shop-first");
   assert.equal(byName[1].id, "apartment-1001");
   assert.equal(byName.at(-1).id, "apartment-0003");
+  const next = (await (await listingsRoute.GET(request("listings", {
+    sort: "building-desc", q: "검증단지", state: "all", offset: "1000",
+  }))).json()).listings;
+  assert.deepEqual(ids(next), ["apartment-0002", "apartment-0001"]);
 });
 
 test("매물 등록순·변경순·오래 미갱신순은 서로 구분되고 필터와 함께 동작한다", async (t) => {

@@ -7,7 +7,7 @@
 .history-entry-context > span > span { min-width: 0; overflow-wrap: anywhere; }
 .history-entry-context small { color: var(--muted); font-size: inherit; }
 .history-list .history-entry-saved { margin: 0; color: var(--ink); font-size: var(--text-base); line-height: 1.7; white-space: normal; overflow-wrap: anywhere; font-weight: 600; }
-.listing-work-details { min-width: 0; border-top: 1px solid var(--line); }
+.listing-work-details { min-width: 0; border-top: 1px solid var(--rule); }
 .listing-work-details > summary { display: flex; align-items: center; gap: 6px; min-height: 44px; padding-block: 10px; color: var(--green-dark); font-size: var(--text-small); font-weight: 600; cursor: pointer; }
 .listing-work-details > summary > span { margin-left: auto; color: var(--muted); font-weight: 500; }
 .listing-work-details > summary::marker, .listing-work-details > summary::-webkit-details-marker { display: none; content: ""; }
@@ -17,10 +17,10 @@
 .backup-load-error { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 22px; border-bottom: 1px solid var(--seal-line); background: var(--gold-soft); color: var(--seal); }
 .backup-load-error > div { flex: 1 1 240px; min-width: 0; font-size: var(--text-small); line-height: 1.7; overflow-wrap: anywhere; }
 .backup-load-error p { margin: 4px 0 0; }
-.backup-latest { display: flex; align-items: center; gap: 11px; padding: 18px 22px; border-bottom: 1px solid var(--line); background: var(--wash); color: var(--green); }
+.backup-latest { display: flex; align-items: center; gap: 11px; padding: 18px 22px; border-bottom: 1px solid var(--rule); background: var(--wash); color: var(--green); }
 .backup-latest > span { font-size: var(--text-small); line-height: 1.6; }
 .backup-latest strong { display: block; color: var(--ink); font-size: var(--text-base); }
-.backup-download-help { margin: 0; padding: 14px 22px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: var(--text-small); line-height: 1.7; }
+.backup-download-help { margin: 0; padding: 14px 22px; border-bottom: 1px solid var(--rule); color: var(--muted); font-size: var(--text-small); line-height: 1.7; }
 .backup-row > button { flex: 0 0 auto; }
 .backup-row > button:disabled { opacity: .65; cursor: wait; }
 .insights-preview-note { margin: 0; padding: 0 20px 12px; color: var(--muted); font-size: var(--text-small); line-height: 1.7; }

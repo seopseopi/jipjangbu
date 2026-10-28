@@ -1,5 +1,5 @@
 import { getD1 } from "../../../db";
-import { apiError, ready } from "../_shared";
+import { apiError, integerQueryParam, ready } from "../_shared";
 import {
   LISTING_NAME_ORDER, LISTING_NAME_DESC_ORDER, LISTING_TYPE_ORDER, LISTING_TYPE_DESC_ORDER,
   LISTING_OLDEST_ORDER, LISTING_RECENT_ORDER, LISTING_UPDATED_ORDER,
@@ -14,6 +14,7 @@ export async function GET(request: Request) {
     const state = params.get("state") ?? "all";
     const type = params.get("type")?.trim() ?? "";
     const sort = params.get("sort") ?? "type";
+    const offset = integerQueryParam(params.get("offset"), 0, 0, Number.MAX_SAFE_INTEGER);
     const statuses = [...new Set(params.getAll("status").map(value => value.trim()))];
     const prices = [...new Set(params.getAll("price"))];
     const priceColumns: Record<string, string> = { sale: "sale_price", jeonse: "jeonse_price", monthly: "monthly_rent" };
@@ -44,8 +45,8 @@ export async function GET(request: Request) {
     }
     const rows = await getD1().prepare(`
       SELECT * FROM listings ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
-      ORDER BY ${orderBy} LIMIT 1000
-    `).bind(...binds).all();
+      ORDER BY ${orderBy} LIMIT 1000 OFFSET ?
+    `).bind(...binds, offset).all();
     return Response.json({ listings: rows.results });
   } catch (error) {
     return apiError(error, "매물 목록을 불러오지 못했습니다.");

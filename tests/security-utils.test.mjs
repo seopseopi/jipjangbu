@@ -76,7 +76,7 @@ test("로그인 요청 전에 만료된 시도 기록을 정리한다", async ()
           query.values = values;
           return statement;
         },
-        async first() { return null; },
+        async first() { return sql.includes("RETURNING attempts") ? { attempts: 1, blocked_until: 0 } : null; },
         async run() { return { meta: { changes: 1 } }; },
       };
       return statement;

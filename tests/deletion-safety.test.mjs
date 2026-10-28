@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createHmac } from "node:crypto";
+import { attachTestSession } from "./helpers/security-session.mjs";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { registerHooks } from "node:module";
 import { DatabaseSync } from "node:sqlite";
@@ -37,12 +37,13 @@ const hook = registerHooks({
     return nextLoad(url, context);
   },
 });
-const [deletion, workData, followups, workRoute, workDetailRoute, listingRoute, historyRoute, previewRoute, trashRoute, trashDetailRoute, restoreRoute] = await Promise.all([
+const [deletion, workData, followups, workRoute, workDetailRoute, listingRoute, historyRoute, previewRoute, trashRoute, trashDetailRoute, restoreRoute, customerDetailRoute] = await Promise.all([
   import("../db/deletion-store.ts"), import("../app/api/work-logs/data.ts"), import("../app/api/follow-ups/_store.ts"),
   import("../app/api/work-logs/route.ts"), import("../app/api/work-logs/[id]/route.ts"),
   import("../app/api/listings/route.ts"), import("../app/api/listings/[key]/route.ts"),
   import("../app/api/deletions/preview/route.ts"), import("../app/api/trash/route.ts"),
   import("../app/api/trash/[id]/route.ts"), import("../app/api/trash/[id]/restore/route.ts"),
+  import("../app/api/customers/[id]/route.ts"),
 ]);
 hook.deregister();
 
@@ -586,10 +587,9 @@ function securityFixture(db) {
     BACKUP_ENCRYPTION_KEY: "22".repeat(32),
     BACKUPS: { async put(key, value, options) { writes.push({ key, value, options }); } },
   };
-  const encoded = Buffer.from(JSON.stringify({ u: env.APP_ADMIN_USERNAME, exp: Date.now() + 60_000 })).toString("base64url");
-  const signature = createHmac("sha256", Buffer.from(env.APP_SESSION_SECRET, "hex")).update(encoded).digest("base64url");
+  const token = attachTestSession(env);
   const request = (path, method, headers = {}) => new Request(`https://synthetic.invalid${path}`, {
-    method, headers: { Cookie: `jipjangbu_session=${encoded}.${signature}`, Origin: "https://synthetic.invalid", ...headers },
+    method, headers: { Cookie: `jipjangbu_session=${token}`, Origin: "https://synthetic.invalid", ...headers },
   });
   return { env, writes, pending, request, ctx: { waitUntil(promise) { pending.push(promise); } } };
 }
@@ -644,4 +644,122 @@ test("삭제·휴지통·복구는 로그인과 동일 출처를 검사하며 �
   assert.equal((await handleSecurityRequest(request("/api/trash/example/restore", "POST"), env, ctx)).status, 503);
   assert.equal((await handleSecurityRequest(request("/api/trash/example", "DELETE"), env, ctx)).status, 503);
   assert.deepEqual(db.snapshot(), before);
+});
+
+async function readWorkForEdit(id) {
+  const response = await workDetailRoute.GET(new Request(`https://synthetic.invalid/api/work-logs/${id}`), { params: Promise.resolve({ id }) });
+  assert.equal(response.status, 200);
+  return (await response.json()).workLog;
+}
+
+async function updateWork(id, body) {
+  return workDetailRoute.PUT(new Request(`https://synthetic.invalid/api/work-logs/${id}`, {
+    method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }), { params: Promise.resolve({ id }) });
+}
+
+test("업무 편집 버전이 없거나 이전 버전이면 저장하지 않고 최신 업무와 매물을 보존한다", async (t) => {
+  const db = database(t);
+  const work = await createWork();
+  const initial = await readWorkForEdit(work.id);
+  assert.equal(typeof initial.revision, "string");
+  assert.ok(initial.revision.length > 10);
+
+  const before = db.snapshot();
+  for (const revision of [undefined, null, ""]) {
+    const response = await updateWork(work.id, payload({ revision, content: "버전이 없는 수정" }));
+    assert.equal(response.status, 400);
+    assert.deepEqual(db.snapshot(), before);
+  }
+
+  const competingProperty = property({ unitNumber: "303" });
+  const saved = await updateWork(work.id, payload({ revision: initial.revision, content: "다른 기기의 저장", details: [competingProperty] }));
+  assert.equal(saved.status, 200, JSON.stringify(await saved.clone().json()));
+  const latest = await readWorkForEdit(work.id);
+  assert.notEqual(latest.revision, initial.revision);
+  const competingState = db.snapshot();
+  assert.equal(competingState.work_logs[0].content, "다른 기기의 저장");
+  assert.deepEqual(competingState.listings.map((item) => item.identity_key), [key(competingProperty)]);
+
+  const stale = await updateWork(work.id, payload({ revision: initial.revision, content: "이전 화면의 저장", details: [property({ unitNumber: "404" })] }));
+  assert.equal(stale.status, 409);
+  assert.deepEqual(db.snapshot(), competingState);
+});
+
+test("같은 초에 변경된 본문과 물건 및 매물 이벤트도 업무 편집 충돌을 일으킨다", async (t) => {
+  const db = database(t);
+  const work = await createWork();
+  for (const change of [
+    () => db.sqlite.prepare("UPDATE work_logs SET content=? WHERE id=?").run("같은 초의 다른 내용", work.id),
+    () => db.sqlite.prepare("UPDATE work_log_properties SET sale_price=? WHERE work_log_id=?").run("12345", work.id),
+    () => db.sqlite.prepare("UPDATE listing_events SET event_order=event_order+1 WHERE work_log_id=?").run(work.id),
+  ]) {
+    const initial = await readWorkForEdit(work.id);
+    const timestamp = row(db, "work_logs", work.id).updated_at;
+    change();
+    assert.equal(row(db, "work_logs", work.id).updated_at, timestamp);
+    const changedState = db.snapshot();
+    const response = await updateWork(work.id, payload({ revision: initial.revision }));
+    assert.equal(response.status, 409);
+    assert.deepEqual(db.snapshot(), changedState);
+  }
+});
+
+test("업무 편집 검증과 쓰기 배치 사이에 다른 기기의 수정이 끼어들어도 전체 상태를 보존한다", async (t) => {
+  const db = database(t);
+  const work = await createWork();
+  const initial = await readWorkForEdit(work.id);
+  const concurrentProperty = property({ unitNumber: "303" });
+  let concurrentState;
+  db.raceBeforeWrite(() => {
+    db.sqlite.prepare("UPDATE work_logs SET content=? WHERE id=?").run("검증 후 다른 기기의 저장", work.id);
+    db.sqlite.prepare("UPDATE work_log_properties SET unit_number=? WHERE work_log_id=?").run(concurrentProperty.unitNumber, work.id);
+    db.sqlite.prepare("UPDATE listing_events SET listing_key=?, unit_number=? WHERE work_log_id=?").run(key(concurrentProperty), concurrentProperty.unitNumber, work.id);
+    db.sqlite.prepare("UPDATE listings SET identity_key=?, unit_number=? WHERE identity_key=?").run(key(concurrentProperty), concurrentProperty.unitNumber, key());
+    concurrentState = db.snapshot();
+  }, /INSERT\s+INTO\s+work_logs\b/i);
+  const response = await updateWork(work.id, payload({ revision: initial.revision, content: "경합한 오래된 저장", details: [property({ unitNumber: "404" })] }));
+  assert.ok(concurrentState, "the competing write must run immediately before the edit transaction");
+  assert.equal(response.status, 409);
+  assert.deepEqual(db.snapshot(), concurrentState);
+  assert.deepEqual(concurrentState.listings.map((item) => item.identity_key), [key(concurrentProperty)]);
+});
+
+test("업무 편집 검증 후 다른 기기가 삭제하면 오래된 저장이 삭제된 업무를 되살리지 않는다", async (t) => {
+  const db = database(t);
+  const work = await createWork();
+  const initial = await readWorkForEdit(work.id);
+  let deletedState;
+  db.raceBeforeWrite(() => {
+    db.sqlite.prepare("DELETE FROM listing_events WHERE work_log_id=?").run(work.id);
+    db.sqlite.prepare("DELETE FROM work_log_properties WHERE work_log_id=?").run(work.id);
+    db.sqlite.prepare("DELETE FROM work_logs WHERE id=?").run(work.id);
+    db.sqlite.prepare("DELETE FROM listings WHERE identity_key=?").run(key());
+    deletedState = db.snapshot();
+  }, /INSERT\s+INTO\s+work_logs\b/i);
+  const response = await updateWork(work.id, payload({ revision: initial.revision, content: "삭제 후 오래된 저장" }));
+  assert.ok(deletedState, "the competing deletion must run immediately before the edit transaction");
+  assert.equal(response.status, 409);
+  assert.deepEqual(db.snapshot(), deletedState);
+});
+
+test("10개를 초과한 물건은 잘라 저장하지 않고 전체 요청을 거절한다", async (t) => {
+  const db = database(t);
+  const before = db.snapshot();
+  const result = await workRoute.POST(new Request("https://synthetic.invalid/api/work-logs", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload({ details: Array.from({ length: 11 }, (_, index) => property({ unitNumber: String(index + 1) })) })),
+  }));
+  assert.equal(result.status, 400);
+  assert.deepEqual(db.snapshot(), before);
+});
+
+test("고객 편집도 같은 초에 다른 기기가 바꾼 정보를 덮어쓰지 않는다", async (t) => {
+  const db = database(t);
+  const expected = db.sqlite.prepare("SELECT name, notes, created_at, updated_at, is_demo FROM customers WHERE id = ?").get("synthetic-customer");
+  db.sqlite.prepare("UPDATE customers SET notes = ? WHERE id = ?").run("다른 기기에서 바꾼 메모", "synthetic-customer");
+  const request = new Request("https://synthetic.invalid/api/customers/synthetic-customer", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "오래된 이름", notes: "오래된 메모", expected }) });
+  const response = await customerDetailRoute.PUT(request, { params: Promise.resolve({ id: "synthetic-customer" }) });
+  assert.equal(response.status, 409);
+  assert.equal(db.sqlite.prepare("SELECT notes FROM customers WHERE id = ?").get("synthetic-customer").notes, "다른 기기에서 바꾼 메모");
 });

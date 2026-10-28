@@ -5,13 +5,13 @@
 .listing-all-history-heading h3 { margin: 0; color: var(--ink); font-size: var(--text-base); font-weight: 700; line-height: 1.6; }
 .listing-all-history-heading > span { color: var(--muted); font-size: var(--text-small); line-height: 1.7; }
 .listing-history-memo { margin: 12px 0 0; color: var(--ink); font-size: var(--text-base); line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; }
-.listing-source-notes { min-width: 0; border-top: 1px solid var(--line); }
+.listing-source-notes { min-width: 0; border-top: 1px solid var(--rule); }
 .listing-source-notes > summary { display: flex; align-items: center; gap: 5px; min-height: 44px; padding-block: 9px; color: var(--muted); font-size: var(--text-small); font-weight: 600; cursor: pointer; }
 .listing-source-notes > summary::marker, .listing-source-notes > summary::-webkit-details-marker { display: none; content: ""; }
 .listing-source-notes[open] > summary > .ui-icon { transform: rotate(90deg); }
 .listing-source-notes > p { margin: 0 0 14px; color: var(--ink); font-size: var(--text-small); line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; }
 .related-history > .listing-saved-summary { margin: 0 17px 10px; }
-.listing-individual-records { min-width: 0; border-top: 1px solid var(--line); }
+.listing-individual-records { min-width: 0; border-top: 1px solid var(--rule); }
 .listing-individual-records > summary { display: flex; align-items: center; gap: 5px; min-height: 46px; padding: 10px 17px; color: var(--green); font-size: var(--text-small); font-weight: 600; cursor: pointer; }
 .listing-individual-records > summary::marker, .listing-individual-records > summary::-webkit-details-marker { display: none; content: ""; }
 .listing-individual-records[open] > summary > .ui-icon { transform: rotate(90deg); }

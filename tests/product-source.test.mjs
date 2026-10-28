@@ -5,9 +5,10 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 
 test("집장부 핵심 화면과 데이터 기능이 연결되어 있다", async () => {
-  const [page, manager, schema, hosting, workRoute, customerRoute, listingRoute, worker, security, login, layout] = await Promise.all([
+  const [page, manager, settings, schema, hosting, workRoute, customerRoute, listingRoute, worker, security, login, layout] = await Promise.all([
     readFile(new URL("app/page.tsx", root), "utf8"),
     readFile(new URL("app/work-manager.tsx", root), "utf8"),
+    readFile(new URL("app/settings-view.tsx", root), "utf8"),
     readFile(new URL("db/schema.ts", root), "utf8"),
     readFile(new URL(".openai/hosting.json", root), "utf8"),
     readFile(new URL("app/api/work-logs/route.ts", root), "utf8"),
@@ -45,7 +46,7 @@ test("집장부 핵심 화면과 데이터 기능이 연결되어 있다", async
   assert.match(security, /AES-GCM/);
   assert.match(security, /BACKUP_RETENTION_MS = 90/);
   assert.match(login, /관리자 전용/);
-  assert.match(manager, /지금 백업/);
-  assert.match(manager, /로그아웃/);
+  assert.match(settings, /지금 백업/);
+  assert.match(settings, /로그아웃/);
   assert.match(layout, /jipjangbu-icon-bright\.png/);
 });

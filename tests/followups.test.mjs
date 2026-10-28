@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createHmac } from "node:crypto";
+import { attachTestSession } from "./helpers/security-session.mjs";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { registerHooks } from "node:module";
 import { DatabaseSync } from "node:sqlite";
@@ -225,10 +225,9 @@ test("할 일 변경 전후 암호화 백업에 실제 할 일 데이터가 포�
     BACKUP_ENCRYPTION_KEY: "22".repeat(32),
     BACKUPS: { async put(key, value, options) { writes.push({ key, value, options }); } },
   };
-  const encoded = Buffer.from(JSON.stringify({ u: "test-admin", exp: Date.now() + 60_000 })).toString("base64url");
-  const signature = createHmac("sha256", Buffer.from(secret, "hex")).update(encoded).digest("base64url");
+  const token = attachTestSession(env);
   const request = new Request(`https://jipjangbu.invalid/api/follow-ups/${item.id}`, {
-    method: "PATCH", headers: { Cookie: `jipjangbu_session=${encoded}.${signature}` },
+    method: "PATCH", headers: { Cookie: `jipjangbu_session=${token}` },
   });
   const ctx = { waitUntil(promise) { pending.push(promise); } };
   assert.equal(await handleSecurityRequest(request, env, ctx), null);

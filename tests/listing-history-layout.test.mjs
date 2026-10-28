@@ -266,3 +266,33 @@ test("매물 이력은 한 열 전체 폭을 쓰고 긴 메모와 버튼은 좁�
   assert.equal(content["white-space"], "pre-wrap");
   assert.equal(content["overflow-wrap"], "anywhere");
 });
+
+test("고객·매물 이력은 페이지로 열 때 기본 정보·작업 버튼과 전체 업무 이력을 나눠 보여준다", () => {
+  const items = [
+    { id: "synthetic-old", work_date: "2026-09-02", work_type: "전화", content: "합성 첫 상담", customer_name: "합성 고객", customer_id: "synthetic-customer" },
+    { id: "synthetic-new", work_date: "2026-09-12", work_type: "집방문예약", content: "합성 방문", customer_name: "합성 고객", customer_id: "synthetic-customer" },
+  ];
+  const opened = [], added = [];
+  const page = HistoryModal({
+    page: true,
+    data: { title: "합성 고객 업무 이력", subtitle: "synthetic-customer", items, customer: { id: "synthetic-customer", name: "합성 고객" } },
+    onClose() {}, onRefresh() {}, onOpenWork: (id) => opened.push(id), onNewWork: (id) => added.push(id), onCopy() {}, onFollowUp() {}, onWorkTypeChange() {},
+  });
+  assert.equal(page.type, "div", "a page is not wrapped in the dialog");
+  assert.ok(hasClass(page, "record-page"));
+  const summary = descendants(page).find((element) => hasClass(element, "record-page-summary"));
+  const facts = renderToStaticMarkup(summary);
+  assert.match(facts, /synthetic-customer/);
+  assert.match(facts, /2건/);
+  assert.match(facts, /표시 날짜 2026-09-12/, "the latest work date is shown, not the first in the list");
+  descendants(summary).find((element) => element.type === "button" && renderToStaticMarkup(element).includes("이 고객 업무 등록")).props.onClick();
+  assert.deepEqual(added, ["synthetic-customer"]);
+  const history = descendants(page).find((element) => hasClass(element, "record-page-history"));
+  for (const row of elements(descendants(history).find((element) => hasClass(element, "history-list")).props.children)) row.props.onClick();
+  assert.deepEqual(opened, ["synthetic-old", "synthetic-new"]);
+  const dialog = HistoryModal({
+    data: { title: "합성 고객 업무 이력", subtitle: "synthetic-customer", items, customer: { id: "synthetic-customer", name: "합성 고객" } },
+    onClose() {}, onRefresh() {}, onOpenWork() {}, onNewWork() {}, onCopy() {}, onFollowUp() {}, onWorkTypeChange() {},
+  });
+  assert.equal(dialog.props.reading, true, "without page the same history still opens as the reading dialog");
+});
