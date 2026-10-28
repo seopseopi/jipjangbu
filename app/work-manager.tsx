@@ -427,6 +427,7 @@ export function WorkManager() {
   const [workPeriod, setWorkPeriod] = useState("");
   const [calendarWorkType, setCalendarWorkType] = useState("");
   const [listingStatuses, setListingStatuses] = useState<string[]>([]);
+  const [listingState, setListingState] = useState<"active" | "all">("active");
   const [listingPrices, setListingPrices] = useState<string[]>([]);
   const [propertyTypeFilter, setPropertyTypeFilter] = useState("");
   const [listingSort, setListingSort] = useState("type");
@@ -479,7 +480,7 @@ export function WorkManager() {
     queries.journal !== journalSearch,
     workSearchError,
   );
-  const listingQueryKey = JSON.stringify([queries.listings, listingStatuses, propertyTypeFilter, listingSort, listingPrices]);
+  const listingQueryKey = JSON.stringify([queries.listings, listingStatuses, propertyTypeFilter, listingSort, listingPrices, listingState]);
   const customerQueryKey = JSON.stringify([queries.customers, customerSort]);
   const calendarQueryKey = JSON.stringify([calendarMonth, calendarWorkType]);
   const listingStatus = journalSearchStatus(managedReads.listings.loadedQuery, listingQueryKey, managedReads.listings.loading, queries.listings !== listingsSearch, managedReads.listings.error);
@@ -630,10 +631,10 @@ export function WorkManager() {
   const loadListings = useCallback(
     async (signal?: AbortSignal) => {
       const version = ++requestVersion.current.listings;
-      const queryKey = JSON.stringify([listingsSearch, listingStatuses, propertyTypeFilter, listingSort, listingPrices]);
+      const queryKey = JSON.stringify([listingsSearch, listingStatuses, propertyTypeFilter, listingSort, listingPrices, listingState]);
       setManagedReads((current) => ({ ...current, listings: { ...current.listings, loading: true, error: null } }));
       const params = new URLSearchParams({
-        state: "all",
+        state: listingState,
         sort: listingSort,
       });
       listingStatuses.forEach(status => params.append("status", status));
@@ -654,7 +655,7 @@ export function WorkManager() {
         throw error;
       }
     },
-    [listingStatuses, propertyTypeFilter, listingSort, listingsSearch, listingPrices],
+    [listingStatuses, propertyTypeFilter, listingSort, listingsSearch, listingPrices, listingState],
   );
   const loadCustomers = useCallback(
     async (signal?: AbortSignal) => {
@@ -1220,7 +1221,7 @@ export function WorkManager() {
     if (!navigate(next)) return;
     if (next === "listings") {
       setQueries((current) => ({ ...current, listings: "" }));
-      setListingStatuses([]); setListingPrices([]); setPropertyTypeFilter(""); setListingSort("type");
+      setListingStatuses([]); setListingPrices([]); setPropertyTypeFilter(""); setListingSort("type"); setListingState("active");
     } else if (next === "customers") {
       setQueries((current) => ({ ...current, customers: "" })); setCustomerSort("recent");
     } else if (next === "journal") {
@@ -1538,6 +1539,8 @@ export function WorkManager() {
                   setQuery={setQuery}
                   statuses={listingStatuses}
                   setStatuses={setListingStatuses}
+                  listingState={listingState}
+                  setListingState={setListingState}
                   prices={listingPrices}
                   setPrices={setListingPrices}
                   propertyType={propertyTypeFilter}
@@ -1828,15 +1831,17 @@ function Toolbar({
   setQuery,
   placeholder,
   children,
+  className = "",
 }: {
   query: string;
   setQuery: (value: string) => void;
   placeholder: string;
   children?: React.ReactNode;
+  className?: string;
 }) {
   const slot = useContext(PageToolsSlot);
   const bar = (
-    <div className="toolbar">
+    <div className={`toolbar ${className}`.trim()}>
       <div className="search-box">
         <Icon name="search" />
         <input
@@ -2097,6 +2102,8 @@ function ListingsView({
   setQuery,
   statuses,
   setStatuses,
+  listingState = "active",
+  setListingState,
   prices,
   setPrices,
   propertyType,
@@ -2113,6 +2120,8 @@ function ListingsView({
   setQuery: (v: string) => void;
   statuses: string[];
   setStatuses: (v: string[]) => void;
+  listingState?: "active" | "all";
+  setListingState: (v: "active" | "all") => void;
   prices: string[];
   setPrices: (v: string[]) => void;
   propertyType: string;
@@ -2155,11 +2164,17 @@ function ListingsView({
   return (
     <>
       <div className="listing-controls">
+      <div className="listing-state-toggle" role="group" aria-label="매물 진행 상태">
+        <button type="button" aria-pressed={listingState === "active"} onClick={() => setListingState("active")}>진행 중</button>
+        <button type="button" aria-pressed={listingState === "all"} onClick={() => setListingState("all")}>전체</button>
+      </div>
       <Toolbar
         query={query}
         setQuery={setQuery}
         placeholder="건물명, 동·호수, 메모 검색"
+        className="listing-toolbar"
       >
+        <details className="listing-advanced"><summary>다른 조건으로 찾기</summary><div className="listing-advanced-options">
         <details className="listing-status-filter" name="listing-filters">
           <summary>매물 상태: {statuses.length ? `${statuses.length}개 선택` : "전체"}</summary>
           <div className="listing-status-options" role="group" aria-label="매물 상태 필터">
@@ -2219,6 +2234,7 @@ function ListingsView({
             </button>
           </div>
         </details>
+        </div></details>
       </Toolbar>
       </div>
       {filtered && <div className="active-filter-row listing-applied-filters" aria-label="현재 매물 조회 조건"><strong>적용 중</strong>{statuses.map(value => <span key={value}>{value}</span>)}{prices.map(price => <span key={price}>{({sale:"매매가 있음",jeonse:"전세가 있음",monthly:"월세가 있음"} as Record<string,string>)[price]}</span>)}{propertyType && <span>{propertyType}</span>}{query && <span>검색: {query}</span>}{sort !== "type" && <span>{sortDescription}</span>}<button className="filter-reset" onClick={onReset} type="button">초기화</button></div>}
@@ -2858,17 +2874,11 @@ function WorkModal({
             ? "업무 복사 · 새 업무 등록"
             : modal.initialListing && modal.initialWorkType === "매물수정" ? "매물 수정 이력 추가" : "새 업무 등록"
       }
-      subtitle="한 업무에 물건을 최대 10개까지 함께 기록할 수 있습니다"
       onClose={requestClose}
       locked={saving}
       wide
     >
       <form ref={workFormRef} className="work-form" onSubmit={submit} noValidate>
-        <div className="work-form-overview" aria-label="작성 중인 업무 요약">
-          <span><strong>고객</strong>{selectedCustomer?.name || "선택 필요"}</span>
-          <span><strong>업무</strong>{workType || "선택 필요"}</span>
-          <span><strong>물건</strong>{enteredPropertyCount}개 / 최대 10개</span>
-        </div>
         {error && <div ref={errorSummaryRef} className="form-error work-form-error" role="alert" tabIndex={-1}><p>{error}</p></div>}
         {modal.mode === "copy" && (
           <div className="work-copy-context" role="note">
@@ -2878,7 +2888,7 @@ function WorkModal({
           </div>
         )}
         {modal.initialListing && modal.initialWorkType === "매물수정" && <p className="editor-context">기존 기록을 덮어쓰지 않고 새 매물 수정 업무를 추가합니다. 날짜는 오늘, 고객은 최근 이력 기준이므로 실제 업무에 맞는지 확인해 주세요. 현재 매물 정보는 업무일이 가장 최근인 이력으로 표시됩니다.</p>}
-        <div className="work-form-section"><h3>1. 기본 업무</h3><p>* 표시한 항목은 꼭 입력해 주세요.</p></div>
+        <div className="work-form-section"><h3>기본 정보</h3></div>
         <div className="form-grid three">
           <label>
             일자 <b>*</b>
@@ -2960,8 +2970,7 @@ function WorkModal({
         </label>
         <div className="detail-head">
           <div>
-            <h3>2. 관련 물건 {changesListing ? "· 필수" : "· 선택"}</h3>
-            <p>{changesListing ? "기존 매물을 불러오거나 주소를 입력하세요. 토지 외 물건은 건물명과 호수가 필요합니다." : "기존 매물을 불러오거나 직접 입력하세요. 물건이 없는 업무는 비워 두어도 됩니다."}</p>
+            <h3>관련 물건 {changesListing ? "· 필수" : "· 선택"}</h3>
           </div>
           <button
             type="button"
@@ -3011,7 +3020,6 @@ function WorkModal({
                 >
                   <Icon name="clock" size={17} /> 매물 이력 보기
                 </button>
-                {!createPropertyHistoryTarget(detail) && <span className="form-help">이력 조회는 물건구분과 주소가 필요합니다. 토지 외 물건은 호수도 입력해 주세요.</span>}
               </div>
               {listingPickerIndex === index && (
                 <div id={`editor-listing-picker-${index}`}>

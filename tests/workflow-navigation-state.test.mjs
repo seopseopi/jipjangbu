@@ -176,6 +176,18 @@ test("매물관리 초기화는 상태·가격을 전체로 되돌리고 상태 
   assert.ok(descendants(other).some(item => item.props.className === "table-row is-other-status"));
 });
 
+test("매물 목록은 진행 중을 기본으로 보여 주고 전체 전환을 명시적으로 전달한다", () => {
+  assert.match(source, /\[listingState, setListingState\].*useState<"active" \| "all">\("active"\)/);
+  const changes = [];
+  const view = Listings({ ...listingProps, listingState: "active", setListingState: (value) => changes.push(value) });
+  const toggle = descendants(view).find((item) => item.props["aria-label"] === "매물 진행 상태");
+  const buttons = descendants(toggle).filter((item) => item.type === "button");
+  assert.equal(buttons[0].props["aria-pressed"], true);
+  assert.equal(buttons[1].props["aria-pressed"], false);
+  buttons[1].props.onClick();
+  assert.deepEqual(changes, ["all"]);
+});
+
 test("정렬 변경 뒤 CSV는 화면에 받은 순서를 보존하며 이름·종류·상태 셀이 올바르게 대응한다", () => {
   const exported = [];
   const View = compile([...common, "Price", "ListingsView"], { ...environment, downloadCsv: (...args) => exported.push(args) });
@@ -211,13 +223,13 @@ function navigationHarness(allow = true) {
   const props = {
     navigate: (next) => { changes.push(next); return allow; }, setQueries: queries.set,
     seoulDate: () => "2026-09-13",
-    ...Object.fromEntries(["ListingStatuses", "ListingPrices", "PropertyTypeFilter", "ListingSort", "CustomerSort", "WorkTypeFilter", "WorkPeriod", "CalendarMonth", "CalendarWorkType"].map((name) => [`set${name}`, (value) => { values[name] = value; }])),
+    ...Object.fromEntries(["ListingStatuses", "ListingState", "ListingPrices", "PropertyTypeFilter", "ListingSort", "CustomerSort", "WorkTypeFilter", "WorkPeriod", "CalendarMonth", "CalendarWorkType"].map((name) => [`set${name}`, (value) => { values[name] = value; }])),
   };
   return { queries, values, changes, navigate: compile(["navigateFromDashboard"], props) };
 }
 test("홈의 의미형 바로가기는 해당 화면 필터만 초기화하고 사용자가 이동을 취소하면 그대로 둔다", () => {
   const expected = {
-    listings: { ListingStatuses: [], ListingPrices: [], PropertyTypeFilter: "", ListingSort: "type" },
+    listings: { ListingStatuses: [], ListingPrices: [], PropertyTypeFilter: "", ListingSort: "type", ListingState: "active" },
     customers: { CustomerSort: "recent" },
     journal: { WorkTypeFilter: "", WorkPeriod: "" },
     calendar: { CalendarMonth: "2026-09", CalendarWorkType: "" },
@@ -339,7 +351,7 @@ function managedLoadHarness(key) {
   const expression = node.initializer.arguments[0].getText(ast);
   const loader = (pending, query = "current") => evaluate(`const result = ${expression};`, {
     requestVersion: version, setManagedReads: managed.set,
-    listingsSearch: query, listingStatuses: [], listingPrices: [], propertyTypeFilter: "", listingSort: "building",
+    listingsSearch: query, listingStatuses: [], listingPrices: [], propertyTypeFilter: "", listingSort: "building", listingState: "active",
     customersSearch: query, customerSort: "recent", calendarMonth: "2026-09", calendarWorkType: query,
     jsonFetch: () => pending.promise, fetchAllWorkLogs: () => pending.promise, collectOffsetPages,
     setListings: rows.set, setCustomerResults: rows.set, setCalendarLogs: rows.set,
