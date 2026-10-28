@@ -297,6 +297,7 @@ test("새 고객 저장은 목록 갱신 전에 명부에 즉시 반영하고 �
   const customerModal = state({ mode: "new" }), pending = deferred();
   const handler = callback("CustomerModal", "onSaved", {
     setCustomerModal: customerModal.set, setCustomers: customers.set, setWorkModal: modal.set,
+    setHistoryModal: () => {}, setWorkReader: () => {},
     afterMutation: () => pending.promise,
   });
   const result = handler("저장 완료", saved.id, saved);

@@ -17,11 +17,11 @@ export function createPropertyHistoryTarget(detail: {
     detail.buildingDong,
     detail.unitNumber,
   ].map((value) => value.trim());
-  if (!parts[0] || !parts[1] || !parts[3]) return null;
+  if (!parts[0] || !parts[1] || (parts[0] !== "토지" && !parts[3])) return null;
   return {
     kind: "listing",
     key: parts.map((value) => value.toLocaleLowerCase("ko-KR")).join("|"),
-    name: [parts[0], parts[1], parts[2] && `${parts[2]}동`, `${parts[3]}호`]
+    name: [parts[0], parts[1], parts[2] && `${parts[2]}동`, parts[3] && `${parts[3]}호`]
       .filter(Boolean)
       .join(" "),
   };

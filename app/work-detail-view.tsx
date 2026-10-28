@@ -28,6 +28,7 @@ export function WorkDetailView({
   onEdit,
   onDelete,
   onCustomerHistory,
+  onEditCustomer,
   onListingHistory,
 }: {
   item: WorkDetailReadItem;
@@ -35,6 +36,7 @@ export function WorkDetailView({
   onEdit: () => void;
   onDelete: () => void;
   onCustomerHistory: () => void;
+  onEditCustomer?: () => void;
   onListingHistory: (key: string) => void;
 }) {
   const customerId = detailText(item.customer_id);
@@ -79,6 +81,7 @@ export function WorkDetailView({
             <button type="button" className="work-read-link" onClick={onCustomerHistory} disabled={!customerId}>
               <Icon name="clock" size={15} /> 고객 이력
             </button>
+            {onEditCustomer && <button type="button" className="work-read-link" onClick={onEditCustomer} disabled={!customerId}><Icon name="edit" size={15} /> 고객 정보 수정</button>}
           </div>
         </div>
         <div className="work-read-actions">

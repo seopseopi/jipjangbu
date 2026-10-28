@@ -86,7 +86,7 @@ export async function saveWorkLog(payload: WorkLogPayload, existingId?: string) 
   if (!customer) throw new InputError("먼저 고객을 등록해 주세요.");
   if (!validWorkType) throw new InputError("등록된 업무구분을 선택해 주세요.");
   if (LISTING_WORK_TYPES.has(workType) && (details.length === 0 || details.some((detail) => !isPropertyComplete(detail)))) {
-    throw new InputError("매물 상태를 바꾸는 업무는 물건구분, 건물명, 호수를 입력해 주세요.");
+    throw new InputError("매물 상태를 바꾸는 업무는 물건구분과 주소를 확인해 주세요. 토지 외 물건은 건물명과 호수가 필요합니다.");
   }
 
   const id = existingId ?? crypto.randomUUID();

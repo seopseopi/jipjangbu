@@ -351,3 +351,26 @@ test("물건이 없는 업무는 주소를 만들어내지 않고 내용 보기�
   assert.match(markup(table([])), /조건에 맞는 업무가 없습니다/);
   assert.match(markup(rows([])), /합성 업무 없음/);
 });
+
+test("업무 목록의 각 물건은 해당 기록의 가격을 주소 옆에 표시하고 빈 가격은 표시하지 않는다", () => {
+  const priced = [property(0), { ...property(1), sale_price: "", jeonse_price: "2억", monthly_rent: "1000/50" }, { ...property(2), sale_price: "", jeonse_price: "", monthly_rent: "" }];
+  const tree = table([{ ...work, property_count: 3, properties_json: JSON.stringify(priced) }]);
+  const rows = propertyRows(tree);
+  assert.match(markup(rows[0]), /매매 35000/);
+  assert.match(markup(rows[1]), /전세 2억.*월세 1000\/50/);
+  assert.doesNotMatch(markup(rows[2]), /매매|전세|월세/);
+});
+
+test("토지 전체 주소는 호수 없이도 이력을 열 수 있고 고객 비고는 고객 ID 다음에 보인다", () => {
+  const land = { ...property(0), property_type: "토지", building_name: "인천 서구 검암동 123-45", building_dong: "", unit_number: "" };
+  const selected = [];
+  const tree = table([{ ...work, property_count: 1, properties_json: JSON.stringify([land]) }], { onListingHistory: (item) => selected.push(item) });
+  const link = descendants(tree).find((item) => item.type === "button" && item.props["aria-label"]?.endsWith("매물 이력 보기"));
+  assert.ok(link);
+  link.props.onClick();
+  assert.equal(createPropertyHistoryTarget({ propertyType: selected[0].property_type, buildingName: selected[0].building_name, buildingDong: "", unitNumber: "" }).key, "토지|인천 서구 검암동 123-45||");
+  const page = markup(history({ customer: { id: "cust", name: "고객", notes: "첫 줄\n둘째 줄" } }, { page: true, onEditCustomer() {} }));
+  assert.ok(page.indexOf("고객 ID") < page.indexOf("비고"));
+  assert.match(page, /첫 줄\n둘째 줄/);
+  assert.match(page, /고객 정보 수정/);
+});

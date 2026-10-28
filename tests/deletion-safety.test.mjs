@@ -763,3 +763,48 @@ test("고객 편집도 같은 초에 다른 기기가 바꾼 정보를 덮어쓰
   assert.equal(response.status, 409);
   assert.equal(db.sqlite.prepare("SELECT notes FROM customers WHERE id = ?").get("synthetic-customer").notes, "다른 기기에서 바꾼 메모");
 });
+
+test("토지는 전체 주소만으로 저장·주소 검색·이력·삭제 복구가 이어진다", async (t) => {
+  const db = database(t);
+  const land = property({ propertyType: "토지", buildingName: "인천 서구 검암동 123-45", buildingDong: "", unitNumber: "" });
+  const work = await createWork({ details: [land] });
+  const identity = key(land);
+  const listing = await historyRoute.GET(new Request("https://synthetic.invalid"), { params: Promise.resolve({ key: encodeURIComponent(identity) }) });
+  assert.equal(listing.status, 200);
+  assert.equal((await listing.json()).workLogs[0].id, work.id);
+  for (const query of ["검암동 123-45", "123-45", "인천 서구 검암동 123-45"]) {
+    const response = await workRoute.GET(new Request(`https://synthetic.invalid/api/work-logs?q=${encodeURIComponent(query)}`));
+    assert.ok((await response.json()).workLogs.some((item) => item.id === work.id), query);
+    const listings = await listingRoute.GET(new Request(`https://synthetic.invalid/api/listings?q=${encodeURIComponent(query)}`));
+    assert.ok((await listings.json()).listings.some((item) => item.identity_key === identity), query);
+  }
+  const removed = await move(db, "work", work.id);
+  assert.equal(db.sqlite.prepare("SELECT COUNT(*) AS n FROM listings WHERE identity_key = ?").get(identity).n, 0);
+  await deletion.restoreTrash(db.db, removed.trashId);
+  assert.equal(db.sqlite.prepare("SELECT COUNT(*) AS n FROM listings WHERE identity_key = ?").get(identity).n, 1);
+});
+
+test("고객 상세 조회와 수정은 비고를 유지하고 이전 버전은 거절한다", async (t) => {
+  database(t);
+  const params = { params: Promise.resolve({ id: "synthetic-customer" }) };
+  const get = () => customerDetailRoute.GET(new Request("https://synthetic.invalid"), params);
+  const first = (await (await get()).json()).customer;
+  assert.equal(first.notes, "합성 고객 메모");
+  const update = (expected, notes) => customerDetailRoute.PUT(new Request("https://synthetic.invalid", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "고친 고객명", notes, expected }) }), params);
+  const saved = await update(first, "새 메모\n두 번째 줄");
+  assert.equal(saved.status, 200);
+  assert.equal((await saved.json()).customer.notes, "새 메모\n두 번째 줄");
+  assert.equal((await update(first, "덮어쓰기" )).status, 409);
+  assert.equal((await (await get()).json()).customer.notes, "새 메모\n두 번째 줄");
+});
+
+test("기존 토지의 건물명·동·호 값은 주소를 바꾸지 않은 업무 수정에서 그대로 유지된다", async (t) => {
+  const db = database(t);
+  const land = property({ propertyType: "토지", buildingName: "검증 동네", buildingDong: "101", unitNumber: "202" });
+  const created = await createWork({ details: [land] });
+  const saved = await workData.saveWorkLog(payload({ revision: created.revision, content: "본문만 수정", details: [land] }), created.id);
+  assert.equal(saved.details[0].building_name, land.buildingName);
+  assert.equal(saved.details[0].building_dong, land.buildingDong);
+  assert.equal(saved.details[0].unit_number, land.unitNumber);
+  assert.equal(db.sqlite.prepare("SELECT COUNT(*) AS n FROM listings WHERE identity_key = ?").get(key(land)).n, 1);
+});

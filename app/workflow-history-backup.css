@@ -30,3 +30,5 @@
   .backup-load-error > button { width: 100%; }
   .backup-download-help, .backup-action-error { padding-inline: 20px; }
 }
+.record-page-facts > .customer-history-notes-row { display: grid; gap: 5px; }
+.record-page-facts .customer-history-notes { text-align: left; white-space: pre-wrap; overflow-wrap: anywhere; }

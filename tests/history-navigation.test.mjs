@@ -8,6 +8,7 @@ import { hasPropertyDraft, propertyFromListing } from "../app/listing-draft.ts";
 const source = readFileSync(new URL("../app/work-manager.tsx", import.meta.url), "utf8");
 const ast = ts.createSourceFile("work-manager.tsx", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 function handler(name, environment) {
+  if (name === "showCustomerHistory" && !environment.jsonFetch) environment = { ...environment, jsonFetch: async (url) => ({ customer: { id: decodeURIComponent(url.split("/").at(-1)), name: "합성 고객", notes: "" } }) };
   let declaration;
   function visit(node) {
     if (ts.isFunctionDeclaration(node) && node.name?.text === name) declaration = node;
@@ -171,7 +172,7 @@ test("고객·매물 이력 새로고침은 조회 구분을 유지하고 새 �
     const state = stateBox({ customer: kind === "customer" ? customer : undefined, listing: kind === "listing" ? { identity_key: key } : undefined, listingKey: kind === "listing" ? key : undefined, items: [], historyWorkType: "전화" });
     const environment = { historyOpenVersion: { current: 0 }, setGlobalSearchOpen() {}, setHistoryModal: state.set,
       fetchAllWorkLogs: async () => [{ id: "changed", work_type: "집방문" }],
-      jsonFetch: async () => ({ listing: { identity_key: key }, events: [], workLogs: [] }), targetText: () => "합성 매물" };
+      jsonFetch: async (url) => url.startsWith("/api/customers/") ? { customer: { ...customer, notes: "" } } : ({ listing: { identity_key: key }, events: [], workLogs: [] }), targetText: () => "합성 매물" };
     const open = handler(kind === "customer" ? "showCustomerHistory" : "showListingByKey", environment);
     const target = kind === "customer" ? customer : key;
     await open(target, true);

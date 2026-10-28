@@ -49,7 +49,10 @@ export function findWorkDraftIssue(
     return { field: "property-0-propertyType", message: `${workType} 업무는 매물 정보가 필요합니다. 기존 매물을 불러오거나 물건구분·건물명·호수를 입력해 주세요.` };
   }
   for (const { detail, index } of entered) {
-    for (const [key, label] of [["propertyType", "물건구분"], ["buildingName", "건물명"], ["unitNumber", "호수"]] as const) {
+    const fields = detail.propertyType?.trim() === "토지"
+      ? [["propertyType", "물건구분"], ["buildingName", "주소"]] as const
+      : [["propertyType", "물건구분"], ["buildingName", "건물명"], ["unitNumber", "호수"]] as const;
+    for (const [key, label] of fields) {
       if (!detail[key]?.trim()) return { field: `property-${index}-${key}`, message: `물건 ${index + 1}의 ${label}을 입력해 주세요. ${workType} 업무는 매물 정보가 필요합니다.` };
     }
   }

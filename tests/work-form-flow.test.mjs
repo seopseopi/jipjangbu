@@ -255,3 +255,10 @@ test("unmount releases the lock and an old request's late finally cannot unlock 
     assert.deepEqual(harness.busy, [true, false, true]);
   }
 });
+
+test("토지는 주소 하나면 유효하고 다른 물건은 호수가 계속 필요하다", () => {
+  const land = { ...blank, propertyType: "토지", buildingName: "인천 서구 검암동 123-45", unitNumber: "" };
+  assert.equal(issue({ workType: "매물등록", details: [land] }), null);
+  assert.equal(issue({ workType: "매물등록", details: [{ ...land, buildingName: "" }] }).field, "property-0-buildingName");
+  assert.equal(issue({ workType: "매물등록", details: [{ ...land, propertyType: "아파트" }] }).field, "property-0-unitNumber");
+});

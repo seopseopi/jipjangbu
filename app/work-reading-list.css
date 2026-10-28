@@ -30,6 +30,7 @@
 .work-reading-list .work-property-list .history-link > .ui-icon { color: var(--muted); }
 .work-reading-list .work-property-list .history-link:hover { background: transparent; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .work-property-address { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.work-property-price { display: block; color: var(--muted); font-size: var(--text-small); line-height: 1.5; overflow-wrap: anywhere; }
 /* Search matches are marked the way you would on paper: with a highlighter. */
 .work-reading-list .work-property-list .is-search-match .history-link { padding-inline: 6px; background: var(--mark); }
 .work-reading-list .work-property-match { display: inline-flex; align-items: center; flex-shrink: 0; gap: 2px; margin: 0; color: var(--green-dark); font-size: var(--text-caption); font-weight: 600; white-space: nowrap; }
