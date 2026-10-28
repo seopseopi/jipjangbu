@@ -14,11 +14,11 @@
   <a href="https://jipjangbu.minseop0920370667.chatgpt.site"><strong>서비스 열기</strong></a>
   &nbsp;|&nbsp; <a href="docs/usage.md">사용 가이드</a>
   &nbsp;|&nbsp; <a href="docs/README.md">문서</a>
-  &nbsp;|&nbsp; <a href="https://github.com/seopseopi/Jipjangbu/issues/new/choose">문의</a>
+  &nbsp;|&nbsp; <a href="https://github.com/seopseopi/jipjangbu/issues/new/choose">문의</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/seopseopi/Jipjangbu/actions/workflows/ci.yml"><img src="https://github.com/seopseopi/Jipjangbu/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
+  <a href="https://github.com/seopseopi/jipjangbu/actions/workflows/ci.yml"><img src="https://github.com/seopseopi/jipjangbu/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
   <img src="https://img.shields.io/badge/React-19-13254a?logo=react&amp;logoColor=white" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-5.9-13254a?logo=typescript&amp;logoColor=white" alt="TypeScript 5.9" />
   <img src="https://img.shields.io/badge/Cloudflare-D1%20%2B%20R2-13254a?logo=cloudflare&amp;logoColor=white" alt="Cloudflare D1 · R2" />
@@ -58,8 +58,8 @@
 React·TypeScript·Tailwind CSS 화면과 Cloudflare Workers API로 구성되어 있습니다. 업무 데이터는 **D1**, 암호화 백업은 **R2**에 저장합니다. **Node.js 24와 npm**을 권장합니다.
 
 ```bash
-git clone https://github.com/seopseopi/Jipjangbu.git
-cd Jipjangbu
+git clone https://github.com/seopseopi/jipjangbu.git
+cd jipjangbu
 npm ci
 npm run dev
 ```
@@ -71,7 +71,7 @@ npm run dev
 | `npm run lint` | 코드 규칙 검사 |
 | `npm test` | 타입 검사 → 빌드 → 회귀 테스트 |
 
-- [개발 환경·구조](docs/development.md) · [설계와 구현](docs/case-study.md) · [CI 결과](https://github.com/seopseopi/Jipjangbu/actions/workflows/ci.yml)
+- [개발 환경·구조](docs/development.md) · [설계와 구현](docs/case-study.md) · [CI 결과](https://github.com/seopseopi/jipjangbu/actions/workflows/ci.yml)
 - 로고와 브랜드 색: [docs/assets](docs/assets/README.md)
 
 ## 문의
@@ -80,7 +80,7 @@ npm run dev
 | :--- | :--- |
 | 기능 사용법과 백업 | [사용 가이드](docs/usage.md) |
 | 개발·설계·검증 자료 | [문서 모음](docs/README.md) |
-| 오류 제보 | [버그 제보](https://github.com/seopseopi/Jipjangbu/issues/new?template=bug_report.yml) |
-| 개선 의견 | [기능 제안](https://github.com/seopseopi/Jipjangbu/issues/new?template=feature_request.yml) |
+| 오류 제보 | [버그 제보](https://github.com/seopseopi/jipjangbu/issues/new?template=bug_report.yml) |
+| 개선 의견 | [기능 제안](https://github.com/seopseopi/jipjangbu/issues/new?template=feature_request.yml) |
 
 이슈는 공개됩니다. 고객명·전화번호·실제 업무 내용·계정 정보는 적지 말고 가상의 예시를 사용해 주세요.
