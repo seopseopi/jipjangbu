@@ -110,4 +110,3 @@ test("popstate restores customer and listing records, then back cancels a pendin
   history.state=null;sync();assert.equal(record.current,null);assert.equal(version.current,1);
   assert.deepEqual(restores,[["customer","customer:with-colon"],["listing","아파트|합성|101|202"]]);
 });
-

@@ -28,4 +28,3 @@ test("원문 보관 migration은 기존 엑셀 원문을 공백까지 보존하�
   }
   assert.equal(sqlite.prepare("SELECT event_history FROM listing_source_notes WHERE identity_key=?").get(key).event_history, "[]");
 });
-
