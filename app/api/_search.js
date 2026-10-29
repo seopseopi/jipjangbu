@@ -84,6 +84,8 @@ export function propertySearch(query, alias = "", kind = "listing") {
   const address = parsePropertySearch(query);
   if (address) {
     const sql = [], bindings = [];
+    const landSql = `${prefix}property_type = '토지' AND ${compactSql(building)} LIKE ? ESCAPE '\\'`;
+    const landQuery = escapedLike(query.normalize("NFKC").replace(/\s/g, ""));
     if (address.building) {
       sql.push(`${compactSql(`${prefix}property_type || ${building}`)} LIKE ? ESCAPE '\\'`);
       bindings.push(escapedLike(address.building.replace(/\s/g, "")));
@@ -93,11 +95,11 @@ export function propertySearch(query, alias = "", kind = "listing") {
     if (address.buildingUnitAlternative) {
       bindings.push(escapedLike(address.buildingUnitAlternative.replace(/\s/g, "")), address.unit);
       return {
-        sql: `((${sql.join(" AND ")}) OR (${dong} = '' AND ${compactSql(building)} LIKE ? ESCAPE '\\' AND ${unit} = ? COLLATE NOCASE))`,
-        bindings,
+        sql: `((${sql.join(" AND ")}) OR (${dong} = '' AND ${compactSql(building)} LIKE ? ESCAPE '\\' AND ${unit} = ? COLLATE NOCASE) OR (${landSql}))`,
+        bindings: [...bindings, landQuery],
       };
     }
-    return { sql: `(${sql.join(" AND ")})`, bindings };
+    return { sql: `((${sql.join(" AND ")}) OR (${landSql}))`, bindings: [...bindings, landQuery] };
   }
   const columns = ["property_type", "building_name", "building_dong", "unit_number",
     ...(kind === "work" ? ["source"] : ["status", "notes", "source_notes"])].map((column) => prefix + column);

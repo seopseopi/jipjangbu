@@ -5,6 +5,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 import { fetchCustomerDirectory } from "../app/customer-directory.ts";
+import { collectOffsetPages } from "../app/client-paging.ts";
 import { calendarWorkPresentation } from "./helpers/calendar-presentation.mjs";
 import { CalendarSubjects } from "./helpers/calendar-subjects.mjs";
 
@@ -57,7 +58,7 @@ function button(tree, label) {
   assert.ok(element, `${label} exists`);
   return element;
 }
-const environment = { React, LISTING_WORK_TYPES: new Set(["매물등록", "매물수정", "가계약", "잔금"]), Icon: () => null, useMemo: (callback) => callback(), seoulDate: () => "2026-09-13", calendarWorkPresentation, CalendarSubjects };
+const environment = { React, useContext: () => null, PageToolsSlot: null, createPortal: (node) => node, LISTING_WORK_TYPES: new Set(["매물등록", "매물수정", "가계약", "잔금"]), Icon: () => null, useMemo: (callback) => callback(), seoulDate: () => "2026-09-13", calendarWorkPresentation, CalendarSubjects };
 const common = ["displayDate", "targetText", "statusTone", "EmptyState", "Toolbar", "ListReadFeedback"];
 const Feedback = compile(["ListReadFeedback"], environment);
 const Listings = compile([...common, "Price", "ListingsView"], environment);
@@ -243,7 +244,7 @@ test("일반 메뉴 이동은 목록 조건을 초기화하지 않고 기존 탐
     workBusy: { current: false }, customerBusy: { current: false },
     workOpenVersion: { current: 0 }, currentView: active, setView: (value) => views.push(value),
     workReadVersion: readVersion, setWorkReader: reader.set, setReaderReference: reference.set,
-    setWorkOpening: noop,
+    setWorkOpening: noop, historyModal: null, historyOpenVersion: { current: 0 }, setHistoryModal: noop, isRecordHistory: () => false,
     window: { scrollTo: noop, history: { pushState: (...args) => paths.push(args) }, location: { pathname: "/", search: "" }, confirm: () => true },
     refreshBase: async () => {}, showLoadError: assert.fail,
   });
@@ -296,6 +297,7 @@ test("새 고객 저장은 목록 갱신 전에 명부에 즉시 반영하고 �
   const customerModal = state({ mode: "new" }), pending = deferred();
   const handler = callback("CustomerModal", "onSaved", {
     setCustomerModal: customerModal.set, setCustomers: customers.set, setWorkModal: modal.set,
+    setHistoryModal: () => {}, setWorkReader: () => {},
     afterMutation: () => pending.promise,
   });
   const result = handler("저장 완료", saved.id, saved);
@@ -339,7 +341,7 @@ function managedLoadHarness(key) {
     requestVersion: version, setManagedReads: managed.set,
     listingsSearch: query, listingStatuses: [], listingPrices: [], propertyTypeFilter: "", listingSort: "building",
     customersSearch: query, customerSort: "recent", calendarMonth: "2026-09", calendarWorkType: query,
-    jsonFetch: () => pending.promise, fetchAllWorkLogs: () => pending.promise,
+    jsonFetch: () => pending.promise, fetchAllWorkLogs: () => pending.promise, collectOffsetPages,
     setListings: rows.set, setCustomerResults: rows.set, setCalendarLogs: rows.set,
     isAborted: (error) => error?.name === "AbortError",
   });

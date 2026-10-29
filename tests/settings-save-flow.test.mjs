@@ -7,8 +7,8 @@ import ts from "typescript";
 
 // Exercise the actual SettingsView hooks, handlers and rendered messages.
 // Network calls below are synthetic: no actual classification data is changed.
-const source = readFileSync(new URL("../app/work-manager.tsx", import.meta.url), "utf8");
-const ast = ts.createSourceFile("work-manager.tsx", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+const source = readFileSync(new URL("../app/settings-view.tsx", import.meta.url), "utf8");
+const ast = ts.createSourceFile("settings-view.tsx", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 const node = ast.statements.find((candidate) => ts.isFunctionDeclaration(candidate) && candidate.name?.text === "SettingsView");
 assert.ok(node);
 const javascript = ts.transpileModule(node.getText(ast), {

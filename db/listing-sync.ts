@@ -25,7 +25,7 @@ export function listingKey(detail: PropertyInput): string {
 }
 
 export function isPropertyComplete(detail: PropertyInput): boolean {
-  return Boolean(clean(detail.propertyType) && clean(detail.buildingName) && clean(detail.unitNumber));
+  return Boolean(clean(detail.propertyType) && clean(detail.buildingName) && (clean(detail.propertyType) === "토지" || clean(detail.unitNumber)));
 }
 
 // The work, its events, and the current listing are one durable change. Return

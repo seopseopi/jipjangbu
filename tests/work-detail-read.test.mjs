@@ -218,3 +218,12 @@ test("정보가 비어도 비교 열을 유지하고 이력 불가 안내는 물
   assert.match(markup(articles[0]), /미기재/);
   assert.match(markup(articles[1]), /업소만 있는 원본/);
 });
+
+test("업무 내용의 고객 정보 수정은 고객 ID 옆에서 별도 동작을 실행한다", () => {
+  const actions = [];
+  const tree = render({}, { onEditCustomer: () => actions.push("customer-edit"), onEdit: () => actions.push("work-edit") });
+  const button = buttons(tree, "고객 정보 수정")[0];
+  assert.ok(button);
+  button.props.onClick();
+  assert.deepEqual(actions, ["customer-edit"]);
+});

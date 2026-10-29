@@ -332,7 +332,7 @@ test("매물 종류를 지정하면 기존 종류 인덱스로 탐색하며 전�
   const read = async (query) => (await listingRoute.GET(new Request(`https://test.invalid/api/listings?${query}`))).json();
   assert.deepEqual(ids((await read("state=all&type=빌라")).listings), ["villa", "closed"]);
   const query = statements.at(-1);
-  assert.deepEqual(query.values, ["빌라"]);
+  assert.deepEqual(query.values, ["빌라", 0]);
   assert.ok(plan(query.sql, query.values).some((detail) => /SEARCH listings USING INDEX idx_listings_building \(property_type=\?\)/.test(detail)));
   assert.deepEqual(ids((await read("state=all")).listings), ["villa", "closed", "apartment"]);
   assert.deepEqual(ids((await read("type=빌라")).listings), ["villa", "closed"]);

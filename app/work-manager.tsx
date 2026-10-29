@@ -1,16 +1,19 @@
 "use client";
 
 import {
+  createContext,
   FormEvent,
   lazy,
   Suspense,
   type ReactNode,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import type {
   GlobalSearchCustomer as SearchCustomer,
   GlobalSearchListing as SearchListing,
@@ -38,7 +41,9 @@ import { formatHistoryTimestamp } from "./history-timestamps";
 import type { RelatedHistoryTarget } from "./history-query";
 import { canCloseCustomerDraft, customerDraftChanged } from "./customer-draft";
 import { Icon } from "./icons";
-import { canAppendPage } from "./client-paging";
+import { canAppendPage, collectOffsetPages } from "./client-paging";
+import { downloadCsv } from "./csv-export";
+import { SettingsView, type Lookups } from "./settings-view";
 import { createPropertyHistoryTarget } from "./history-query";
 import { fetchWorkWindow } from "./work-window";
 import { hasPropertyDraft, propertyFromListing, type ListingDraftSource } from "./listing-draft";
@@ -132,6 +137,7 @@ type PropertyDetail = {
 };
 type WorkDetail = WorkSummary & {
   details: Array<Record<string, string | number>>;
+  revision: string;
 };
 type Customer = {
   id: string;
@@ -173,15 +179,6 @@ type ListingEvent = {
   work_created_at?: string;
   created_at?: string;
 };
-type Lookups = {
-  workTypes: string[];
-  propertyTypes: string[];
-  buildings: Array<{
-    id: string;
-    property_type: string;
-    building_name: string;
-  }>;
-};
 type Dashboard = {
   metrics: {
     today_count: number;
@@ -193,13 +190,6 @@ type Dashboard = {
   upcoming?: WorkSummary[];
   recent: WorkSummary[];
   demoMode: boolean;
-};
-type BackupSummary = {
-  key: string;
-  kind: "daily" | "changes" | "manual";
-  createdAt: string;
-  size: number;
-  reason: string;
 };
 type SearchView = "journal" | "listings" | "customers";
 type JournalSearchError = { queryKey: string; message: string } | null;
@@ -233,7 +223,8 @@ type HistoryData = {
   items: WorkSummary[] | ListingEvent[];
   workItems?: WorkSummary[];
   historyWorkType?: string;
-  customer?: Pick<Customer, "id" | "name">;
+  customer?: Pick<Customer, "id" | "name"> & Partial<Pick<Customer, "notes">>;
+  customerNotesError?: string;
   listing?: Listing;
   listingKey?: string;
   date?: string;
@@ -262,6 +253,30 @@ const navItems: Array<[View, string]> = [
   ["settings", "설정"],
   ["structures", "집 구조 보기"],
 ];
+// The sidebar reads as three working areas; the experimental screen stays apart.
+const navGroups: Array<[string, View[]]> = [
+  ["업무", ["today", "calendar", "journal"]],
+  ["장부", ["listings", "customers"]],
+  ["관리", ["insights", "trash", "settings"]],
+  ["실험 기능", ["structures"]],
+];
+// Customer and listing histories open as their own page; date and schedule lists stay dialogs.
+const isRecordHistory = (data: HistoryData) => Boolean(data.customer || data.listing || data.listingKey);
+// Each list screen's search and filters render into the title bar when it is mounted.
+const PageToolsSlot = createContext<HTMLElement | null>(null);
+const SIDE_PANEL_QUERY = "(min-width: 1081px)";
+// List screens make room for the reading panel; the calendar and other wide screens are overlaid.
+const SIDE_PANEL_LIST_VIEWS: View[] = ["today", "journal", "listings", "customers"];
+function useWideScreen() {
+  const [wide, setWide] = useState(() => typeof window !== "undefined" && window.matchMedia(SIDE_PANEL_QUERY).matches);
+  useEffect(() => {
+    const query = window.matchMedia(SIDE_PANEL_QUERY);
+    const update = () => setWide(query.matches);
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  return wide;
+}
 let nextModalId = 0;
 const openModalIds: number[] = [];
 let modalBodyOverflow = "";
@@ -359,31 +374,6 @@ function periodBounds(period: string) {
   }
   return ["", ""];
 }
-function downloadCsv(
-  filename: string,
-  headers: string[],
-  rows: Array<Array<string | number | undefined>>,
-) {
-  const safe = (value: string | number | undefined) => {
-    const text = String(value ?? "");
-    return /^[=+@]/.test(text) || /^-\D/.test(text) ? `'${text}` : text;
-  };
-  const escape = (value: string | number | undefined) =>
-    `"${safe(value).replaceAll('"', '""')}"`;
-  const csv = [headers, ...rows]
-    .map((row) => row.map(escape).join(","))
-    .join("\r\n");
-  const url = URL.createObjectURL(
-    new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" }),
-  );
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 0);
-}
 
 export function WorkManager() {
   const [view, setView] = useState<View>("today");
@@ -453,6 +443,7 @@ export function WorkManager() {
   const [customerModal, setCustomerModal] = useState<{
     mode: "new" | "edit";
     item?: Customer;
+    initialId?: string;
   } | null>(null);
   const [historyModal, setHistoryModal] = useState<HistoryData | null>(null);
   const [followUpDraft, setFollowUpDraft] = useState<FollowUpDraft>();
@@ -460,6 +451,8 @@ export function WorkManager() {
   const [readable, setReadable] = useState(false);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [globalSearchLoaded, setGlobalSearchLoaded] = useState(false);
+  const [toolsSlot, setToolsSlot] = useState<HTMLElement | null>(null);
+  const wideScreen = useWideScreen();
   const [insightsRefreshKey, setInsightsRefreshKey] = useState(0);
   const lastFocusRefresh = useRef(0);
   const focusRefreshInFlight = useRef(false);
@@ -648,12 +641,13 @@ export function WorkManager() {
       if (listingsSearch) params.set("q", listingsSearch);
       if (propertyTypeFilter) params.set("type", propertyTypeFilter);
       try {
-        const data = await jsonFetch<{ listings: Listing[] }>(
-        `/api/listings?${params}`,
-        { signal },
-      );
+        const rows = await collectOffsetPages(async (offset) => {
+          const pageParams = new URLSearchParams(params);
+          pageParams.set("offset", String(offset));
+          return (await jsonFetch<{ listings: Listing[] }>(`/api/listings?${pageParams}`, { signal })).listings;
+        });
         if (version !== requestVersion.current.listings) return;
-        setListings(data.listings);
+        setListings(rows);
         setManagedReads((current) => ({ ...current, listings: { loadedQuery: queryKey, loading: false, error: null } }));
       } catch (error) {
         if (version === requestVersion.current.listings && !signal?.aborted) setManagedReads((current) => ({ ...current, listings: { ...current.listings, loading: false, error: { queryKey, message: isAborted(error) ? "다른 작업으로 조회가 중단되었습니다. 다시 불러와 주세요." : (error as Error).message } } }));
@@ -670,12 +664,13 @@ export function WorkManager() {
       const params = new URLSearchParams({ sort: customerSort });
       if (customersSearch) params.set("q", customersSearch);
       try {
-        const data = await jsonFetch<{ customers: Customer[] }>(
-        `/api/customers?${params}`,
-        { signal },
-      );
+        const rows = await collectOffsetPages(async (offset) => {
+          const pageParams = new URLSearchParams(params);
+          pageParams.set("offset", String(offset));
+          return (await jsonFetch<{ customers: Customer[] }>(`/api/customers?${pageParams}`, { signal })).customers;
+        });
         if (version !== requestVersion.current.customers) return;
-        setCustomerResults(data.customers);
+        setCustomerResults(rows);
         setManagedReads((current) => ({ ...current, customers: { loadedQuery: queryKey, loading: false, error: null } }));
       } catch (error) {
         if (version === requestVersion.current.customers && !signal?.aborted) setManagedReads((current) => ({ ...current, customers: { ...current.customers, loading: false, error: { queryKey, message: isAborted(error) ? "다른 작업으로 조회가 중단되었습니다. 다시 불러와 주세요." : (error as Error).message } } }));
@@ -788,6 +783,10 @@ export function WorkManager() {
         setWorkReader(null);
         setReaderReference(null);
       }
+      if (!window.history.state?.record) {
+        historyOpenVersion.current += 1;
+        setHistoryModal((current) => current && isRecordHistory(current) ? null : current);
+      }
       currentView.current = next;
       setView(next);
     };
@@ -795,6 +794,18 @@ export function WorkManager() {
     window.addEventListener("popstate", syncView);
     return () => window.removeEventListener("popstate", syncView);
   }, []);
+  // A record page is its own browser history entry, so the back button returns to the list.
+  const recordKey = historyModal && isRecordHistory(historyModal)
+    ? historyModal.customer ? `customer:${historyModal.customer.id}` : `listing:${historyModal.listing?.identity_key ?? historyModal.listingKey}`
+    : null;
+  useEffect(() => {
+    if (!recordKey) return;
+    workReadVersion.current += 1;
+    setWorkReader(null);
+    setReaderReference(null);
+    if (window.history.state?.record !== recordKey) window.history.pushState({ ...window.history.state, record: recordKey }, "", window.location.href);
+    window.scrollTo({ top: 0 });
+  }, [recordKey]);
   useEffect(() => {
     const controller = new AbortController();
     const versions = requestVersion.current;
@@ -833,6 +844,7 @@ export function WorkManager() {
   function navigate(next: View) {
     if (next !== view && (followUpBusy.current || workBusy.current || customerBusy.current)) { setNotice("저장 중입니다. 완료될 때까지 잠시 기다려 주세요."); return false; }
     if (next === view) {
+      if (historyModal) { historyOpenVersion.current += 1; setHistoryModal(null); }
       window.scrollTo({ top: 0, behavior: "smooth" });
       if (next === "today") void refreshBase().catch(showLoadError);
       return true;
@@ -848,6 +860,8 @@ export function WorkManager() {
     workReadVersion.current += 1;
     setWorkReader(null);
     setReaderReference(null);
+    historyOpenVersion.current += 1;
+    setHistoryModal(null);
     window.history.pushState(
       { view: next },
       "",
@@ -932,6 +946,14 @@ export function WorkManager() {
     setReaderReference(null);
     const trigger = readerReferenceTrigger.current;
     window.requestAnimationFrame(() => { if (trigger?.isConnected) { trigger.focus(); trigger.scrollIntoView({ block: "nearest" }); } });
+  }
+  async function editCustomer(id: string) {
+    try {
+      const data = await jsonFetch<{ customer: Customer }>(`/api/customers/${encodeURIComponent(id)}`, { cache: "no-store" });
+      setCustomerModal({ mode: "edit", item: data.customer });
+    } catch (error) {
+      setNotice(`고객 정보를 불러오지 못했습니다. 다시 시도해 주세요. (${(error as Error).message})`);
+    }
   }
   async function afterMutation(message: string) {
     setNotice(message);
@@ -1079,15 +1101,17 @@ export function WorkManager() {
       loading: true,
     }));
     try {
-      const items = await fetchAllWorkLogs(
-        new URLSearchParams({ customerId: customer.id, includeSource: "1" }),
-      );
+      const [items, profile] = await Promise.all([
+        fetchAllWorkLogs(new URLSearchParams({ customerId: customer.id, includeSource: "1" })),
+        jsonFetch<{ customer: Customer }>(`/api/customers/${encodeURIComponent(customer.id)}`, { cache: "no-store" }).catch(() => null),
+      ]);
       if (version !== historyOpenVersion.current) return;
       setHistoryModal((current) => ({
-        title: `${customer.name} 업무 이력`,
+        title: `${profile?.customer.name ?? customer.name} 업무 이력`,
         subtitle: customer.id,
         items,
-        customer,
+        customer: profile?.customer ?? customer,
+        customerNotesError: profile ? undefined : "비고를 불러오지 못했습니다.",
         historyWorkType: current?.historyWorkType ?? "",
       }));
     } catch (error) {
@@ -1232,6 +1256,38 @@ export function WorkManager() {
     }
   }
 
+  const recordPage = historyModal && isRecordHistory(historyModal) ? historyModal : null;
+  const recordTitle = recordPage ? recordPage.customer?.name ?? recordPage.title.replace(/ 이력$/, "") : "";
+  const sidePanelOpen = wideScreen && Boolean((workReader && !workModal) || (historyModal && !workReader && !recordPage));
+  const sidePanel = sidePanelOpen ? recordPage || SIDE_PANEL_LIST_VIEWS.includes(view) ? "beside" : "over" : undefined;
+  function closeRecordPage() {
+    if (window.history.state?.record) { window.history.back(); return; }
+    historyOpenVersion.current += 1;
+    workOpenVersion.current += 1;
+    setHistoryModal(null);
+  }
+  function renderHistory(page: boolean) {
+    return (
+      <HistoryModal
+        data={historyModal!}
+        page={page}
+        workTypes={lookups.workTypes}
+        onWorkTypeChange={(historyWorkType) => setHistoryModal((current) => current ? { ...current, historyWorkType } : null)}
+        onClose={page ? closeRecordPage : () => { historyOpenVersion.current += 1; workOpenVersion.current += 1; setHistoryModal(null); }}
+        onRefresh={() => void refreshHistory(historyModal)}
+        onOpenWork={(id) => {
+          void readWork(id);
+        }}
+        onNewWork={(id) => void openWork(undefined, id)}
+        onEditCustomer={(id) => void editCustomer(id)}
+        onNewListingWork={(listing) => void openWork(undefined, undefined, undefined, listing)}
+        onModifyListing={(listing, customerId) => void openWork(undefined, customerId, "매물수정", listing)}
+        onFollowUp={addFollowUp}
+        onCopy={copyCustomerId}
+        onStructure={(key) => { setStructureKey(key); setHistoryModal(null); navigate("structures"); }}
+      />
+    );
+  }
   const dateLabel = new Intl.DateTimeFormat("ko-KR", {
     timeZone: "Asia/Seoul",
     year: "numeric",
@@ -1263,39 +1319,73 @@ export function WorkManager() {
   }
 
   return (
-    <main className="app-shell" data-readable={readable}>
+    <main className="app-shell" data-readable={readable} data-side-panel={sidePanel}>
       <aside className="sidebar">
-        <button
-          className="brand brand-button"
-          onClick={() => navigate("today")}
-          type="button"
-          aria-label="집장부 홈으로 이동"
-        >
-          <span className="brand-mark" aria-hidden="true" />
-          <span>
-            <strong>집장부</strong>
-          </span>
-        </button>
-        <nav aria-label="주요 메뉴">
-          {navItems.map(([key, label]) => (
+        <div className="sidebar-top">
+          <button
+            className="brand brand-button"
+            onClick={() => navigate("today")}
+            type="button"
+            aria-label="집장부 홈으로 이동"
+          >
+            <span className="brand-mark" aria-hidden="true" />
+            <span>
+              <strong>집장부</strong>
+            </span>
+          </button>
+          <div className="sidebar-actions">
             <button
-              className={`nav-item ${view === key ? "active" : ""}`}
-              key={key}
-              onClick={() => navigate(key)}
+              className="primary-button sidebar-new-work"
+              onClick={() => openWork()}
               type="button"
-              aria-current={view === key ? "page" : undefined}
             >
-              <Icon
-                name={key === "today" ? "home" : key}
-                className="nav-icon"
-                size={21}
-              />
-              {label}
-              {key === "structures" && <span className="nav-test-badge">TEST</span>}
+              <Icon name="plus" /> <span>새 업무 등록</span>
             </button>
+            <button
+              className="global-search-trigger"
+              onClick={showGlobalSearch}
+              type="button"
+              aria-keyshortcuts="/"
+              aria-label="통합검색"
+            >
+              <Icon name="search" /> <span>통합검색</span> <kbd>/</kbd>
+            </button>
+          </div>
+        </div>
+        <nav aria-label="주요 메뉴">
+          {navGroups.map(([group, keys]) => (
+            <div className="nav-group" key={group} role="group" aria-label={group}>
+              <p className="nav-group-label" aria-hidden="true">{group}</p>
+              {navItems.filter(([key]) => keys.includes(key)).map(([key, label]) => (
+                <button
+                  className={`nav-item ${view === key && !recordPage ? "active" : ""}${view === key && recordPage ? " is-parent" : ""}`}
+                  key={key}
+                  onClick={() => navigate(key)}
+                  type="button"
+                  aria-current={view === key ? "page" : undefined}
+                >
+                  <Icon
+                    name={key === "today" ? "home" : key}
+                    className="nav-icon"
+                    size={21}
+                  />
+                  {label}
+                  {key === "structures" && <span className="nav-test-badge">TEST</span>}
+                </button>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="sidebar-foot">
+          <button
+            className="font-size-toggle"
+            type="button"
+            aria-pressed={readable}
+            onClick={toggleReadable}
+          >
+            <Icon name="text" size={18} />
+            <span>{readable ? "기본 글씨" : "큰 글씨"}</span>
+          </button>
           <button className="logout-link" onClick={signOut} type="button">
             <Icon name="logout" size={18} />
             로그아웃
@@ -1305,35 +1395,15 @@ export function WorkManager() {
       <section className="workspace">
         <header className="topbar">
           <div className="title-stack">
-            <h1>{titles[view]}</h1>
-            {view === "today" && <p className="view-purpose"><span className="record-date">{dateLabel}</span></p>}
+            {recordPage && (
+              <button type="button" className="back-link" onClick={closeRecordPage}>
+                <Icon name="back" size={18} /> {titles[view]}
+              </button>
+            )}
+            <h1>{recordPage ? recordTitle : titles[view]}</h1>
+            {view === "today" && !recordPage && <p className="view-purpose"><span className="record-date">{dateLabel}</span></p>}
           </div>
-          <div className="topbar-actions">
-            <button
-              className="font-size-toggle"
-              type="button"
-              aria-pressed={readable}
-              onClick={toggleReadable}
-            >
-              <Icon name="text" size={18} />
-              {readable ? "기본 글씨" : "큰 글씨"}
-            </button>
-            <button
-              className="global-search-trigger"
-              onClick={showGlobalSearch}
-              type="button"
-              aria-keyshortcuts="/"
-            >
-              <Icon name="search" /> 통합검색 <kbd>/</kbd>
-            </button>
-            <button
-              className="primary-button"
-              onClick={() => openWork()}
-              type="button"
-            >
-              <Icon name="plus" /> 새 업무 등록
-            </button>
-          </div>
+          <div className="page-tools" ref={setToolsSlot} />
         </header>
         {notice && (
           <div className="notice" role="status">
@@ -1350,7 +1420,9 @@ export function WorkManager() {
             <span>실제 엑셀 자료는 배포 DB 이관 단계에서 채웁니다.</span>
           </div>
         )}
-        <div className="view-content" key={view}>
+        {recordPage && renderHistory(true)}
+        <PageToolsSlot.Provider value={recordPage ? null : toolsSlot}>
+        <div className="view-content" key={view} hidden={Boolean(recordPage)}>
           {loading ? (
             <Loading />
           ) : (
@@ -1546,6 +1618,7 @@ export function WorkManager() {
             </>
           )}
         </div>
+        </PageToolsSlot.Provider>
       </section>
       {globalSearchLoaded && (
         <Suspense
@@ -1577,24 +1650,7 @@ export function WorkManager() {
           />
         </Suspense>
       )}
-      {historyModal && !workReader && (
-        <HistoryModal
-          data={historyModal}
-          workTypes={lookups.workTypes}
-          onWorkTypeChange={(historyWorkType) => setHistoryModal((current) => current ? { ...current, historyWorkType } : null)}
-          onClose={() => { historyOpenVersion.current += 1; workOpenVersion.current += 1; setHistoryModal(null); }}
-          onRefresh={() => void refreshHistory(historyModal)}
-          onOpenWork={(id) => {
-            void readWork(id);
-          }}
-          onNewWork={(id) => void openWork(undefined, id)}
-          onNewListingWork={(listing) => void openWork(undefined, undefined, undefined, listing)}
-          onModifyListing={(listing, customerId) => void openWork(undefined, customerId, "매물수정", listing)}
-          onFollowUp={addFollowUp}
-          onCopy={copyCustomerId}
-          onStructure={(key) => { setStructureKey(key); setHistoryModal(null); navigate("structures"); }}
-        />
-      )}
+      {historyModal && !workReader && !recordPage && renderHistory(false)}
       {workReader && !workModal && (
         <Modal title="업무 내용" onClose={closeWorkReader} reading>
           {workReader.loading && <p className="form-help" role="status">업무 내용과 연결된 물건을 불러오고 있습니다…</p>}
@@ -1604,6 +1660,7 @@ export function WorkManager() {
               onCopy={() => void openWork(undefined, undefined, undefined, undefined, workReader.item!)}
               onDelete={() => setDeletionTarget({ type: "work", id: workReader.id })}
               onCustomerHistory={() => openReaderReference({ kind: "customer", id: workReader.item!.customer_id, name: workReader.item!.customer_name })}
+              onEditCustomer={() => void editCustomer(workReader.item!.customer_id)}
               onListingHistory={(key) => { const [, building_name, building_dong, unit_number] = key.split("|"); openReaderReference({ kind: "listing", key, name: workPropertyLabel({ building_name, building_dong, unit_number }) }); }} />
           </Suspense>}
           {readerReference && <ReaderReferencePanel target={readerReference} workTypes={lookups.workTypes} onClose={closeReaderReference} />}
@@ -1616,7 +1673,8 @@ export function WorkManager() {
           modal={workModal}
           customers={customers}
           lookups={lookups}
-          onNewCustomer={() => setCustomerModal({ mode: "new" })}
+          onNewCustomer={(initialId) => setCustomerModal({ mode: "new", initialId })}
+          onEditCustomer={(id) => void editCustomer(id)}
           onClose={() => { workOpenVersion.current += 1; setWorkModal(null); }}
           onCopy={(item) => { workOpenVersion.current += 1; setWorkModal({ mode: "copy", item }); }}
           onDelete={(id, unsavedDraft) => setDeletionTarget({ type: "work", id, unsavedDraft })}
@@ -1641,6 +1699,10 @@ export function WorkManager() {
           onSaved={async (message, customerId, savedCustomer) => {
             setCustomerModal(null);
             if (savedCustomer) setCustomers((current) => [savedCustomer, ...current.filter((item) => item.id !== savedCustomer.id)]);
+            if (savedCustomer) {
+              setHistoryModal((current) => current?.customer?.id === savedCustomer.id ? { ...current, customer: savedCustomer, title: `${savedCustomer.name} 업무 이력` } : current);
+              setWorkReader((current) => current?.item?.customer_id === savedCustomer.id ? { ...current, item: { ...current.item, customer_name: savedCustomer.name } } : current);
+            }
             if (customerId)
               setWorkModal((current) =>
                 current
@@ -1671,6 +1733,7 @@ export function WorkManager() {
   );
 }
 
+
 function Loading() {
   return (
     <div className="loading-grid">
@@ -1699,50 +1762,52 @@ function DashboardView({
   followUps: ReactNode;
 } & WorkHistoryActions) {
   const metrics = dashboard.metrics;
+  const upcoming = dashboard.upcoming ?? [];
+  const days: Array<[string, WorkSummary[]]> = [];
+  for (const item of upcoming) {
+    const day = days.find(([date]) => date === item.work_date);
+    if (day) day[1].push(item);
+    else days.push([item.work_date, [item]]);
+  }
+  const weekday = (date: string) => new Intl.DateTimeFormat("ko-KR", { weekday: "short", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`));
+  const scheduleItem = (item: WorkSummary) => (
+    <li key={item.id}>
+      <button type="button" className="home-schedule-item" onClick={() => onOpen(item.id)}>
+        <span className="home-schedule-line">
+          <i className={`tag ${statusTone(item.work_type)}`}>{item.work_type}</i>
+          <strong>{item.customer_name}</strong>
+        </span>
+        {item.content && <span className="home-schedule-note">{item.content}</span>}
+      </button>
+    </li>
+  );
   return (
-    <>
-      <div className="metric-grid">
-        <article className="metric-card featured">
-          <p className="metric-label">오늘 업무</p>
-          <strong>
-            {metrics.today_count}
-            <small>건</small>
-          </strong>
-          <button className="attention" title="업무일이 오늘인 기록" onClick={onOpenToday}>오늘 업무 보기</button>
-        </article>
-        <article className="metric-card">
-          <p className="metric-label">다가오는 일정</p>
-          <strong>
-            {metrics.upcoming_count}
-            <small>건</small>
-          </strong>
-          <button className="attention" onClick={onOpenSchedule}>
-            7일 일정 확인
-          </button>
-        </article>
-        <article className="metric-card">
-          <p className="metric-label">진행 중 매물</p>
-          <strong>
-            {metrics.active_listing_count}
-            <small>건</small>
-          </strong>
-          <button onClick={() => onNavigate("listings")}>
-            전체 매물 보기
-          </button>
-        </article>
-        <article className="metric-card">
-          <p className="metric-label">전체 고객</p>
-          <strong>
-            {metrics.customer_count}
-            <small>명</small>
-          </strong>
-          <button onClick={() => onNavigate("customers")}>
-            고객 목록 보기
-          </button>
-        </article>
-      </div>
-      <div className="home-body-grid">
-        <section className="panel recent-panel">
+    <div className="home-body-grid home-today">
+      <section className="panel home-schedule" aria-label="오늘과 다가오는 일정">
+        <div className="panel-head">
+          <div>
+            <h2>오늘·다가오는 일정</h2>
+            <p className="sort-summary">오늘 {metrics.today_count}건 · 앞으로 7일 {metrics.upcoming_count}건</p>
+          </div>
+          <button className="text-button" onClick={() => onNavigate("calendar")}>달력</button>
+        </div>
+        <div className="home-schedule-day is-today">
+          <h3>오늘 <span>{weekday(seoulDate())}</span></h3>
+          {dashboard.today.length ? <ol>{dashboard.today.map(scheduleItem)}</ol> : <p className="home-schedule-empty">오늘 기록한 업무가 없습니다.</p>}
+        </div>
+        {days.map(([date, items]) => (
+          <div className="home-schedule-day" key={date}>
+            <h3>{displayDate(date)} <span>{weekday(date)}</span></h3>
+            <ol>{items.map(scheduleItem)}</ol>
+          </div>
+        ))}
+        {!days.length && <p className="home-schedule-empty home-schedule-day">앞으로 7일 동안 잡힌 예정·예약 업무가 없습니다.</p>}
+        <div className="home-schedule-foot">
+          <button type="button" className="secondary-button" onClick={onOpenToday}>오늘 업무 보기</button>
+          <button type="button" className="secondary-button" onClick={onOpenSchedule}>7일 일정 확인</button>
+        </div>
+      </section>
+      <section className="panel recent-panel">
         <div className="panel-head">
           <div>
             <h2>최근 업무</h2>
@@ -1753,10 +1818,9 @@ function DashboardView({
           </button>
         </div>
         <WorkTable items={dashboard.recent} onOpen={onOpen} onCustomerHistory={onCustomerHistory} onListingHistory={onListingHistory} />
-        </section>
-        {followUps}
-      </div>
-    </>
+      </section>
+      {followUps}
+    </div>
   );
 }
 function Toolbar({
@@ -1770,7 +1834,8 @@ function Toolbar({
   placeholder: string;
   children?: React.ReactNode;
 }) {
-  return (
+  const slot = useContext(PageToolsSlot);
+  const bar = (
     <div className="toolbar">
       <div className="search-box">
         <Icon name="search" />
@@ -1795,6 +1860,7 @@ function Toolbar({
       {children}
     </div>
   );
+  return slot ? createPortal(bar, slot) : bar;
 }
 function JournalView({
   items,
@@ -1968,6 +2034,7 @@ function WorkTable({
   if (!items.length) return <EmptyState title={empty} />;
   return (
     <div className="responsive-table work-table work-reading-list">
+      <div className="work-record-head" aria-hidden="true"><span>일자</span><span>업무구분</span><span>고객</span><span>내용</span><span>물건</span></div>
       {items.map((item) => {
         const properties = getWorkProperties(item);
         const groups = getPropertyDisplayGroups(properties);
@@ -1985,15 +2052,18 @@ function WorkTable({
                 <span className="work-record-property-heading"><strong className="work-property-group-label" aria-label={`함께 기록한 물건 ${item.property_count}개`}>연결 매물 <span>{item.property_count}</span></strong></span>
                 <span className="work-property-groups">
                   {groups.map((group) => <span className="work-property-building-group" key={group.key}>
-                    <strong className="work-property-building">{group.building || group.items[0].property.property_type || "물건 정보 미입력"}</strong>
+                    {group.items[0].property.property_type.trim() !== "토지" && <strong className="work-property-building">{group.building || group.items[0].property.property_type || "물건 정보 미입력"}</strong>}
                     <ol className="work-property-list">
                       {group.items.map(({ property, index, shortLabel, sourceLabel }) => {
                         const matched = Number(item.search_property_match) === 1 && property.property_type === item.property_type && property.building_name === item.building_name && property.building_dong === item.building_dong && property.unit_number === item.unit_number;
                         const label = workPropertyLabel(property, true);
+                        const prices = [["매매", property.sale_price], ["전세", property.jeonse_price], ["월세", property.monthly_rent]]
+                          .filter(([, value]) => value.trim()).map(([kind, value]) => `${kind} ${value}`).join(" · ");
                         return <li key={property.id || index} className={matched ? "is-search-match" : undefined}>
-                          {property.property_type.trim() && property.building_name.trim() && property.unit_number.trim() ? <button type="button" className="work-cell-button history-link" onClick={() => onListingHistory({ ...item, ...property, id: item.id })} aria-label={`${label} 매물 이력 보기`}>
+                          {property.property_type.trim() && property.building_name.trim() && (property.property_type.trim() === "토지" || property.unit_number.trim()) ? <button type="button" className="work-cell-button history-link" onClick={() => onListingHistory({ ...item, ...property, id: item.id })} aria-label={`${label} 매물 이력 보기`}>
                             <span className="work-property-address">{`${shortLabel}${sourceLabel}`}</span>{matched && <span className="work-property-match" aria-label="검색 일치 물건" title="검색 일치 물건">일치</span>}
                           </button> : <span className="work-property-incomplete" aria-label={label}>{`${shortLabel}${sourceLabel}`}{matched && <span className="work-property-match" aria-label="검색 일치 물건">일치</span>}</span>}
+                          {prices && <span className="work-property-price">{prices}</span>}
                         </li>;
                       })}
                     </ol>
@@ -2232,7 +2302,6 @@ function ListingsView({
             ))}
           </div>
         ))}
-        {resultsVisible && items.length >= 1000 && <p className="workflow-limit-note">최대 1,000건을 표시 중입니다. 건물명·동·호수나 상태로 범위를 좁혀 주세요. CSV는 현재 표시된 목록을 저장합니다.</p>}
       </section>
     </>
   );
@@ -2402,7 +2471,6 @@ function CustomersView({
             ))}
           </div>
         ))}
-        {resultsVisible && items.length >= 1000 && <p className="workflow-limit-note">관리 화면은 최대 1,000명을 표시합니다. 이름·연락처로 범위를 좁혀 주세요. 새 업무의 고객 선택은 전체 명부에서 검색합니다.</p>}
       </section>
     </>
   );
@@ -2605,386 +2673,12 @@ function CalendarView({
     </>
   );
 }
-function SettingsView({
-  lookups,
-  onSaved,
-  onLogout,
-}: {
-  lookups: Lookups;
-  onSaved: () => Promise<void>;
-  onLogout: () => void;
-}) {
-  const [kind, setKind] = useState("workType");
-  const [propertyType, setPropertyType] = useState(
-    lookups.propertyTypes[0] || "아파트",
-  );
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [savedMessage, setSavedMessage] = useState("");
-  const [refreshError, setRefreshError] = useState("");
-  const requestPending = useRef(false);
-  async function refreshSavedLookups() {
-    setRefreshError("");
-    try {
-      await onSaved();
-    } catch {
-      setRefreshError("분류는 추가되었지만 목록을 다시 불러오지 못했습니다. 다시 추가할 필요는 없습니다. 목록만 다시 불러와 주세요.");
-    }
-  }
-  async function retryRefresh() {
-    if (requestPending.current) return;
-    requestPending.current = true;
-    setSaving(true);
-    try {
-      await refreshSavedLookups();
-    } finally {
-      requestPending.current = false;
-      setSaving(false);
-    }
-  }
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    if (requestPending.current) return;
-    requestPending.current = true;
-    setSaving(true);
-    setError("");
-    setSavedMessage("");
-    setRefreshError("");
-    try {
-      await jsonFetch("/api/lookups", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind, propertyType, name }),
-      });
-      setName("");
-      setSavedMessage(`‘${name.trim()}’ 분류를 추가했습니다.`);
-      await refreshSavedLookups();
-    } catch (saveError) {
-      setError((saveError as Error).message);
-    } finally {
-      requestPending.current = false;
-      setSaving(false);
-    }
-  }
-  return (
-    <div className="settings-grid">
-      <section className="panel settings-panel">
-        <div className="panel-head">
-          <div>
-            <h2>업무구분</h2>
-          </div>
-          <span className="count-badge">{lookups.workTypes.length}</span>
-        </div>
-        <div className="chip-list">
-          {lookups.workTypes.map((type) => (
-            <span key={type}>{type}</span>
-          ))}
-        </div>
-      </section>
-      <section className="panel settings-panel">
-        <div className="panel-head">
-          <div>
-            <h2>물건·건물 분류</h2>
-          </div>
-          <span className="count-badge">{lookups.buildings.length}</span>
-        </div>
-        <div className="building-groups">
-          {lookups.propertyTypes.map((type) => (
-            <details key={type}>
-              <summary>
-                <Icon name="next" size={18} />
-                <span>{type}</span>
-                <small>
-                  {
-                    lookups.buildings.filter(
-                      (item) => item.property_type === type,
-                    ).length
-                  }
-                  개
-                </small>
-              </summary>
-              <ul className="building-name-list">
-                {lookups.buildings
-                  .filter((item) => item.property_type === type)
-                  .map((item) => <li key={item.id}>{item.building_name}</li>)}
-              </ul>
-            </details>
-          ))}
-        </div>
-      </section>
-      <form className="panel add-setting" onSubmit={submit}>
-        <div>
-          <h2>새 분류 추가</h2>
-        </div>
-        <label>
-          분류
-          <select
-            value={kind}
-            disabled={saving}
-            onChange={(event) => setKind(event.target.value)}
-          >
-            <option value="workType">업무구분</option>
-            <option value="building">건물명</option>
-          </select>
-        </label>
-        {kind === "building" && (
-          <label>
-            물건구분
-            <select
-              value={propertyType}
-              disabled={saving}
-              onChange={(event) => setPropertyType(event.target.value)}
-            >
-              {lookups.propertyTypes.map((type) => (
-                <option key={type}>{type}</option>
-              ))}
-            </select>
-          </label>
-        )}
-        <label>
-          이름
-          <input
-            value={name}
-            disabled={saving}
-            onChange={(event) => setName(event.target.value)}
-            required
-          />
-        </label>
-        {error && <div className="form-error" role="alert">{error}</div>}
-        {savedMessage && <div className="form-help" role="status">{savedMessage}</div>}
-        {refreshError && <div className="form-error" role="alert"><p>{refreshError}</p><button type="button" className="secondary-button" onClick={retryRefresh} disabled={saving}><Icon name="refresh" size={17} /> 목록 다시 불러오기</button></div>}
-        <button className="primary-button" disabled={saving}>
-          {saving ? savedMessage ? "목록 불러오는 중…" : "추가 중…" : "추가"}
-        </button>
-      </form>
-      <BackupPanel />
-      <section className="panel account-panel">
-        <div>
-          <h2>관리자 계정</h2>
-          <p>현재 기기에서 안전하게 로그아웃합니다.</p>
-        </div>
-        <button className="secondary-button" type="button" onClick={onLogout}>
-          로그아웃
-        </button>
-      </section>
-    </div>
-  );
-}
-
-function BackupPanel() {
-  const [backups, setBackups] = useState<BackupSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
-  const [message, setMessage] = useState("");
-  const [loadError, setLoadError] = useState("");
-  const [actionError, setActionError] = useState("");
-  const [downloadKey, setDownloadKey] = useState("");
-  const [visibleCount, setVisibleCount] = useState(12);
-  const loadVersion = useRef(0);
-  const creatingRef = useRef(false);
-  const downloadingRef = useRef(false);
-  const createdListPending = useRef(false);
-  const load = useCallback(async () => {
-    const version = ++loadVersion.current;
-    setLoading(true);
-    setLoadError("");
-    try {
-      const data = await jsonFetch<{ backups: BackupSummary[] }>(
-        "/api/backups",
-      );
-      if (version !== loadVersion.current) return false;
-      setBackups([...data.backups].sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
-      if (createdListPending.current) {
-        createdListPending.current = false;
-        setMessage("새 백업 목록을 확인했습니다. 아래 최신 백업에서 내려받을 수 있습니다.");
-      }
-      return true;
-    } catch (error) {
-      if (version === loadVersion.current)
-        setLoadError(error instanceof Error ? error.message : "백업 목록을 불러오지 못했습니다.");
-      return false;
-    } finally {
-      if (version === loadVersion.current) setLoading(false);
-    }
-  }, []);
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void load();
-    }, 0);
-    return () => {
-      window.clearTimeout(timer);
-      loadVersion.current += 1;
-    };
-  }, [load]);
-  async function createNow() {
-    if (creatingRef.current) return;
-    creatingRef.current = true;
-    createdListPending.current = false;
-    setCreating(true);
-    setMessage("");
-    setActionError("");
-    try {
-      await jsonFetch("/api/backups", { method: "POST" });
-      const refreshed = await load();
-      createdListPending.current = !refreshed;
-      setMessage(refreshed
-        ? "새 백업을 만들었습니다. 아래 최신 백업에서 내려받을 수 있습니다."
-        : "새 백업은 만들어졌지만 목록을 확인하지 못했습니다. 아래 ‘다시 불러오기’로 최신 백업을 확인해 주세요.");
-    } catch (backupError) {
-      setActionError(backupError instanceof Error ? backupError.message : "백업을 만들지 못했습니다.");
-    } finally {
-      creatingRef.current = false;
-      setCreating(false);
-    }
-  }
-  async function download(backup: BackupSummary) {
-    if (downloadingRef.current) return;
-    downloadingRef.current = true;
-    createdListPending.current = false;
-    setDownloadKey(backup.key);
-    setActionError("");
-    setMessage("");
-    try {
-      const response = await fetch(`/api/backups/download?key=${encodeURIComponent(backup.key)}`, {
-        credentials: "same-origin",
-        cache: "no-store",
-      });
-      if (!response.ok) {
-        const body = await response.json().catch(() => null) as { error?: string } | null;
-        throw new Error(body?.error || "백업 파일을 내려받지 못했습니다. 다시 시도해 주세요.");
-      }
-      if (!response.headers.get("Content-Type")?.includes("application/json"))
-        throw new Error("백업 파일을 확인하지 못했습니다. 로그인 상태를 확인한 뒤 다시 시도해 주세요.");
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `jipjangbu-backup-${backup.createdAt.slice(0, 10)}-${backup.kind}.json`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 0);
-      setMessage("백업 파일을 준비했습니다. 브라우저의 다운로드 목록에서 저장 여부를 확인해 주세요.");
-    } catch (error) {
-      setActionError(error instanceof Error ? error.message : "백업 파일을 내려받지 못했습니다.");
-    } finally {
-      downloadingRef.current = false;
-      setDownloadKey("");
-    }
-  }
-  const kindLabel = (backup: BackupSummary) =>
-    backup.kind === "daily"
-      ? "접속일 자동"
-      : backup.kind === "manual"
-        ? "직접 저장"
-        : backup.reason.startsWith("post-")
-          ? "변경 후 자동"
-          : "변경 전 자동";
-  const dateTime = (value: string) => {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "날짜 정보 없음";
-    return new Intl.DateTimeFormat("ko-KR", {
-      timeZone: "Asia/Seoul",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
-  };
-  return (
-    <section className="panel backup-panel">
-      <div className="backup-head">
-        <div>
-          <h2>데이터 안전 백업</h2>
-          <span>
-            사용한 날 첫 접속 시 1회, 정보 변경 전·후에 서버에 암호화해 보관합니다.
-            접속하지 않은 날에는 일일 백업이 생성되지 않으며, 90일이 지난 백업은 정리합니다.
-          </span>
-        </div>
-        <button
-          className="primary-button"
-          type="button"
-          onClick={createNow}
-          disabled={creating}
-        >
-          <Icon name="backup" size={18} />
-          {creating ? "백업 중…" : "지금 백업"}
-        </button>
-      </div>
-      {message && (
-        <p className="backup-message" role="status">
-          {message}
-        </p>
-      )}
-      {actionError && <p className="backup-action-error" role="alert">{actionError}</p>}
-      {loadError && (
-        <div className="backup-load-error" role="alert">
-          <div><strong>백업 목록을 확인하지 못했습니다.</strong><p>{loadError}</p></div>
-          <button className="secondary-button" type="button" onClick={() => void load()} disabled={loading}>
-            <Icon name="refresh" size={17} /> 다시 불러오기
-          </button>
-        </div>
-      )}
-      {backups[0] && (
-        <div className="backup-latest">
-          <Icon name="backup" size={19} />
-          <span>{loadError || loading ? "마지막으로 확인한 백업" : "가장 최근 백업"}<strong>{dateTime(backups[0].createdAt)}</strong></span>
-        </div>
-      )}
-      <p className="backup-download-help">내려받은 파일에는 고객 정보가 포함됩니다. 안전한 곳에 보관해 주세요. CSV 목록 저장과 달리 전체 데이터를 담는 복구용 파일입니다.</p>
-      <div className="backup-list" aria-busy={loading}>
-        {loading ? (
-          <p className="backup-empty" role="status">백업 목록을 불러오는 중입니다.</p>
-        ) : backups.length === 0 && !loadError ? (
-          <p className="backup-empty">아직 만들어진 백업이 없습니다.</p>
-        ) : (
-          backups.slice(0, visibleCount).map((backup) => (
-            <div className="backup-row" key={backup.key}>
-              <div>
-                <strong>{kindLabel(backup)}</strong>
-                <span>
-                  <time className="record-date" dateTime={backup.createdAt}>{dateTime(backup.createdAt)}</time> ·{" "}
-                  {Math.max(1, Math.round(backup.size / 1024)).toLocaleString(
-                    "ko-KR",
-                  )}
-                  KB
-                </span>
-              </div>
-              <button
-                className="tiny-button"
-                type="button"
-                disabled={Boolean(downloadKey)}
-                onClick={() => void download(backup)}
-                aria-label={`${dateTime(backup.createdAt)} ${kindLabel(backup)} 백업 내려받기`}
-              >
-                <Icon name={downloadKey === backup.key ? "refresh" : "download"} size={16} />
-                {downloadKey === backup.key ? "준비 중…" : "내려받기"}
-              </button>
-            </div>
-          ))
-        )}
-      </div>
-      {!loading && visibleCount < backups.length && (
-        <button
-          className="backup-show-more"
-          type="button"
-          onClick={() => setVisibleCount((count) => count + 24)}
-        >
-          이전 백업 더 보기{" "}
-          <small>{backups.length - visibleCount}개 남음</small>
-        </button>
-      )}
-    </section>
-  );
-}
-
 function WorkModal({
   modal,
   customers,
   lookups,
   onNewCustomer,
+  onEditCustomer,
   onClose,
   onSaved,
   onCopy,
@@ -2994,7 +2688,8 @@ function WorkModal({
   modal: WorkModalState;
   customers: Customer[];
   lookups: Lookups;
-  onNewCustomer: () => void;
+  onNewCustomer: (initialId: string) => void;
+  onEditCustomer: (id: string) => void;
   onClose: () => void;
   onSaved: (message: string, copiedWork?: WorkDetail) => Promise<void>;
   onCopy: (item: WorkDetail) => void;
@@ -3007,6 +2702,7 @@ function WorkModal({
   const [customerId, setCustomerId] = useState(
     source?.customer_id || modal.initialCustomerId || "",
   );
+  const [customerQuery, setCustomerQuery] = useState("");
   const [workType, setWorkType] = useState(
     source?.work_type || modal.initialWorkType || "",
   );
@@ -3156,11 +2852,14 @@ function WorkModal({
           workType,
           content,
           details,
+          ...(item ? { revision: item.revision } : {}),
         }),
       });
       await onSaved(item ? "업무를 수정했습니다." : modal.mode === "copy" ? "업무를 복사해 새 업무로 저장했습니다." : "업무를 저장했습니다.", modal.mode === "copy" ? result.workLog : undefined);
     } catch (e) {
-      setError((e as Error).message);
+      setError(item && (e as Error & { status?: number }).status === 409
+        ? "다른 기기에서 이 업무가 변경되어 저장하지 않았습니다. 작성한 내용을 복사해 둔 뒤 창을 닫고 최신 업무를 다시 열어 확인해 주세요."
+        : (e as Error).message);
     } finally {
       savePendingRef.current = false;
       setSaving(false);
@@ -3218,13 +2917,14 @@ function WorkModal({
               <span>
                 고객 <b>*</b>
               </span>
-              <button type="button" onClick={onNewCustomer} disabled={saving}>
+              <button type="button" onClick={() => onNewCustomer(customerQuery.trim())} disabled={saving}>
                 <Icon name="plus" size={16} /> 새 고객
               </button>
             </div>
             <CustomerPicker
               customers={customers}
               value={customerId}
+              onQueryChange={setCustomerQuery}
               onChange={(id) => { setCustomerId(id); setReferenceHistory(null); if (errorField === "customerId") { setErrorField(null); setError(""); } }}
               disabled={saving}
             />
@@ -3242,6 +2942,7 @@ function WorkModal({
             >
               <Icon name="clock" size={17} /> 고객 이력 보기
             </button>
+            {selectedCustomer && <button type="button" className="editor-history-button" disabled={saving} onClick={() => onEditCustomer(selectedCustomer.id)}><Icon name="edit" size={17} /> 고객 정보 수정</button>}
           </div>
           <label>
             업무구분 <b>*</b>
@@ -3280,7 +2981,7 @@ function WorkModal({
         <div className="detail-head">
           <div>
             <h3>2. 관련 물건 {changesListing ? "· 필수" : "· 선택"}</h3>
-            <p>{changesListing ? "기존 매물을 불러오거나 물건구분·건물명·호수를 입력하세요. 완전히 빈 추가 칸은 저장하지 않습니다." : "기존 매물을 불러오거나 직접 입력하세요. 물건이 없는 업무는 비워 두어도 됩니다."}</p>
+            <p>{changesListing ? "기존 매물을 불러오거나 주소를 입력하세요. 토지 외 물건은 건물명과 호수가 필요합니다." : "기존 매물을 불러오거나 직접 입력하세요. 물건이 없는 업무는 비워 두어도 됩니다."}</p>
           </div>
           <button
             type="button"
@@ -3330,7 +3031,7 @@ function WorkModal({
                 >
                   <Icon name="clock" size={17} /> 매물 이력 보기
                 </button>
-                {!createPropertyHistoryTarget(detail) && <span className="form-help">이력 조회는 물건구분·건물명·호수가 필요합니다.</span>}
+                {!createPropertyHistoryTarget(detail) && <span className="form-help">이력 조회는 물건구분과 주소가 필요합니다. 토지 외 물건은 호수도 입력해 주세요.</span>}
               </div>
               {listingPickerIndex === index && (
                 <div id={`editor-listing-picker-${index}`}>
@@ -3368,16 +3069,24 @@ function WorkModal({
                   </select>
                 </label>
                 <label className="building-field">
-                  건물명 {changesListing && <b>*</b>}
+                  {detail.propertyType === "토지" ? "주소 전체" : "건물명"} {changesListing && <b>*</b>}
                   <input
                     data-work-field={`property-${index}-buildingName`}
                     aria-invalid={errorField === `property-${index}-buildingName` || undefined}
                     aria-required={changesListing && (hasPropertyDraft(detail) || !enteredPropertyCount)}
-                    list={`buildings-${index}`}
-                    value={detail.buildingName}
-                    onChange={(event) =>
-                      updateDetail(index, "buildingName", event.target.value)
-                    }
+                    list={detail.propertyType === "토지" ? undefined : `buildings-${index}`}
+                    value={detail.propertyType === "토지" && (detail.buildingDong || detail.unitNumber)
+                      ? workPropertyLabel({ building_name: detail.buildingName, building_dong: detail.buildingDong, unit_number: detail.unitNumber })
+                      : detail.buildingName}
+                    placeholder={detail.propertyType === "토지" ? "주소를 전체 입력하세요" : undefined}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      if (detail.propertyType === "토지" && (detail.buildingDong || detail.unitNumber)) {
+                        setReferenceHistory(null);
+                        setDetails((current) => current.map((row, rowIndex) => rowIndex === index ? { ...row, buildingName: value, buildingDong: "", unitNumber: "" } : row));
+                        if (errorField === `property-${index}-buildingName`) { setErrorField(null); setError(""); }
+                      } else updateDetail(index, "buildingName", value);
+                    }}
                   />
                   <datalist id={`buildings-${index}`}>
                     {lookups.buildings
@@ -3394,7 +3103,7 @@ function WorkModal({
                       ))}
                   </datalist>
                 </label>
-                <label>
+                {detail.propertyType !== "토지" && <label>
                   동
                   <input
                     value={detail.buildingDong}
@@ -3403,8 +3112,8 @@ function WorkModal({
                       updateDetail(index, "buildingDong", event.target.value)
                     }
                   />
-                </label>
-                <label>
+                </label>}
+                {detail.propertyType !== "토지" && <label>
                   호수 {changesListing && <b>*</b>}
                   <input
                     data-work-field={`property-${index}-unitNumber`}
@@ -3416,7 +3125,7 @@ function WorkModal({
                       updateDetail(index, "unitNumber", event.target.value)
                     }
                   />
-                </label>
+                </label>}
                 <label>
                   타입
                   <input
@@ -3543,13 +3252,13 @@ function CustomerModal({
   onDelete,
   onBusyChange,
 }: {
-  modal: { mode: "new" | "edit"; item?: Customer };
+  modal: { mode: "new" | "edit"; item?: Customer; initialId?: string };
   onClose: () => void;
   onSaved: (message: string, customerId?: string, savedCustomer?: Customer) => Promise<void>;
   onDelete: (id: string, unsavedDraft: boolean) => void;
   onBusyChange?: (busy: boolean) => void;
 }) {
-  const [id, setId] = useState(modal.item?.id || "");
+  const [id, setId] = useState(modal.item?.id || modal.initialId || "");
   const [name, setName] = useState(modal.item?.name || "");
   const [notes, setNotes] = useState(modal.item?.notes || "");
   const [error, setError] = useState("");
@@ -3589,25 +3298,29 @@ function CustomerModal({
     setError("");
     try {
       onBusyChange?.(true);
-      const response = await jsonFetch<{ customer?: Pick<Customer, "id" | "name" | "notes"> }>(
+      const response = await jsonFetch<{ customer?: Customer }>(
         modal.item
           ? `/api/customers/${encodeURIComponent(modal.item.id)}`
           : "/api/customers",
         {
           method: modal.item ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id, name, notes }),
+          body: JSON.stringify({ id, name, notes, ...(modal.item ? { expected: {
+            name: modal.item.name, notes: modal.item.notes, created_at: modal.item.created_at,
+            updated_at: modal.item.updated_at, is_demo: modal.item.is_demo,
+          } } : {}) }),
         },
       );
       await onSaved(
         modal.item ? "고객 정보를 수정했습니다." : "고객을 등록했습니다.",
         modal.item ? undefined : response.customer?.id ?? id.trim(),
-        !modal.item && response.customer ? {
+        response.customer ? {
+          ...modal.item,
           ...response.customer,
-          created_at: "",
-          updated_at: "",
-          history_count: 0,
-          is_demo: 0,
+          created_at: response.customer.created_at || "",
+          updated_at: response.customer.updated_at || "",
+          history_count: modal.item?.history_count || 0,
+          is_demo: response.customer.is_demo ?? 0,
         } : undefined,
       );
     } catch (e) {
@@ -3695,12 +3408,15 @@ function HistoryModal({
   onRefresh,
   onOpenWork,
   onNewWork,
+  onEditCustomer,
   onNewListingWork,
   onModifyListing,
   onFollowUp,
   onCopy,
   onStructure,
+  page = false,
 }: {
+  page?: boolean;
   data: HistoryData;
   workTypes?: string[];
   onWorkTypeChange: (value: string) => void;
@@ -3708,6 +3424,7 @@ function HistoryModal({
   onRefresh: () => void;
   onOpenWork: (id: string) => void;
   onNewWork: (id: string) => void;
+  onEditCustomer?: (id: string) => void;
   onNewListingWork?: (listing: Listing) => void;
   onModifyListing?: (listing: Listing, customerId?: string) => void;
   onFollowUp: (draft: FollowUpDraft) => void;
@@ -3721,14 +3438,13 @@ function HistoryModal({
   const selectedType = filterable ? data.historyWorkType ?? "" : "";
   const records = selectedType ? allRecords.filter((record) => ("event_date" in record ? record.status : record.work_type) === selectedType) : allRecords;
   const availableTypes = [...workTypes, ...allRecords.map((record) => "event_date" in record ? record.status : record.work_type)];
-  return (
-    <Modal title={data.title} subtitle={data.subtitle} onClose={onClose} reading>
-      {isListingHistory && onStructure && <div className="history-actions"><button type="button" className="secondary-button" onClick={() => onStructure(data.listing?.identity_key || data.listingKey || "")}><Icon name="structures" size={18}/> 집 구조 보기</button></div>}
-      {data.loading && <p className="form-help" role="status">이력을 불러오고 있습니다…</p>}
-      {data.error && <div className="form-error" role="alert"><p>{data.error}</p>{(data.customer || data.listing || data.listingKey || data.date || data.scheduleDays) && <button type="button" className="secondary-button" onClick={onRefresh}><Icon name="refresh" size={16} /> 다시 불러오기</button>}</div>}
-      {filterable && <HistoryWorkTypeFilter value={selectedType} workTypes={availableTypes} count={data.error || (!selectedType && !allRecords.length && data.listing?.source_notes?.trim()) ? undefined : records.length} loading={data.loading} onChange={onWorkTypeChange} />}
-      {data.customer && (
+  const structureAction = (isListingHistory && onStructure && <div className="history-actions"><button type="button" className="secondary-button" onClick={() => onStructure(data.listing?.identity_key || data.listingKey || "")}><Icon name="structures" size={18}/> 집 구조 보기</button></div>);
+  const loadingNote = (data.loading && <p className="form-help" role="status">이력을 불러오고 있습니다…</p>);
+  const errorNote = (data.error && <div className="form-error" role="alert"><p>{data.error}</p>{(data.customer || data.listing || data.listingKey || data.date || data.scheduleDays) && <button type="button" className="secondary-button" onClick={onRefresh}><Icon name="refresh" size={16} /> 다시 불러오기</button>}</div>);
+  const typeFilter = (filterable && <HistoryWorkTypeFilter value={selectedType} workTypes={availableTypes} count={data.error || (!selectedType && !allRecords.length && data.listing?.source_notes?.trim()) ? undefined : records.length} loading={data.loading} onChange={onWorkTypeChange} />);
+  const customerActions = (data.customer && (
         <div className="history-actions">
+          {onEditCustomer && <button type="button" className="secondary-button" onClick={() => onEditCustomer(data.customer!.id)}><Icon name="edit" size={18} /> 고객 정보 수정</button>}
           <button
             type="button"
             className="primary-button"
@@ -3744,8 +3460,8 @@ function HistoryModal({
             <Icon name="copy" size={18} /> 연락처·ID 복사
           </button>
         </div>
-      )}
-      {data.listing && (
+      ));
+  const listingSummary = (data.listing && (
         <>
         <div className="listing-history-context">
           <p className="listing-history-summary">
@@ -3796,10 +3512,10 @@ function HistoryModal({
           </button>
         </div>
         </>
-      )}
-      {data.customer && <p className="history-list-guide">고객ID 또는 물건지·업소가 고객ID와 일치하는 업무입니다.</p>}
-      {isListingHistory && !data.listing && allRecords.length > 0 && !data.loading && !data.error && <p className="history-list-guide">매물 변경 이력은 없으며, 이 매물이 포함된 업무 기록을 보여드립니다.</p>}
-      {(!data.listing || records.length > 0 || selectedType) && <RecordContainer className={data.listing ? "listing-work-details" : undefined} open={data.listing && selectedType ? true : undefined}>
+      ));
+  const customerGuide = (data.customer && <p className="history-list-guide">고객ID 또는 물건지·업소가 고객ID와 일치하는 업무입니다.</p>);
+  const listingGuide = (isListingHistory && !data.listing && allRecords.length > 0 && !data.loading && !data.error && <p className="history-list-guide">매물 변경 이력은 없으며, 이 매물이 포함된 업무 기록을 보여드립니다.</p>);
+  const recordList = ((!data.listing || records.length > 0 || selectedType) && <RecordContainer className={data.listing ? "listing-work-details" : undefined} open={data.listing && (page || selectedType) ? true : undefined}>
       {data.listing && <summary><Icon name="next" size={16} /> 개별 업무 보기 <span>{records.length.toLocaleString("ko-KR")}건</span></summary>}
       {records.length > 0 && <p className="history-list-guide">{records.length.toLocaleString("ko-KR")}건의 기록 · {selectedType ? `${selectedType} · ` : isListingHistory ? "이 매물이 포함된 전체 업무 · " : ""}기록을 누르면 업무 내용을 먼저 읽을 수 있습니다.</p>}
       <div className="history-list" data-schedule-days={data.scheduleDays} aria-busy={Boolean(data.loading)}>
@@ -3843,7 +3559,47 @@ function HistoryModal({
           })
         )}
       </div>
-      </RecordContainer>}
+      </RecordContainer>);
+  if (page) {
+    const latest = allRecords.reduce((value, record) => { const date = "event_date" in record ? record.event_date : record.work_date; return date > value ? date : value; }, "");
+    return (
+      <div className="record-page">
+        <section className="record-page-summary" aria-label="기본 정보">
+          <dl className="record-page-facts">
+            {data.customer && <div><dt>고객 ID</dt><dd>{data.customer.id}</dd></div>}
+            {data.customer && <div className="customer-history-notes-row"><dt>비고</dt><dd className="customer-history-notes">{data.customerNotesError || (data.customer.notes === undefined ? "확인 중…" : data.customer.notes || "미기재")}</dd></div>}
+            {isListingHistory && <div><dt>물건 구분</dt><dd>{data.listing?.property_type || data.subtitle}</dd></div>}
+            <div><dt>업무 기록</dt><dd>{data.loading && !allRecords.length ? "…" : `${allRecords.length.toLocaleString("ko-KR")}건`}</dd></div>
+            {latest && <div><dt>최근 업무</dt><dd>{displayDate(latest)}</dd></div>}
+          </dl>
+          {customerActions}
+          {listingSummary}
+          {structureAction}
+        </section>
+        <section className="panel record-page-history">
+          <div className="panel-head"><h2>업무 이력</h2>{typeFilter}</div>
+          {loadingNote}
+          {errorNote}
+          <div className="record-page-history-body">
+            {customerGuide}
+            {listingGuide}
+            {recordList}
+          </div>
+        </section>
+      </div>
+    );
+  }
+  return (
+    <Modal title={data.title} subtitle={data.subtitle} onClose={onClose} reading>
+      {structureAction}
+      {loadingNote}
+      {errorNote}
+      {typeFilter}
+      {customerActions}
+      {listingSummary}
+      {customerGuide}
+      {listingGuide}
+      {recordList}
     </Modal>
   );
 }
@@ -3866,6 +3622,13 @@ function Modal({
 }) {
   const cardRef = useRef<HTMLElement>(null);
   const [modalId] = useState(() => ++nextModalId);
+  // On wide screens, reading opens beside the list instead of over it, so the list stays usable.
+  const wideScreen = useWideScreen();
+  const side = Boolean(reading) && wideScreen;
+  const sideRef = useRef(side);
+  useEffect(() => {
+    sideRef.current = side;
+  }, [side]);
   const closeRef = useRef(onClose);
   const lockedRef = useRef(locked);
   useEffect(() => {
@@ -3882,7 +3645,7 @@ function Modal({
       document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
-    document.body.style.overflow = "hidden";
+    if (!sideRef.current) document.body.style.overflow = "hidden";
     const frame = window.requestAnimationFrame(() => {
       const preferred = cardRef.current?.querySelector<HTMLElement>(
         "input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])",
@@ -3898,7 +3661,7 @@ function Modal({
         }
         return;
       }
-      if (event.key !== "Tab" || !cardRef.current) return;
+      if (event.key !== "Tab" || !cardRef.current || sideRef.current) return;
       const focusable = Array.from(
         cardRef.current.querySelectorAll<HTMLElement>(
           "button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex='-1'])",
@@ -3931,6 +3694,34 @@ function Modal({
       previousFocus?.focus();
     };
   }, [modalId]);
+  const card = (
+    <section
+      ref={cardRef}
+      className={side ? "modal-card reading side-panel" : `modal-card ${wide ? "wide" : ""} ${reading ? "reading" : ""}`}
+      role="dialog"
+      aria-modal={!side}
+      aria-label={title}
+      aria-busy={locked}
+      tabIndex={-1}
+    >
+      <header>
+        <div>
+          <h2>{title}</h2>
+          {subtitle && <p>{subtitle}</p>}
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="닫기"
+          disabled={locked}
+        >
+          <Icon name="close" />
+        </button>
+      </header>
+      <div className="modal-body">{children}</div>
+    </section>
+  );
+  if (side) return card;
   return (
     <div
       className={`modal-backdrop ${locked ? "locked" : ""}`}
@@ -3939,31 +3730,7 @@ function Modal({
         event.target === event.currentTarget && !locked && onClose()
       }
     >
-      <section
-        ref={cardRef}
-        className={`modal-card ${wide ? "wide" : ""} ${reading ? "reading" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        aria-busy={locked}
-        tabIndex={-1}
-      >
-        <header>
-          <div>
-            <h2>{title}</h2>
-            {subtitle && <p>{subtitle}</p>}
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="닫기"
-            disabled={locked}
-          >
-            <Icon name="close" />
-          </button>
-        </header>
-        <div className="modal-body">{children}</div>
-      </section>
+      {card}
     </div>
   );
 }

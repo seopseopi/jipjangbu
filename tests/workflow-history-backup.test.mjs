@@ -12,10 +12,12 @@ import { formatHistoryTimestamp } from "../app/history-timestamps.ts";
 
 const source = readFileSync(new URL("../app/work-manager.tsx", import.meta.url), "utf8");
 const ast = ts.createSourceFile("work-manager.tsx", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+const settingsAst = ts.createSourceFile("settings-view.tsx", readFileSync(new URL("../app/settings-view.tsx", import.meta.url), "utf8"), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 function compile(name) {
-  const node = ast.statements.find((candidate) => ts.isFunctionDeclaration(candidate) && candidate.name?.text === name);
+  const selectedAst = name === "BackupPanel" ? settingsAst : ast;
+  const node = selectedAst.statements.find((candidate) => ts.isFunctionDeclaration(candidate) && candidate.name?.text === name);
   assert.ok(node, `${name} exists`);
-  return ts.transpileModule(node.getText(ast), {
+  return ts.transpileModule(node.getText(selectedAst), {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, jsx: ts.JsxEmit.React },
   }).outputText;
 }
@@ -94,15 +96,15 @@ test("백업은 실제 접속일 실행을 설명하고 최신 날짜 우선으�
   const harness = backupHarness(async () => ({ backups: [oldBackup, newBackup] }));
   const tree = await harness.mount();
   const html = markup(tree);
-  assert.match(html, /사용한 날 첫 접속 시 1회/);
-  assert.match(html, /접속하지 않은 날에는 일일 백업이 생성되지 않/);
-  assert.match(html, /접속일 자동/);
+  assert.match(html, /이용 시 일일 백업/);
+  assert.match(html, /예약 실행은 배포 환경에 따라 적용/);
+  assert.match(html, /일일 자동/);
   assert.match(html, /전체 데이터를 담는 복구용 파일/);
   assert.match(html, /고객 정보가 포함/);
   const latest = markup(findClass(tree, "backup-latest"));
   assert.match(latest, /2026\. 09\. 13/);
   const list = markup(findClass(tree, "backup-list"));
-  assert.ok(list.indexOf("직접 저장") < list.indexOf("접속일 자동"));
+  assert.ok(list.indexOf("직접 저장") < list.indexOf("일일 자동"));
 });
 
 test("백업 생성 성공 뒤 목록 조회 실패를 성공으로 덮지 않고 중복 생성을 막는다", async () => {

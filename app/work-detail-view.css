@@ -1,6 +1,6 @@
 /* A flat reading surface: one compact heading, full-width notes, aligned facts. */
 .work-read-view { min-width: 0; color: var(--ink); }
-.work-read-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px 20px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.work-read-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px 20px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
 .work-read-heading { flex: 1 1 240px; min-width: 0; }
 .work-read-header > button { flex: 0 0 auto; }
 .work-read-actions { display: flex; flex: 0 1 auto; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
@@ -18,14 +18,14 @@
 .work-read-content { margin-bottom: 26px; }
 .work-read-note { margin: 0; color: var(--ink); font-size: var(--text-base); line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; }
 .work-read-empty, .work-read-price-empty, .work-read-history-note { margin: 0; color: var(--muted); font-size: var(--text-small); line-height: 1.7; }
-.work-read-properties { padding-top: 22px; border-top: 1px solid var(--line); }
+.work-read-properties { padding-top: 22px; border-top: 1px solid var(--rule); }
 .work-read-count { margin-left: 5px; color: var(--muted); font-size: var(--text-small); font-weight: 500; }
 .work-read-columns, .work-read-property { display: grid; grid-template-columns: 30px minmax(170px, 2.2fr) minmax(110px, 1.25fr) minmax(90px, 1fr) 87px; align-items: start; gap: 14px; }
-.work-read-columns { padding: 10px 0; border-bottom: 1px solid var(--line); color: var(--muted); font-size: var(--text-caption); font-weight: 600; }
+.work-read-columns { padding: 10px 0; border-bottom: 1px solid var(--rule); color: var(--muted); font-size: var(--text-caption); font-weight: 600; }
 .work-read-columns > :last-child { text-align: right; }
 .work-read-property-list { margin: 0; padding: 0; list-style: none; }
 .work-read-property-list > li { min-width: 0; }
-.work-read-property { min-width: 0; padding: 15px 0; border-bottom: 1px solid var(--line); }
+.work-read-property { min-width: 0; padding: 15px 0; border-bottom: 1px solid var(--rule); }
 .work-read-number { padding-top: 2px; color: var(--muted); font-size: var(--text-small); font-variant-numeric: tabular-nums; }
 .work-read-address { min-width: 0; }
 .work-read-address h4 { margin: 0; color: var(--ink); font-size: var(--text-base); font-weight: 600; line-height: 1.65; word-break: keep-all; overflow-wrap: anywhere; }

@@ -53,3 +53,16 @@ test("refreshing the same query and duplicate next-page clicks remain locked", (
   assert.equal(canAppendPage("A", "A", false, true), false);
   assert.equal(canAppendPage("A", "A", false, false), true);
 });
+
+test("전체 목록을 여러 페이지로 수집하고 중복이나 중간 오류는 부분 성공으로 처리하지 않는다", async () => {
+  const { collectOffsetPages } = await import("../app/client-paging.ts");
+  const calls = [];
+  const rows = await collectOffsetPages(async (offset) => {
+    calls.push(offset);
+    return offset === 0 ? [{ id: "1" }, { id: "2" }] : [{ id: "3" }];
+  }, 2);
+  assert.deepEqual(calls, [0, 2]);
+  assert.deepEqual(rows.map((row) => row.id), ["1", "2", "3"]);
+  await assert.rejects(collectOffsetPages(async () => [{ id: "1" }, { id: "2" }], 2), /변경/);
+  await assert.rejects(collectOffsetPages(async (offset) => { if (offset) throw new Error("offline"); return [{ id: "1" }, { id: "2" }]; }, 2), /offline/);
+});

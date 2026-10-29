@@ -17,7 +17,7 @@
 .work-form .detail-fields [aria-invalid="true"], .work-form .form-grid [aria-invalid="true"] { border-color: var(--seal); box-shadow: 0 0 0 2px var(--seal-soft); }
 .work-form .modal-actions { position: sticky; z-index: 4; bottom: -25px; margin-inline: -26px; padding: 15px 26px; background: var(--paper); border-top: 1px solid var(--line-strong); box-shadow: none; }
 .work-form .modal-actions .work-save-state { flex: 1; color: var(--muted); font-size: var(--text-caption); }
-.work-form .work-record-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--line); }
+.work-form .work-record-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--rule); }
 .work-form .work-record-actions .danger-button { margin-left: auto; }
 @media (max-width: 720px) {
   .work-form .modal-actions { bottom: calc(-21px - env(safe-area-inset-bottom)); margin-inline: -20px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); }

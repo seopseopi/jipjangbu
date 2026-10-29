@@ -341,7 +341,7 @@ test("승인된 메뉴 이동은 읽기 대기를 무효화하고 새 화면에 
     view: "journal", followUpBusy: { current: false }, workBusy: { current: false }, customerBusy: { current: false }, followUpDirty: { current: false },
     workOpenVersion: h.workOpenVersion, workReadVersion: h.workReadVersion,
     closeWorkReader: h.closeWorkReader, setWorkReader: h.reader.set, setReaderReference: h.reference.set,
-    setWorkOpening: h.opening.set,
+    setWorkOpening: h.opening.set, historyModal: null, historyOpenVersion: { current: 0 }, setHistoryModal: noop, isRecordHistory: () => false,
     currentView: { current: "journal" }, setView: (next) => changed.push(next),
     window: { scrollTo: noop, confirm: () => true, location: { pathname: "/", search: "" }, history: { pushState: noop } },
     refreshBase: async () => {}, showLoadError: assert.fail,
@@ -362,7 +362,7 @@ test("이동을 취소하거나 저장 중이면 읽던 업무와 대기 요청�
       view: "journal", followUpBusy: { current: false }, workBusy: { current: saving }, customerBusy: { current: false }, followUpDirty: { current: !saving },
       workOpenVersion: h.workOpenVersion, workReadVersion: h.workReadVersion,
       closeWorkReader: h.closeWorkReader, setWorkReader: h.reader.set, setReaderReference: h.reference.set,
-      setWorkOpening: h.opening.set,
+      setWorkOpening: h.opening.set, historyModal: null, historyOpenVersion: { current: 0 }, setHistoryModal: noop, isRecordHistory: () => false,
       currentView: { current: "journal" }, setView: () => assert.fail("cancelled navigation must not change the view"), setNotice: noop,
       window: { scrollTo: noop, confirm: () => false, location: { pathname: "/", search: "" }, history: { pushState: () => assert.fail("cancelled navigation must not add browser history") } },
       refreshBase: async () => {}, showLoadError: assert.fail,
@@ -384,7 +384,7 @@ test("브라우저 뒤로가기도 읽기 대기를 닫고 늦은 응답이 이�
     followUpBusy: { current: false }, workBusy: { current: false }, customerBusy: { current: false }, followUpDirty: { current: false },
     workOpenVersion: h.workOpenVersion, workReadVersion: h.workReadVersion,
     setWorkReader: h.reader.set, setReaderReference: h.reference.set,
-    setWorkOpening: h.opening.set,
+    setWorkOpening: h.opening.set, historyModal: null, historyOpenVersion: { current: 0 }, setHistoryModal: noop, isRecordHistory: () => false,
     setView: (view) => views.push(view), setNotice: noop,
     window: { location: { hash: "#calendar", pathname: "/" }, history: { pushState: noop }, confirm: () => true },
   });
@@ -395,4 +395,45 @@ test("브라우저 뒤로가기도 읽기 대기를 닫고 늦은 응답이 이�
   await task;
   assert.equal(h.reader.current, null);
   assert.equal(h.reference.current, null);
+});
+
+test("메뉴를 누르거나 뒤로가기를 하면 고객·매물 페이지를 닫고 목록으로 돌아간다", () => {
+  const recordState = () => { const box = { current: { title: "합성 고객 업무 이력", customer: { id: "synthetic", name: "합성" }, items: [] } }; box.set = (next) => { box.current = typeof next === "function" ? next(box.current) : next; }; return box; };
+  const isRecordHistory = (data) => Boolean(data.customer || data.listing || data.listingKey);
+  const base = {
+    followUpBusy: { current: false }, workBusy: { current: false }, customerBusy: { current: false }, followUpDirty: { current: false },
+    workOpenVersion: { current: 0 }, workReadVersion: { current: 0 }, setWorkReader: noop, setReaderReference: noop, setWorkOpening: noop,
+    refreshBase: async () => {}, showLoadError: assert.fail, setNotice: noop, isRecordHistory,
+  };
+  // Same menu as the page came from: the page closes and the view stays.
+  const same = recordState(), sameViews = [];
+  const navigate = (record) => evaluate(`${declaration("navigate")}\nconst result = navigate;`, {
+    ...base, view: "customers", currentView: { current: "customers" }, historyModal: record.current, historyOpenVersion: { current: 0 }, setHistoryModal: record.set,
+    setView: (next) => sameViews.push(next),
+    window: { scrollTo: noop, confirm: () => true, location: { pathname: "/", search: "" }, history: { pushState: noop } },
+  });
+  assert.equal(navigate(same)("customers"), true);
+  assert.equal(same.current, null);
+  assert.deepEqual(sameViews, []);
+  const other = recordState();
+  assert.equal(navigate(other)("calendar"), true);
+  assert.equal(other.current, null);
+  // Browser back to an entry without a record closes only record pages.
+  const node = findAll((item) => ts.isVariableDeclaration(item) && item.name.getText(ast) === "syncView")[0];
+  for (const [state, expectedOpen] of [[null, false], [{ record: "customer:synthetic" }, true]]) {
+    const record = recordState();
+    const sync = evaluate(`const result = ${node.initializer.getText(ast)};`, {
+      ...base, navItems: [["today"], ["customers"]], currentView: { current: "customers" }, historyOpenVersion: { current: 0 }, setHistoryModal: record.set, setView: noop,
+      window: { location: { hash: "#customers", pathname: "/" }, history: { pushState: noop, state }, confirm: () => true },
+    });
+    sync();
+    assert.equal(Boolean(record.current), expectedOpen);
+  }
+  const dialog = { current: { title: "2026.09.14 업무", date: "2026-09-14", items: [] } };
+  dialog.set = (next) => { dialog.current = typeof next === "function" ? next(dialog.current) : next; };
+  evaluate(`const result = ${node.initializer.getText(ast)};`, {
+    ...base, navItems: [["today"], ["customers"]], currentView: { current: "customers" }, historyOpenVersion: { current: 0 }, setHistoryModal: dialog.set, setView: noop,
+    window: { location: { hash: "#customers", pathname: "/" }, history: { pushState: noop, state: null }, confirm: () => true },
+  })();
+  assert.ok(dialog.current, "a date list dialog is not a page and stays open");
 });

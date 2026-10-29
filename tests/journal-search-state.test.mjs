@@ -30,6 +30,7 @@ function compile(names, environment = {}, callback = false) {
 const status = compile(["journalSearchStatus"]);
 const JournalView = compile(["displayDate", "targetText", "statusTone", "EmptyState", "Toolbar", "WorkTable", "JournalView"], {
   React,
+  useContext: () => null, PageToolsSlot: null, createPortal: (node) => node,
   Icon: () => null,
   getWorkProperties,
   workPropertyLabel,

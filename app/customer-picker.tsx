@@ -27,11 +27,13 @@ export function CustomerPicker({
   customers,
   value,
   onChange,
+  onQueryChange,
   disabled = false,
 }: {
   customers: CustomerOption[];
   value: string;
   onChange: (id: string) => void;
+  onQueryChange?: (query: string) => void;
   disabled?: boolean;
 }) {
   const listId = useId();
@@ -51,6 +53,7 @@ export function CustomerPicker({
   function choose(customer: CustomerOption) {
     onChange(customer.id);
     setQuery("");
+    onQueryChange?.("");
     setOpen(false);
   }
   return (
@@ -83,6 +86,7 @@ export function CustomerPicker({
         }}
         onChange={(event) => {
           setQuery(event.target.value);
+          onQueryChange?.(event.target.value);
           setOpen(true);
           setActive(0);
           if (value) onChange("");

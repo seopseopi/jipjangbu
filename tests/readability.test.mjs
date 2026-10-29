@@ -148,9 +148,11 @@ test("일반·큰 글씨 모드에서 날짜도 함께 커지고 요약·모바�
 
 test("매물·고객·백업 목록과 홈 날짜도 공통 날짜 스타일에 연결된다", () => {
   const source = readFileSync(new URL("../app/work-manager.tsx", import.meta.url), "utf8");
-  for (const field of ["item.registered_at", "item.closed_at", "item.last_work_date", "backup.createdAt"]) {
+  const settings = readFileSync(new URL("../app/settings-view.tsx", import.meta.url), "utf8");
+  for (const field of ["item.registered_at", "item.closed_at", "item.last_work_date"]) {
     assert.ok(source.includes(`<time className="record-date" dateTime={${field}`), field);
   }
+  assert.ok(settings.includes('<time className="record-date" dateTime={backup.createdAt}'));
   assert.ok(source.includes('<span className="record-date">{dateLabel}</span>'));
 });
 

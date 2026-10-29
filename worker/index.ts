@@ -1,8 +1,10 @@
 /** Cloudflare Worker entry point for 집장부. */
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
+import { ensureDatabase } from "../db/bootstrap";
 import {
   addSecurityHeaders,
+  ensureDailyBackup,
   handleSecurityRequest,
   isPublicAsset,
   schedulePostMutationBackup,
@@ -32,6 +34,12 @@ interface ExecutionContext {
 // const imageConfig: ImageConfig = { dangerouslyAllowSVG: true };
 
 const worker = {
+  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil((async () => {
+      await ensureDatabase(env.DB);
+      await ensureDailyBackup(env);
+    })());
+  },
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 

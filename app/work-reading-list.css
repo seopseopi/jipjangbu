@@ -1,7 +1,7 @@
 /* One record, one visual block: context first, note and connected homes below. */
 .work-reading-list { overflow: visible; }
 .home-body-grid > .recent-panel { margin-top: 0; min-width: 0; }
-.work-reading-list .work-record-row { display: block; min-width: 0; padding: 16px 20px; border-bottom: 1px solid var(--line); color: var(--ink); }
+.work-reading-list .work-record-row { display: block; min-width: 0; padding: 16px 20px; border-bottom: 1px solid var(--rule); color: var(--ink); }
 .work-record-meta { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 8px 14px; margin-bottom: 6px; }
 .work-record-meta > span { min-width: 0; }
 .work-record-date, .work-record-customer-link, .work-record-open { min-height: 36px; padding: 4px 0; border: 0; background: transparent; text-align: left; }
@@ -30,6 +30,7 @@
 .work-reading-list .work-property-list .history-link > .ui-icon { color: var(--muted); }
 .work-reading-list .work-property-list .history-link:hover { background: transparent; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .work-property-address { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.work-property-price { display: block; color: var(--muted); font-size: var(--text-small); line-height: 1.5; overflow-wrap: anywhere; }
 /* Search matches are marked the way you would on paper: with a highlighter. */
 .work-reading-list .work-property-list .is-search-match .history-link { padding-inline: 6px; background: var(--mark); }
 .work-reading-list .work-property-match { display: inline-flex; align-items: center; flex-shrink: 0; gap: 2px; margin: 0; color: var(--green-dark); font-size: var(--text-caption); font-weight: 600; white-space: nowrap; }
@@ -45,6 +46,7 @@
 .home-body-grid .work-record-open { margin-left: auto; }
 .home-body-grid .work-record-body { grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .home-body-grid .work-record-customer-link .work-customer-id { flex-basis: auto; }
+.home-body-grid .work-record-properties { padding: 2px 0 2px 14px; border: 0; border-left: 2px solid var(--rule); border-radius: 0; background: transparent; }
 @media (max-width: 1080px) {
   .work-reading-list .work-record-row { padding-inline: 20px; }
   .work-record-meta { grid-template-columns: auto 1fr auto; gap: 4px 12px; }
@@ -63,4 +65,32 @@
   .work-property-groups { grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .work-reading-list .work-property-list .history-link { min-height: 40px; }
   .work-record-body:not(.has-properties) { grid-template-columns: minmax(0, 1fr); gap: 0; }
+}
+/* Journal page when the list is wide: one record per ruled line under column headings, like the
+   spreadsheet it replaces. Home and narrow screens keep the stacked reading layout above. */
+.work-record-head { display: none; }
+/* Sized by the list itself, so it also folds back when the reading panel takes half the screen. */
+.data-panel { container-type: inline-size; }
+@container (min-width: 900px) {
+  .data-panel .work-reading-list { --work-columns: 96px 116px minmax(150px, .8fr) minmax(220px, 1.5fr) minmax(210px, 1.1fr) 72px; }
+  .data-panel .work-record-head { display: grid; grid-template-columns: var(--work-columns); gap: 16px; align-items: center; min-height: 40px; padding: 0 20px; border-bottom: 1px solid var(--rule); background: var(--wash); color: var(--muted); font-size: var(--text-caption); font-weight: 600; }
+  .data-panel .work-reading-list .work-record-row { display: grid; grid-template-columns: var(--work-columns); gap: 16px; align-items: start; padding: 10px 20px; }
+  .data-panel .work-reading-list .work-record-row:hover { background: var(--wash); }
+  .data-panel .work-reading-list .work-record-meta, .data-panel .work-reading-list .work-record-body { display: contents; }
+  .data-panel .work-record-meta > span:nth-child(1) { grid-area: 1 / 1; }
+  .data-panel .work-record-meta > span:nth-child(2) { grid-area: 1 / 2; padding-top: 5px; }
+  .data-panel .work-record-meta > .work-record-customer { grid-area: 1 / 3; }
+  .data-panel .work-record-body > .work-record-content { grid-area: 1 / 4; }
+  .data-panel .work-record-body > .work-record-properties { grid-area: 1 / 5; }
+  .data-panel .work-record-meta > .work-record-open { grid-area: 1 / 6; justify-self: end; }
+  .data-panel .work-record-customer-link { flex-direction: column; align-items: flex-start; gap: 0; }
+  .data-panel .work-reading-list .work-cell-button.work-record-note { min-height: 36px; padding: 4px 0; line-height: 1.7; }
+  .data-panel .work-record-note-text { -webkit-line-clamp: 3; }
+  .data-panel .work-reading-list .work-record-properties { padding: 4px 0 0; border: 0; border-radius: 0; background: transparent; }
+  .data-panel .work-record-property-heading { display: none; }
+  .data-panel .work-property-groups { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .data-panel .work-property-building { margin-bottom: 0; }
+  .data-panel .work-reading-list .work-property-list { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .data-panel .work-reading-list .work-property-list .history-link { min-height: 28px; padding-block: 2px; color: var(--ink-2); }
+  .data-panel .work-record-no-property { display: block; padding-top: 2px; }
 }

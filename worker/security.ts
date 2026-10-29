@@ -40,6 +40,7 @@ interface WorkerContext {
 interface SessionPayload {
   u: string;
   exp: number;
+  sid: string;
 }
 
 type BackupKind = "daily" | "changes" | "manual";
@@ -67,6 +68,8 @@ export async function handleSecurityRequest(
   }
 
   if (pathname === "/api/auth/logout" && request.method === "POST") {
+    const session = await readSession(request, env);
+    if (session) await env.DB.prepare("DELETE FROM auth_sessions WHERE id = ?").bind(session.sid).run();
     return clearSessionResponse(request);
   }
 
@@ -161,12 +164,22 @@ async function handleLogin(request: Request, env: SecurityEnv): Promise<Response
     "DELETE FROM auth_attempts WHERE updated_at < ? AND blocked_until <= ?",
   ).bind(now - LOGIN_WINDOW_SECONDS, now).run();
   const attemptKey = await loginAttemptKey(request, env.APP_SESSION_SECRET!);
-  const previous = await env.DB.prepare(
-    "SELECT attempts, blocked_until, updated_at FROM auth_attempts WHERE key = ?",
-  ).bind(attemptKey).first<{ attempts: number; blocked_until: number; updated_at: number }>();
-
-  if ((previous?.blocked_until ?? 0) > now) {
-    const retryAfter = Math.max((previous?.blocked_until ?? now) - now, 1);
+  // Reserve an attempt atomically before password verification so simultaneous
+  // requests cannot all read the same counter and bypass the limit.
+  const attempt = await env.DB.prepare(`
+    INSERT INTO auth_attempts (key, attempts, blocked_until, updated_at) VALUES (?, 1, 0, ?)
+    ON CONFLICT(key) DO UPDATE SET
+      attempts = CASE WHEN auth_attempts.updated_at < ? AND auth_attempts.blocked_until <= ?
+        THEN 1 ELSE auth_attempts.attempts + 1 END,
+      blocked_until = CASE WHEN auth_attempts.blocked_until > ? THEN auth_attempts.blocked_until
+        WHEN auth_attempts.updated_at >= ? AND auth_attempts.attempts + 1 >= ? THEN ? ELSE 0 END,
+      updated_at = ?
+    RETURNING attempts, blocked_until
+  `).bind(attemptKey, now, now - LOGIN_WINDOW_SECONDS, now, now, now - LOGIN_WINDOW_SECONDS,
+    MAX_LOGIN_ATTEMPTS, now + LOGIN_WINDOW_SECONDS, now).first<{ attempts: number; blocked_until: number }>();
+  if (!attempt) return jsonResponse({ error: "로그인 시도 정보를 확인하지 못했습니다." }, 503);
+  if (attempt.attempts > MAX_LOGIN_ATTEMPTS && attempt.blocked_until > now) {
+    const retryAfter = Math.max(attempt.blocked_until - now, 1);
     return jsonResponse(
       { error: "로그인 시도가 너무 많습니다. 15분 뒤 다시 시도해 주세요." },
       429,
@@ -193,14 +206,7 @@ async function handleLogin(request: Request, env: SecurityEnv): Promise<Response
   }
 
   if (!usernameMatches || !passwordMatches) {
-    const inWindow = (previous?.updated_at ?? 0) >= now - LOGIN_WINDOW_SECONDS;
-    const attempts = (inWindow ? previous?.attempts ?? 0 : 0) + 1;
-    const blockedUntil = attempts >= MAX_LOGIN_ATTEMPTS ? now + LOGIN_WINDOW_SECONDS : 0;
-    await env.DB.prepare(`
-      INSERT INTO auth_attempts (key, attempts, blocked_until, updated_at) VALUES (?, ?, ?, ?)
-      ON CONFLICT(key) DO UPDATE SET attempts = excluded.attempts,
-        blocked_until = excluded.blocked_until, updated_at = excluded.updated_at
-    `).bind(attemptKey, attempts, blockedUntil, now).run();
+    const blockedUntil = attempt.blocked_until;
     return jsonResponse(
       { error: blockedUntil ? "로그인 시도가 너무 많습니다. 15분 뒤 다시 시도해 주세요." : "아이디 또는 비밀번호가 올바르지 않습니다." },
       blockedUntil ? 429 : 401,
@@ -208,7 +214,12 @@ async function handleLogin(request: Request, env: SecurityEnv): Promise<Response
   }
 
   await env.DB.prepare("DELETE FROM auth_attempts WHERE key = ?").bind(attemptKey).run();
-  const token = await createSessionToken(env.APP_ADMIN_USERNAME!, env.APP_SESSION_SECRET!);
+  await env.DB.prepare("DELETE FROM auth_sessions WHERE expires_at <= ?").bind(Date.now()).run();
+  const sid = crypto.randomUUID();
+  const expiresAt = Date.now() + SESSION_SECONDS * 1000;
+  await env.DB.prepare("INSERT INTO auth_sessions (id, credential_hash, expires_at) VALUES (?, ?, ?)")
+    .bind(sid, await credentialHash(env.APP_ADMIN_PASSWORD_HASH!), expiresAt).run();
+  const token = await createSessionToken(env.APP_ADMIN_USERNAME!, env.APP_SESSION_SECRET!, sid, expiresAt);
   const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
   return jsonResponse(
     { ok: true },
@@ -227,7 +238,7 @@ function clearSessionResponse(request: Request): Response {
 }
 
 async function readSession(request: Request, env: SecurityEnv): Promise<SessionPayload | null> {
-  if (!env.APP_SESSION_SECRET || !env.APP_ADMIN_USERNAME) return null;
+  if (!env.APP_SESSION_SECRET || !env.APP_ADMIN_USERNAME || !env.APP_ADMIN_PASSWORD_HASH) return null;
   const cookie = request.headers.get("Cookie") ?? "";
   const token = cookie.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${COOKIE_NAME}=`))?.slice(COOKIE_NAME.length + 1);
   if (!token) return null;
@@ -244,19 +255,27 @@ async function readSession(request: Request, env: SecurityEnv): Promise<SessionP
     );
     if (!verified) return null;
     const payload = JSON.parse(new TextDecoder().decode(fromBase64Url(encodedPayload))) as SessionPayload;
-    if (payload.u !== env.APP_ADMIN_USERNAME || !Number.isFinite(payload.exp) || payload.exp <= Date.now()) return null;
+    if (payload.u !== env.APP_ADMIN_USERNAME || !Number.isFinite(payload.exp) || payload.exp <= Date.now()
+      || typeof payload.sid !== "string" || !/^[a-f0-9-]{36}$/i.test(payload.sid)) return null;
+    const active = await env.DB.prepare("SELECT id FROM auth_sessions WHERE id = ? AND credential_hash = ? AND expires_at > ?")
+      .bind(payload.sid, await credentialHash(env.APP_ADMIN_PASSWORD_HASH), Date.now()).first();
+    if (!active) return null;
     return payload;
   } catch {
     return null;
   }
 }
 
-async function createSessionToken(username: string, secret: string): Promise<string> {
-  const payload: SessionPayload = { u: username, exp: Date.now() + SESSION_SECONDS * 1000 };
+async function createSessionToken(username: string, secret: string, sid: string, exp: number): Promise<string> {
+  const payload: SessionPayload = { u: username, exp, sid };
   const encodedPayload = toBase64Url(encoder.encode(JSON.stringify(payload)));
   const key = await importHmacKey(secret);
   const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(encodedPayload));
   return `${encodedPayload}.${toBase64Url(new Uint8Array(signature))}`;
+}
+
+async function credentialHash(value: string): Promise<string> {
+  return bytesToHex(new Uint8Array(await crypto.subtle.digest("SHA-256", encoder.encode(value))));
 }
 
 async function verifyPassword(password: string, stored: string): Promise<boolean> {
@@ -279,6 +298,9 @@ async function ensureAuthTable(db: D1Database): Promise<void> {
   await db.prepare(`CREATE TABLE IF NOT EXISTS auth_attempts (
     key TEXT PRIMARY KEY, attempts INTEGER NOT NULL DEFAULT 0,
     blocked_until INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL DEFAULT 0
+  )`).run();
+  await db.prepare(`CREATE TABLE IF NOT EXISTS auth_sessions (
+    id TEXT PRIMARY KEY, credential_hash TEXT NOT NULL, expires_at INTEGER NOT NULL
   )`).run();
 }
 
@@ -358,7 +380,7 @@ async function handleBackupDownload(url: URL, env: SecurityEnv): Promise<Respons
   }
 }
 
-async function ensureDailyBackup(env: SecurityEnv): Promise<void> {
+export async function ensureDailyBackup(env: SecurityEnv): Promise<void> {
   requireBackupConfiguration(env);
   const key = `daily/${seoulDay()}.json.enc`;
   const current = dailyBackups.get(env.BACKUPS);
