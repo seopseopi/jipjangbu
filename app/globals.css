@@ -246,6 +246,7 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px; backgr
 .customer-table .table-head, .customer-table .table-row { grid-template-columns: minmax(125px, .75fr) minmax(148px, .9fr) minmax(180px, 1.2fr) 112px 177px; }
 .responsive-table .table-head { min-height: 42px; border-bottom: 1px solid var(--rule); background: var(--wash); color: var(--muted); font-size: var(--text-caption); font-weight: 600; }
 .responsive-table .table-row { width: 100%; min-height: 64px; padding-block: 12px; border: 0; border-bottom: 1px solid var(--rule); background: var(--paper); color: var(--ink-2); text-align: left; font-size: var(--text-small); }
+.listing-table .table-row { min-height: 64px; padding-block: 10px; }
 .responsive-table .table-row:last-child { border-bottom: 0; }
 button.table-row:hover { background: var(--wash); }
 .table-row > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
@@ -995,3 +996,31 @@ button.table-row:hover { background: var(--wash); }
 .listing-price-filters strong { font-size: 14px; margin-right: 4px; }
 .listing-price-filters button[aria-pressed="true"], .listing-price-filters button[aria-pressed="true"]:hover:not(:disabled) { background: var(--green); color: #fff; border-color: var(--green); }
 .listing-price-filters > span { color: var(--muted); font-size: 12px; }
+.listing-controls .toolbar { display: grid; grid-template-columns: minmax(240px, 1fr) auto minmax(150px, auto) auto auto; gap: 8px; align-items: stretch; margin-bottom: 12px; }
+.listing-controls .search-box { width: 100%; min-width: 0; max-width: none; }
+.listing-controls .toolbar > select { width: 100%; max-width: none; }
+.listing-price-menu, .listing-more-menu { position: relative; min-width: 0; }
+.listing-price-menu > summary, .listing-more-menu > summary { display: flex; align-items: center; min-height: var(--control-height); padding: 10px 36px 10px 12px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--paper) var(--chevron) no-repeat right 12px center / 16px; color: var(--ink-2); font-size: var(--text-small); cursor: pointer; list-style: none; white-space: nowrap; }
+.listing-price-menu > summary::-webkit-details-marker, .listing-more-menu > summary::-webkit-details-marker { display: none; }
+.listing-price-menu[open] > summary, .listing-more-menu[open] > summary { border-color: var(--green); }
+.listing-price-filters, .listing-more-options { position: absolute; z-index: 20; top: calc(100% + 6px); display: grid; gap: 6px; min-width: 205px; max-width: min(320px, calc(100vw - 32px)); padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); box-shadow: var(--shadow-float); }
+.listing-price-filters { left: 0; width: max-content; margin: 0; }
+.listing-price-filters .secondary-button, .listing-more-options .export-button { width: 100%; justify-content: flex-start; }
+.listing-price-filters > span { padding: 3px 4px; font-size: var(--text-caption); line-height: 1.5; }
+.listing-more-options { right: 0; min-width: 260px; }
+.listing-more-options label { color: var(--muted); font-size: var(--text-caption); font-weight: 600; }
+.listing-more-options select { width: 100%; max-width: none; }
+.listing-more-options .export-button { margin-top: 4px; border-top: 1px solid var(--rule); }
+.listing-applied-filters { margin: -2px 0 10px; }
+.listing-applied-filters .filter-reset { min-height: 36px; padding: 5px 10px; }
+.listing-panel-head { min-height: 56px; padding-block: 10px; background: var(--paper); }
+.listing-panel-head .sort-summary { margin-left: auto; text-align: right; }
+@media (max-width: 1240px) {
+  .listing-controls .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .listing-controls .search-box { grid-column: 1 / -1; }
+  .listing-controls .listing-status-filter, .listing-controls .listing-price-menu, .listing-controls .listing-more-menu { width: 100%; }
+}
+@media (max-width: 650px) {
+  .listing-panel-head { flex-wrap: wrap; gap: 0 12px; }
+  .listing-panel-head .sort-summary { margin-left: 0; text-align: left; }
+}

@@ -2154,12 +2154,13 @@ function ListingsView({
   };
   return (
     <>
+      <div className="listing-controls">
       <Toolbar
         query={query}
         setQuery={setQuery}
         placeholder="건물명, 동·호수, 메모 검색"
       >
-        <details className="listing-status-filter">
+        <details className="listing-status-filter" name="listing-filters">
           <summary>매물 상태: {statuses.length ? `${statuses.length}개 선택` : "전체"}</summary>
           <div className="listing-status-options" role="group" aria-label="매물 상태 필터">
             <button type="button" className="listing-status-all" aria-pressed={!statuses.length} onClick={() => setStatuses([])}>전체 상태</button>
@@ -2176,82 +2177,61 @@ function ListingsView({
             <option key={type}>{type}</option>
           ))}
         </select>
-        <select
-          aria-label="매물 정렬"
-          value={sort}
-          onChange={(event) => setSort(event.target.value)}
-        >
-          <option value="type">매물종류 → 이름순 (기본)</option>
-          <option value="type-desc">매물종류 역순 → 이름순</option>
-          <option value="building">이름 가나다순</option>
-          <option value="building-desc">이름 역순</option>
-          <option value="recent">최근 등록순</option>
-          <option value="updated">최근 변경순</option>
-          <option value="oldest">오래 미갱신순</option>
-        </select>
-        {filtered && (
-          <button className="filter-reset" onClick={onReset} type="button">
-            초기화
-          </button>
-        )}
-        <button
-          className="export-button"
-          onClick={() =>
-            downloadCsv(
-              `매물목록-${seoulDate()}.csv`,
-              [
-                "상태",
-                "물건구분",
-                "건물명",
-                "동",
-                "호수",
-                "타입",
-                "매매가",
-                "전세가",
-                "월세가",
-                "등록일",
-                "말소일",
-              ],
-              items.map((item) => [
-                item.status,
-                item.property_type,
-                item.building_name,
-                item.building_dong,
-                item.unit_number,
-                item.size_type,
-                item.sale_price,
-                item.jeonse_price,
-                item.monthly_rent,
-                item.registered_at,
-                item.closed_at,
-              ]),
-            )
-          }
-          disabled={status !== "ready" || !items.length}
-          type="button"
-        >
-          <Icon name="download" size={18} /> CSV 저장
-        </button>
+        <details className="listing-price-menu" name="listing-filters">
+          <summary>가격: {prices.length ? `${prices.length}개 선택` : "전체"}</summary>
+          <div className="listing-price-filters" role="group" aria-label="가격 입력 여부 필터">
+            <button type="button" className="secondary-button" aria-pressed={!prices.length} onClick={() => setPrices([])}>전체 가격</button>
+            {[["sale", "매매가 있음"], ["jeonse", "전세가 있음"], ["monthly", "월세가 있음"]].map(([value, label]) => <button key={value} type="button" className="secondary-button" aria-pressed={prices.includes(value)} onClick={() => setPrices(prices.includes(value) ? prices.filter(item => item !== value) : [...prices, value].sort())}>{label}</button>)}
+            <span>선택한 가격 중 하나라도 있는 매물</span>
+          </div>
+        </details>
+        <details className="listing-more-menu" name="listing-filters">
+          <summary>정렬·내보내기</summary>
+          <div className="listing-more-options">
+            <label htmlFor="listing-sort">정렬 기준</label>
+            <select
+              id="listing-sort"
+              aria-label="매물 정렬"
+              value={sort}
+              onChange={(event) => setSort(event.target.value)}
+            >
+              <option value="type">매물종류 → 이름순 (기본)</option>
+              <option value="type-desc">매물종류 역순 → 이름순</option>
+              <option value="building">이름 가나다순</option>
+              <option value="building-desc">이름 역순</option>
+              <option value="recent">최근 등록순</option>
+              <option value="updated">최근 변경순</option>
+              <option value="oldest">오래 미갱신순</option>
+            </select>
+            <button
+              className="export-button"
+              onClick={() =>
+                downloadCsv(
+                  `매물목록-${seoulDate()}.csv`,
+                  ["상태", "물건구분", "건물명", "동", "호수", "타입", "매매가", "전세가", "월세가", "등록일", "말소일"],
+                  items.map((item) => [item.status, item.property_type, item.building_name, item.building_dong, item.unit_number, item.size_type, item.sale_price, item.jeonse_price, item.monthly_rent, item.registered_at, item.closed_at]),
+                )
+              }
+              disabled={status !== "ready" || !items.length}
+              type="button"
+            >
+              <Icon name="download" size={18} /> CSV 저장
+            </button>
+          </div>
+        </details>
       </Toolbar>
-      <div className="listing-price-filters" role="group" aria-label="가격 입력 여부 필터">
-        <strong>가격 입력</strong>
-        <button type="button" className="secondary-button" aria-pressed={!prices.length} onClick={() => setPrices([])}>전체</button>
-        {[["sale", "매매가 있음"], ["jeonse", "전세가 있음"], ["monthly", "월세가 있음"]].map(([value, label]) => <button key={value} type="button" className="secondary-button" aria-pressed={prices.includes(value)} onClick={() => setPrices(prices.includes(value) ? prices.filter(item => item !== value) : [...prices, value].sort())}>{label}</button>)}
-        <span>복수 선택 · 선택한 가격 중 하나라도 있는 매물</span>
       </div>
-      <div className="active-filter-row" aria-label="현재 매물 조회 조건"><strong>{status === "loading" ? "조회 중" : "조회 조건"}</strong>{statuses.length ? statuses.map(value => <span key={value}>{value}</span>) : <span>전체 상태</span>}{prices.map(price => <span key={price}>{({sale:"매매가 있음",jeonse:"전세가 있음",monthly:"월세가 있음"} as Record<string,string>)[price]}</span>)}{propertyType && <span>{propertyType}</span>}{query && <span>검색: {query}</span>}</div>
+      {filtered && <div className="active-filter-row listing-applied-filters" aria-label="현재 매물 조회 조건"><strong>적용 중</strong>{statuses.map(value => <span key={value}>{value}</span>)}{prices.map(price => <span key={price}>{({sale:"매매가 있음",jeonse:"전세가 있음",monthly:"월세가 있음"} as Record<string,string>)[price]}</span>)}{propertyType && <span>{propertyType}</span>}{query && <span>검색: {query}</span>}{sort !== "type" && <span>{sortDescription}</span>}<button className="filter-reset" onClick={onReset} type="button">초기화</button></div>}
       <section className="panel data-panel" aria-busy={status === "loading" || status === "refreshing"}>
-        <div className="panel-head">
-          <div>
-            <h2>
-              매물 목록 <span className="count-badge">{resultsVisible ? `${items.length}건` : status === "error" ? "조회 실패" : "조회 중…"}</span>
-            </h2>
-            <p className="sort-summary">
+        <div className="panel-head listing-panel-head">
+          <h2>
+            매물 목록 <span className="count-badge">{resultsVisible ? `${items.length}건` : status === "error" ? "조회 실패" : "조회 중…"}</span>
+          </h2>
+          <p className="sort-summary">
               {sortDescription}
               {!statuses.length && dateSorted ? " · 진행 중 우선" : ""}
               {!dateSorted ? " · 동·호수는 숫자순" : ""}
-            </p>
-          </div>
+          </p>
         </div>
         <div className="listing-mobile-sort" role="group" aria-label="매물 정렬 기준">
           {sortButton("type", "매물종류")}
