@@ -115,6 +115,23 @@ test("통합검색은 검색에 맞은 대표 주소와 모든 연결 주소를 
   assert.deepEqual(calls, ["close", "synthetic-work"]);
 });
 
+test("통합검색은 최대 8개 제한과 전체 목록 연결을 제공하고 취소된 이동에서는 검색창을 유지한다", () => {
+  for (const allow of [true, false]) {
+    const states = ["  합성  ", { workLogs: [work], customers: [{ id: "customer", name: "합성", notes: "", history_count: 1 }], listings: [{ id: "listing", building_name: "합성단지", status: "매물등록" }] }, "success", "", 0];
+    let stateIndex = 0;
+    const View = compile("global-search.tsx", "GlobalSearch", { ...base, searchExcerpt, emptyResults: () => ({ workLogs: [], customers: [], listings: [] }), useState: () => [states[stateIndex++], () => {}] });
+    const calls = [];
+    const tree = View({ open: true, onClose: () => calls.push("close"), onShowAll: (view, query) => { calls.push([view, query]); return allow; }, onOpenWork() {}, onOpenCustomer() {}, onOpenListing() {} });
+    assert.match(html(tree), /유형별 최대 8개 표시/);
+    for (const [label, target] of [["전체 업무", "journal"], ["전체 고객", "customers"], ["전체 매물", "listings"]]) {
+      const link = descendants(tree).find((item) => item.type === "button" && item.props["aria-label"]?.includes(label));
+      assert.ok(link);
+      calls.length = 0; link.props.onClick();
+      assert.deepEqual(calls, allow ? [[target, "합성"], "close"] : [[target, "합성"]]);
+    }
+  }
+});
+
 test("업무현황 일정은 여러 주소를 접거나 생략하지 않고 같은 업무 읽기 콜백으로 연결한다", () => {
   const data = { summary: { monthWorkCount: 1, monthCustomerCount: 1, activeListingCount: 1, staleListingCount: 0 }, monthly: [], workTypes: [], upcoming: [work], staleListings: [] };
   const states = [data, false, "", 0];

@@ -17,6 +17,7 @@ const BACKUP_TABLES = [
   "work_logs",
   "work_log_properties",
   "listings",
+  "listing_source_notes",
   "listing_events",
   "work_types",
   "property_buildings",
@@ -169,14 +170,16 @@ async function handleLogin(request: Request, env: SecurityEnv): Promise<Response
   const attempt = await env.DB.prepare(`
     INSERT INTO auth_attempts (key, attempts, blocked_until, updated_at) VALUES (?, 1, 0, ?)
     ON CONFLICT(key) DO UPDATE SET
-      attempts = CASE WHEN auth_attempts.updated_at < ? AND auth_attempts.blocked_until <= ?
+      attempts = CASE WHEN auth_attempts.blocked_until <= ?
+        AND (auth_attempts.blocked_until > 0 OR auth_attempts.updated_at <= ?)
         THEN 1 ELSE auth_attempts.attempts + 1 END,
       blocked_until = CASE WHEN auth_attempts.blocked_until > ? THEN auth_attempts.blocked_until
+        WHEN auth_attempts.blocked_until > 0 OR auth_attempts.updated_at <= ? THEN 0
         WHEN auth_attempts.updated_at >= ? AND auth_attempts.attempts + 1 >= ? THEN ? ELSE 0 END,
-      updated_at = ?
+      updated_at = CASE WHEN auth_attempts.blocked_until > ? THEN auth_attempts.updated_at ELSE ? END
     RETURNING attempts, blocked_until
-  `).bind(attemptKey, now, now - LOGIN_WINDOW_SECONDS, now, now, now - LOGIN_WINDOW_SECONDS,
-    MAX_LOGIN_ATTEMPTS, now + LOGIN_WINDOW_SECONDS, now).first<{ attempts: number; blocked_until: number }>();
+  `).bind(attemptKey, now, now, now - LOGIN_WINDOW_SECONDS, now, now - LOGIN_WINDOW_SECONDS, now - LOGIN_WINDOW_SECONDS,
+    MAX_LOGIN_ATTEMPTS, now + LOGIN_WINDOW_SECONDS, now, now).first<{ attempts: number; blocked_until: number }>();
   if (!attempt) return jsonResponse({ error: "로그인 시도 정보를 확인하지 못했습니다." }, 503);
   if (attempt.attempts > MAX_LOGIN_ATTEMPTS && attempt.blocked_until > now) {
     const retryAfter = Math.max(attempt.blocked_until - now, 1);
@@ -190,6 +193,7 @@ async function handleLogin(request: Request, env: SecurityEnv): Promise<Response
   let body: { username?: unknown; password?: unknown };
   try {
     body = await request.json() as { username?: unknown; password?: unknown };
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("Invalid login body");
   } catch {
     return jsonResponse({ error: "아이디와 비밀번호를 입력해 주세요." }, 400);
   }

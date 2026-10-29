@@ -33,8 +33,12 @@ export async function GET(request: Request) {
       binds.push(workType);
     }
     if (customerId) {
+      // Resolve the small set of related work IDs before reading summaries.
+      // An OR with a per-work EXISTS made every customer's history scan the
+      // entire journal, even for a ten-row page. UNION also removes records
+      // connected both directly and through more than one property source.
       where.push(params.get("includeSource") === "1"
-        ? "(w.customer_id = ? OR EXISTS (SELECT 1 FROM work_log_properties sp WHERE sp.work_log_id = w.id AND trim(sp.source) = ?))"
+        ? "w.id IN (SELECT id FROM work_logs WHERE customer_id = ? UNION SELECT work_log_id FROM work_log_properties WHERE trim(source) = ?)"
         : "w.customer_id = ?");
       binds.push(customerId);
       if (params.get("includeSource") === "1") binds.push(customerId);

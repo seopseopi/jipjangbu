@@ -80,8 +80,8 @@ function keyboardHarness({ open = true, active = 0, count = 12 } = {}) {
   const matches = Array.from({ length: count }, (_, index) => ({ id: `synthetic-${index}`, name: `예시 고객 ${index}` }));
   return {
     state,
-    press(key) {
-      const event = { key, prevented: false, stopped: false, preventDefault() { this.prevented = true; }, stopPropagation() { this.stopped = true; } };
+    press(key, nativeEvent = {}) {
+      const event = { key, nativeEvent, prevented: false, stopped: false, preventDefault() { this.prevented = true; }, stopPropagation() { this.stopped = true; } };
       compile(keyboardSource, {
         matches, open: state.open, active: state.active,
         setOpen: (value) => { state.open = value; },
@@ -103,6 +103,18 @@ test("arrow keys still wrap across all customer choices and Enter chooses the ac
   assert.equal(harness.state.active, 7);
   assert.equal(harness.press("Enter").prevented, true);
   assert.deepEqual(harness.state.chosen, ["synthetic-7"]);
+});
+
+test("Korean composition Enter, arrows and Escape do not choose a customer or alter the list", () => {
+  for (const nativeEvent of [{ isComposing: true }, { isComposing: false, keyCode: 229 }]) {
+    const harness = keyboardHarness();
+    for (const key of ["Enter", "ArrowDown", "Escape"]) assert.equal(harness.press(key, nativeEvent).prevented, false);
+    assert.equal(harness.state.open, true);
+    assert.equal(harness.state.active, 0);
+    assert.deepEqual(harness.state.chosen, []);
+    harness.press("Enter", { isComposing: false, keyCode: 13 });
+    assert.deepEqual(harness.state.chosen, ["synthetic-0"]);
+  }
 });
 
 test("Escape closes only the customer list, and empty-result Enter never submits the work form", () => {

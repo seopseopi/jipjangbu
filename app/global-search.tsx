@@ -75,6 +75,7 @@ export type GlobalSearchProps = {
   onOpenWork: (id: string) => void;
   onOpenCustomer: (customer: GlobalSearchCustomer) => void;
   onOpenListing: (listing: GlobalSearchListing) => void;
+  onShowAll?: (view: "journal" | "customers" | "listings", query: string) => boolean | void;
 };
 
 const emptyResults = (): SearchResponse => ({ workLogs: [], customers: [], listings: [] });
@@ -110,7 +111,7 @@ async function searchRequest(query: string, signal: AbortSignal): Promise<Search
   };
 }
 
-export function GlobalSearch({ open, refreshKey = 0, onClose, onOpenWork, onOpenCustomer, onOpenListing }: GlobalSearchProps) {
+export function GlobalSearch({ open, refreshKey = 0, onClose, onOpenWork, onOpenCustomer, onOpenListing, onShowAll }: GlobalSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResponse>(emptyResults);
   const [status, setStatus] = useState<SearchStatus>("idle");
@@ -219,6 +220,9 @@ export function GlobalSearch({ open, refreshKey = 0, onClose, onOpenWork, onOpen
     close();
     onOpenListing(listing);
   }
+  function showAll(view: "journal" | "customers" | "listings") {
+    if (onShowAll?.(view, trimmedQuery) !== false) close();
+  }
 
   if (!open) return null;
 
@@ -249,7 +253,7 @@ export function GlobalSearch({ open, refreshKey = 0, onClose, onOpenWork, onOpen
           />
           {query && <button className="global-search-clear" type="button" onClick={() => changeQuery("")} aria-label="검색어 지우기"><Icon name="close" size={18} /></button>}
         </div>
-        <p className="global-search-help" id="global-search-help">두 글자부터 검색 · 고객·매물은 정확히 일치하는 결과 우선 · 업무는 최신순</p>
+        <p className="global-search-help" id="global-search-help">두 글자부터 검색 · 유형별 최대 8개 표시 · 고객·매물은 정확히 일치하는 결과 우선 · 업무는 최신순</p>
 
         <div className="global-search-body" aria-live="polite" aria-busy={status === "loading"}>
           {status === "idle" && <div className="global-search-idle"><span aria-hidden="true"><Icon name="search" size={26} /></span><p>찾을 내용을 두 글자 이상 입력해 주세요.</p></div>}
@@ -259,7 +263,7 @@ export function GlobalSearch({ open, refreshKey = 0, onClose, onOpenWork, onOpen
 
           {status === "success" && results.workLogs.length > 0 && (
             <section className="global-search-group" aria-labelledby="global-search-work-title">
-              <div className="global-search-group-head"><h3 id="global-search-work-title">업무</h3><span>{results.workLogs.length}건</span></div>
+              <div className="global-search-group-head"><h3 id="global-search-work-title">업무</h3><span>{results.workLogs.length}건 표시</span>{onShowAll && <button type="button" className="text-button" onClick={() => showAll("journal")} aria-label="같은 검색어로 전체 업무 보기">전체 보기 <Icon name="next" size={16} /></button>}</div>
               <div className="global-search-list">
                 {results.workLogs.map((item) => (
                   <button className="global-search-result global-search-work" type="button" key={item.id} onClick={() => chooseWork(item.id)}>
@@ -275,7 +279,7 @@ export function GlobalSearch({ open, refreshKey = 0, onClose, onOpenWork, onOpen
 
           {status === "success" && results.customers.length > 0 && (
             <section className="global-search-group" aria-labelledby="global-search-customer-title">
-              <div className="global-search-group-head"><h3 id="global-search-customer-title">고객</h3><span>{results.customers.length}명</span></div>
+              <div className="global-search-group-head"><h3 id="global-search-customer-title">고객</h3><span>{results.customers.length}명 표시</span>{onShowAll && <button type="button" className="text-button" onClick={() => showAll("customers")} aria-label="같은 검색어로 전체 고객 보기">전체 보기 <Icon name="next" size={16} /></button>}</div>
               <div className="global-search-list">
                 {results.customers.map((customer) => {
                   const notes = searchExcerpt(customer.notes, trimmedQuery);
@@ -293,7 +297,7 @@ export function GlobalSearch({ open, refreshKey = 0, onClose, onOpenWork, onOpen
 
           {status === "success" && results.listings.length > 0 && (
             <section className="global-search-group" aria-labelledby="global-search-listing-title">
-              <div className="global-search-group-head"><h3 id="global-search-listing-title">매물</h3><span>{results.listings.length}건</span></div>
+              <div className="global-search-group-head"><h3 id="global-search-listing-title">매물</h3><span>{results.listings.length}건 표시</span>{onShowAll && <button type="button" className="text-button" onClick={() => showAll("listings")} aria-label="같은 검색어로 전체 매물 보기">전체 보기 <Icon name="next" size={16} /></button>}</div>
               <div className="global-search-list">
                 {results.listings.map((listing) => (
                   <button className="global-search-result global-search-listing" type="button" key={listing.id} onClick={() => chooseListing(listing)}>

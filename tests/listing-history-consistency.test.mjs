@@ -94,7 +94,7 @@ function database(t) {
     sqlite, batches,
     failProjection(predicate = () => true) { failure = (sql, bindings) => /(?:INSERT INTO|DELETE FROM) listings\b/i.test(sql) && predicate(sql, bindings); },
     clearFailure() { failure = null; },
-    snapshot() { return Object.fromEntries(["work_logs", "work_log_properties", "listing_events", "listings"].map((table) => [table, sqlite.prepare(`SELECT * FROM ${table} ORDER BY id`).all()])); },
+    snapshot() { return Object.fromEntries(["work_logs", "work_log_properties", "listing_events", "listings", "listing_source_notes"].map((table) => [table, sqlite.prepare(`SELECT * FROM ${table} ORDER BY ${table === "listing_source_notes" ? "identity_key" : "id"}`).all()])); },
   };
 }
 
@@ -118,7 +118,7 @@ async function mutate(method, value, id, expectedStatus = method === "POST" ? 20
   return body.workLog ?? body;
 }
 async function history(identity = key(), expectedStatus = 200) {
-  const response = await historyRoute.GET(new Request("https://synthetic.invalid/api/listings/example"), { params: Promise.resolve({ key: encodeURIComponent(identity) }) });
+  const response = await historyRoute.GET(new Request("https://synthetic.invalid/api/listings/example"), { params: Promise.resolve({ key: identity }) });
   const body = await response.json();
   assert.equal(response.status, expectedStatus, JSON.stringify(body));
   return body;
@@ -264,6 +264,62 @@ test("매물 개별 업무에는 상태변경뿐 아니라 두 번째 물건의 
   assert.deepEqual((await history()).workLogs.map((work) => work.id), [registration.id]);
 });
 
+test("원문이 없는 신규 매물의 반복 수정은 메모 사본을 보관하지 않고 기존 빈 tombstone만 유지한다", async (t) => {
+  const db = database(t);
+  const original = await mutate("POST", payload());
+  for (let index = 0; index < 3; index++) {
+    await mutate("PUT", payload({ content: `보관할 원문이 아닌 합성 수정 ${index}` }), original.id);
+    assert.deepEqual(db.snapshot().listing_source_notes, []);
+  }
+  db.sqlite.prepare("INSERT INTO listing_source_notes(identity_key,source_notes) VALUES (?, '')").run(key());
+  await mutate("PUT", payload({ content: "빈 tombstone 이후의 합성 수정" }), original.id);
+  const preserved = db.snapshot().listing_source_notes[0];
+  assert.equal(preserved.source_notes, "");
+  assert.equal(preserved.event_history, "[]", "new work notes are not originals covered by an empty tombstone");
+  assert.equal((await history()).listing.source_notes, "");
+});
+
+test("마지막 상태 업무를 일반 업무로 바꿨다가 되돌려도 엑셀 전용 원문을 보존한다", async (t) => {
+  const db = database(t);
+  const original = await mutate("POST", payload());
+  const source = "  업무에 없는 합성 엑셀 특약\n두 번째 원문 줄  ";
+  db.sqlite.prepare("UPDATE listings SET source_notes=? WHERE identity_key=?").run(source, key());
+  await mutate("PUT", payload({ workType: "전화" }), original.id);
+  assert.equal(db.snapshot().listings.length, 0, "ordinary work must not fabricate an active listing");
+  assert.equal(db.snapshot().listing_source_notes[0].source_notes, source);
+  await mutate("PUT", payload(), original.id);
+  assert.equal((await history()).listing.source_notes, source);
+  assert.equal((await history()).events.length, 1);
+});
+
+test("주소를 정정할 때 원문은 원래 주소에 보관하고 다른 집으로 복사하지 않는다", async (t) => {
+  const db = database(t);
+  const original = await mutate("POST", payload());
+  const source = "합성 원래 집의 엑셀 특약";
+  db.sqlite.prepare("UPDATE listings SET source_notes=? WHERE identity_key=?").run(source, key());
+  const corrected = property({ unitNumber: "1604" });
+  await mutate("PUT", payload({ details: [corrected] }), original.id);
+  assert.equal((await history(key(corrected))).listing.source_notes, "");
+  assert.equal(db.sqlite.prepare("SELECT source_notes FROM listing_source_notes WHERE identity_key=?").get(key()).source_notes, source);
+  await mutate("PUT", payload(), original.id);
+  assert.equal((await history()).listing.source_notes, source);
+});
+
+test("주소 키 구분자는 모든 주소 필드에서 원자적으로 거절하고 메모와 물건지는 그대로 허용한다", async (t) => {
+  const db = database(t);
+  for (const field of ["propertyType", "buildingName", "buildingDong", "unitNumber"]) {
+    const before = db.snapshot();
+    await mutate("POST", payload({ workType: "전화", details: [property({ [field]: "A|B" })] }), undefined, 400);
+    assert.deepEqual(db.snapshot(), before);
+  }
+  const saved = await mutate("POST", payload({ content: "메모 A|B", details: [property({ source: "업소 A|B" })] }));
+  assert.equal(saved.content, "메모 A|B");
+  assert.equal(saved.details[0].source, "업소 A|B");
+  const before = db.snapshot();
+  await mutate("PUT", payload({ details: [property({ buildingName: "A|B" })] }), saved.id, 400);
+  assert.deepEqual(db.snapshot(), before);
+});
+
 test("매물 수정 업무는 이전 이력을 보존하며 현재 가격·메모·고객 이력을 함께 갱신한다", async (t) => {
   const db = database(t);
   const registration = await mutate("POST", payload({ workDate: "2026-09-12" }));
@@ -358,7 +414,9 @@ test("최신 취소 업무 삭제는 이전 매물을 복원하고 마지막 이
   assert.doesNotMatch(restored.listing.notes, /합성 취소/);
   await mutate("DELETE", undefined, first.id);
   await history(key(), 404);
-  assert.deepEqual(db.snapshot(), { work_logs: [], work_log_properties: [], listing_events: [], listings: [] });
+  const { listing_source_notes, ...active } = db.snapshot();
+  assert.deepEqual(active, { work_logs: [], work_log_properties: [], listing_events: [], listings: [] });
+  assert.deepEqual(listing_source_notes.map(({ identity_key, source_notes }) => ({ identity_key, source_notes })), [{ identity_key: key(), source_notes: "" }]);
 });
 
 test("물건 주소를 정정하면 기존 주소·새 주소 이력과 현재 매물을 각각 재계산한다", async (t) => {

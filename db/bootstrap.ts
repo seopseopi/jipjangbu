@@ -63,6 +63,12 @@ const schemaStatements = [
     source_notes TEXT NOT NULL DEFAULT '', is_demo INTEGER NOT NULL DEFAULT 0,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`,
+  `CREATE TABLE IF NOT EXISTS listing_source_notes (
+    identity_key TEXT PRIMARY KEY, source_notes TEXT NOT NULL DEFAULT '',
+    event_history TEXT NOT NULL DEFAULT '[]',
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT listing_source_notes_event_history_array CHECK(json_valid(event_history) AND json_type(event_history) = 'array')
+  )`,
   `CREATE TABLE IF NOT EXISTS listing_events (
     id TEXT PRIMARY KEY, listing_key TEXT NOT NULL, work_log_id TEXT NOT NULL, detail_id TEXT NOT NULL UNIQUE,
     event_date TEXT NOT NULL, event_order INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL,
@@ -106,6 +112,7 @@ const schemaStatements = [
   `CREATE INDEX IF NOT EXISTS idx_work_logs_type_date_updated_id ON work_logs(work_type, work_date, updated_at, id)`,
   `CREATE INDEX IF NOT EXISTS idx_work_log_properties_log ON work_log_properties(work_log_id, sequence)`,
   `CREATE INDEX IF NOT EXISTS idx_work_log_properties_address ON work_log_properties(building_name, building_dong, unit_number)`,
+  `CREATE INDEX IF NOT EXISTS idx_work_log_properties_source_log ON work_log_properties(trim(source), work_log_id)`,
   `CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(closed_at, status)`,
   `CREATE INDEX IF NOT EXISTS idx_listings_building ON listings(property_type, building_name)`,
   `CREATE INDEX IF NOT EXISTS idx_listing_events_key_date ON listing_events(listing_key, event_date)`,
@@ -114,7 +121,7 @@ const schemaStatements = [
 
 // Bump when bootstrap schema or default lookup definitions change. Runtime
 // metadata is deliberately not business data and is not included in backups.
-const BOOTSTRAP_VERSION = "3";
+const BOOTSTRAP_VERSION = "4";
 const schemaNames = schemaStatements.map((statement) => {
   const name = statement.match(/^CREATE (?:TABLE|(?:UNIQUE )?INDEX) IF NOT EXISTS (\w+)/)?.[1];
   if (!name) throw new Error("Invalid bootstrap schema statement");
@@ -167,6 +174,12 @@ async function initialize(db: D1Database) {
   await db.batch(lookupSeeds);
 
   if (isNewDatabase) await seedDemo(db);
+  // Do not overwrite a pruned empty tombstone on cold starts or restored DBs.
+  await db.prepare(`INSERT OR IGNORE INTO listing_source_notes (identity_key, source_notes, event_history)
+    SELECT l.identity_key, l.source_notes, (SELECT json_group_array(json_object(
+      'work_log_id', e.work_log_id, 'event_date', e.event_date, 'status', e.status, 'notes', e.notes))
+      FROM listing_events e WHERE e.listing_key = l.identity_key)
+    FROM listings l WHERE l.source_notes <> ''`).run();
   await db.prepare("PRAGMA optimize").run();
   // Write last so every failure remains retryable, including lookup/demo writes.
   await db.prepare(`INSERT INTO app_runtime_state (key, value) VALUES ('bootstrap_version', ?)

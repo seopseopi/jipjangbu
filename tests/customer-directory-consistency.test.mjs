@@ -45,6 +45,7 @@ function database(t, count = 2000, specialBoundary = false) {
         async all() { calls.push({ sql, values }); return { results: statement.all(...values) }; },
       };
     },
+    async batch(statements) { return Promise.all(statements.map((statement) => statement.all())); },
   };
   globalThis[Symbol.for(dbKey)] = db;
   t.after(() => { sqlite.close(); delete globalThis[Symbol.for(dbKey)]; });

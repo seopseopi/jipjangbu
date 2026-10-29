@@ -4,7 +4,7 @@ import { createDecipheriv } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import { STRUCTURE_TABLES } from "../db/structure-schema.js";
 
-const TABLES = [...STRUCTURE_TABLES, "customers", "work_logs", "work_log_properties", "listings", "listing_events", "work_types", "property_buildings", "follow_ups", "trash_records"];
+const TABLES = [...STRUCTURE_TABLES, "customers", "work_logs", "work_log_properties", "listings", "listing_source_notes", "listing_events", "work_types", "property_buildings", "follow_ups", "trash_records"];
 
 /** Restore to an isolated in-memory database, never to the production database. */
 export async function checkBackup(input, key = process.env.BACKUP_ENCRYPTION_KEY) {
@@ -18,6 +18,20 @@ export async function checkBackup(input, key = process.env.BACKUP_ENCRYPTION_KEY
   const backup = JSON.parse(bytes.toString("utf8"));
   if (backup.format !== "jipjangbu-backup-v1" || !backup.tables || !backup.counts) throw new Error("지원하지 않는 백업 형식입니다.");
   if (Object.keys(backup.tables).some((table) => !TABLES.includes(table))) throw new Error("알 수 없는 테이블이 포함되어 있습니다.");
+  // v1 backups created before the independent source archive remain restorable.
+  // Recover its initial contents from the exact original notes and attribution
+  // already present in those backups, never silently discard newer archives.
+  if (!("listing_source_notes" in backup.tables) && !("listing_source_notes" in backup.counts)) {
+    const events = Array.isArray(backup.tables.listing_events) ? backup.tables.listing_events : [];
+    const sources = (Array.isArray(backup.tables.listings) ? backup.tables.listings : [])
+      .filter((row) => typeof row.source_notes === "string" && row.source_notes !== "")
+      .map((row) => ({ identity_key: row.identity_key, source_notes: row.source_notes,
+        event_history: JSON.stringify(events.filter((event) => event.listing_key === row.identity_key)
+          .map(({ work_log_id, event_date, status, notes }) => ({ work_log_id, event_date, status, notes }))),
+        ...(typeof row.updated_at === "string" ? { updated_at: row.updated_at } : {}) }));
+    backup.tables.listing_source_notes = sources;
+    backup.counts.listing_source_notes = sources.length;
+  }
   const db = new DatabaseSync(":memory:");
   try {
     const migrations = (await readdir(new URL("../drizzle/", import.meta.url))).filter((name) => /^\d+_.+\.sql$/.test(name)).sort();
@@ -31,6 +45,14 @@ export async function checkBackup(input, key = process.env.BACKUP_ENCRYPTION_KEY
       if (!columns.size) throw new Error(`복구 스키마에 테이블이 없습니다: ${table}`);
       for (const row of rows) {
         if (!row || typeof row !== "object" || Array.isArray(row)) throw new Error(`잘못된 행: ${table}`);
+        if (table === "listing_source_notes") {
+          let history;
+          try { history = JSON.parse(row.event_history ?? "[]"); } catch { throw new Error("원본 메모의 업무 연결 정보가 올바르지 않습니다."); }
+          if (!Array.isArray(history) || history.some((event) => !event || typeof event !== "object"
+            || ["work_log_id", "event_date", "status", "notes"].some((name) => typeof event[name] !== "string"))) {
+            throw new Error("원본 메모의 업무 연결 정보가 올바르지 않습니다.");
+          }
+        }
         const names = Object.keys(row);
         if (!names.length || names.some((name) => !columns.has(name))) throw new Error(`복구 스키마와 열이 다릅니다: ${table}`);
         db.prepare(`INSERT INTO "${table}" (${names.map((name) => `"${name}"`).join(",")}) VALUES (${names.map(() => "?").join(",")})`).run(...names.map((name) => row[name]));

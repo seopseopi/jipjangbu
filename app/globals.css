@@ -858,7 +858,7 @@ button.table-row:hover { background: var(--wash); }
   .sidebar-top { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px; }
   .sidebar-actions { display: flex; justify-content: flex-end; gap: 6px; }
   .sidebar-actions .primary-button { width: auto; padding-inline: 12px; }
-  .sidebar-actions .global-search-trigger { width: 44px; padding: 0; justify-content: center; }
+  .sidebar-actions .global-search-trigger { flex: 0 0 44px; width: 44px; min-height: 44px; padding: 0; justify-content: center; }
   .sidebar-actions .global-search-trigger > span, .sidebar-actions .global-search-trigger kbd { display: none; }
   .sidebar-foot { grid-column: 2; grid-row: 1; align-self: center; margin: 0; padding: 0; }
   .sidebar-foot .logout-link { display: none; }
@@ -979,6 +979,8 @@ button.table-row:hover { background: var(--wash); }
   .login-card { padding: 26px 22px 22px; }
 }
 @media (max-width: 380px) {
+  .sidebar-new-work-extra { display: none; }
+  .sidebar-actions .sidebar-new-work { padding-inline: 10px; }
   .nav-item { min-width: 64px; padding-inline: 6px; }
   .workspace { --gutter: 12px; }
   .modal-body { padding-inline: 16px; }

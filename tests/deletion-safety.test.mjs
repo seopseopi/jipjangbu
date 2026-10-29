@@ -97,13 +97,13 @@ function database(t) {
   globalThis[Symbol.for(bindingKey)] = db;
   t.mock.method(console, "error", () => {});
   t.after(() => { sqlite.close(); delete globalThis[Symbol.for(bindingKey)]; });
-  const tables = ["customers", "work_logs", "work_log_properties", "listing_events", "listings", "follow_ups", "trash_records"];
+  const tables = ["customers", "work_logs", "work_log_properties", "listing_events", "listings", "listing_source_notes", "follow_ups", "trash_records"];
   return {
     db, sqlite, batches,
     fail(predicate) { failure = predicate; },
     clearFailure() { failure = null; },
     raceBeforeWrite(action, statementPattern = /INSERT INTO trash_records/i) { race = { matches: (sqls) => sqls.some((sql) => statementPattern.test(sql)), action }; },
-    snapshot() { return Object.fromEntries(tables.map((table) => [table, sqlite.prepare(`SELECT * FROM ${table} ORDER BY id`).all()])); },
+    snapshot() { return Object.fromEntries(tables.map((table) => [table, sqlite.prepare(`SELECT * FROM ${table} ORDER BY ${table === "listing_source_notes" ? "identity_key" : "id"}`).all()])); },
   };
 }
 
@@ -118,7 +118,7 @@ async function move(db, type, id) {
 }
 const rejectsStatus = (promise, status) => assert.rejects(promise, (error) => error instanceof deletion.DeletionError && error.status === status);
 async function history(identity = key(), status = 200) {
-  const response = await historyRoute.GET(new Request("https://synthetic.invalid/api/listings/example"), { params: Promise.resolve({ key: encodeURIComponent(identity) }) });
+  const response = await historyRoute.GET(new Request("https://synthetic.invalid/api/listings/example"), { params: Promise.resolve({ key: identity }) });
   const body = await response.json();
   assert.equal(response.status, status, JSON.stringify(body));
   return body;
@@ -325,6 +325,144 @@ test("마지막 매물 업무를 삭제해도 원본을 휴지통에 보존하�
   assert.equal(result.events[0].work_log_id, newer.id);
 });
 
+test("마지막 업무 삭제로 제외한 원문은 새 매물 등록에서 부활하지 않고 명시적 복구 때만 돌아온다", async (t) => {
+  const db = database(t);
+  const work = await createWork({ content: "합성 삭제 대상" });
+  const source = "합성 삭제 대상(매물등록)(2026-09-14)\n원본에만 있는 합성 특약";
+  db.sqlite.prepare("UPDATE listings SET source_notes=? WHERE identity_key=?").run(source, key());
+  const removed = await move(db, "work", work.id);
+  const preserved = db.sqlite.prepare("SELECT source_notes FROM listing_source_notes WHERE identity_key=?").get(key()).source_notes;
+  assert.doesNotMatch(preserved, /합성 삭제 대상/);
+  assert.match(preserved, /원본에만 있는 합성 특약/);
+  const newer = await createWork({ workDate: "2026-09-15", content: "새로 등록한 합성 업무" });
+  assert.doesNotMatch((await history()).listing.source_notes, /합성 삭제 대상/);
+  assert.match((await history()).listing.source_notes, /원본에만 있는 합성 특약/);
+  await deletion.restoreTrash(db.db, removed.trashId);
+  assert.match((await history()).listing.source_notes, /합성 삭제 대상/);
+  assert.equal((await history()).events[0].work_log_id, newer.id);
+});
+
+test("업무구분·본문·주소 정정 뒤 삭제해도 원래 업무의 엑셀 원문은 새 등록에서 부활하지 않는다", async (t) => {
+  const db = database(t);
+  const work = await createWork({ content: "정정 전의 합성 업무 내용" });
+  db.sqlite.prepare("UPDATE listings SET source_notes=? WHERE identity_key=?").run("정정 전의 합성 업무 내용(매물등록)(2026-09-14)\n독립된 합성 특약", key());
+  const changed = await workData.saveWorkLog(payload({ revision: work.revision, workType: "전화", workDate: "2026-09-15", content: "정정 후의 합성 내용", details: [property({ unitNumber: "303" })] }), work.id);
+  assert.equal(db.snapshot().listings.length, 0);
+  const removed = await move(db, "work", changed.id);
+  const source = db.sqlite.prepare("SELECT source_notes,event_history FROM listing_source_notes WHERE identity_key=?").get(key());
+  assert.doesNotMatch(source.source_notes, /정정 전의 합성 업무 내용/);
+  assert.match(source.source_notes, /독립된 합성 특약/);
+  assert.doesNotMatch(source.event_history, new RegExp(work.id));
+  await createWork({ workDate: "2026-09-16", content: "다른 합성 업무" });
+  assert.doesNotMatch((await history()).listing.notes, /정정 전의 합성 업무 내용/);
+  await deletion.restoreTrash(db.db, removed.trashId);
+  assert.match((await history()).listing.source_notes, /정정 전의 합성 업무 내용/);
+  assert.equal(row(db, "work_logs", work.id).work_type, "전화");
+  assert.equal(row(db, "work_logs", work.id).content, "정정 후의 합성 내용");
+});
+
+test("정정된 두 업무를 삭제한 뒤 일부만 복구해도 남은 휴지통 원문은 부활하지 않는다", async (t) => {
+  const db = database(t);
+  const first = await createWork({ workDate: "2026-09-01", content: "합성 첫 원문" });
+  const second = await createWork({ workDate: "2026-09-02", content: "합성 둘째 원문" });
+  db.sqlite.prepare("UPDATE listings SET source_notes=? WHERE identity_key=?").run("합성 첫 원문(매물등록)(2026-09-01)\n합성 둘째 원문(매물등록)(2026-09-02)\n독립 원문", key());
+  await workData.saveWorkLog(payload({ revision: first.revision, workDate: "2026-09-01", workType: "전화", content: "정정 첫 내용" }), first.id);
+  await workData.saveWorkLog(payload({ revision: second.revision, workDate: "2026-09-02", workType: "전화", content: "정정 둘째 내용" }), second.id);
+  const removedFirst = await move(db, "work", first.id);
+  const removedSecond = await move(db, "work", second.id);
+  await deletion.restoreTrash(db.db, removedFirst.trashId);
+  await createWork({ workDate: "2026-09-16", content: "새 등록" });
+  assert.match((await history()).listing.source_notes, /합성 첫 원문/);
+  assert.doesNotMatch((await history()).listing.source_notes, /합성 둘째 원문/);
+  await deletion.restoreTrash(db.db, removedSecond.trashId);
+  assert.match((await history()).listing.source_notes, /합성 둘째 원문/);
+});
+
+test("다른 업무의 휴지통을 영구 삭제한 뒤 오래된 형제 스냅샷을 복구해도 지운 원문은 부활하지 않는다", async (t) => {
+  for (const batch of [false, true]) await t.test(batch ? "일괄 영구 삭제" : "단일 영구 삭제", async (t) => {
+    const db = database(t);
+    const first = await createWork({ workDate: "2026-09-01", content: "영구 삭제할 합성 원문 A" });
+    const second = await createWork({ workDate: "2026-09-02", content: "복구할 합성 원문 B" });
+    db.sqlite.prepare("UPDATE listings SET source_notes=? WHERE identity_key=?").run("영구 삭제할 합성 원문 A(매물등록)(2026-09-01)\n복구할 합성 원문 B(매물등록)(2026-09-02)\n독립된 합성 원본 특약", key());
+    const removedSecond = await move(db, "work", second.id);
+    const removedFirst = await move(db, "work", first.id);
+    const detail = await deletion.getTrashDetail(db.db, removedFirst.trashId);
+    if (batch) await deletion.permanentlyDeleteTrashBatch(db.db, [{ id: removedFirst.trashId, revision: detail.preview.revision }]);
+    else await deletion.permanentlyDeleteTrash(db.db, removedFirst.trashId, detail.preview.revision);
+    await deletion.restoreTrash(db.db, removedSecond.trashId);
+    const restored = await history();
+    assert.equal(row(db, "work_logs", first.id), undefined);
+    assert.doesNotMatch(restored.listing.source_notes, /영구 삭제할 합성 원문 A/);
+    assert.match(restored.listing.source_notes, /복구할 합성 원문 B/);
+    assert.match(restored.listing.source_notes, /독립된 합성 원본 특약/);
+    assert.doesNotMatch(db.sqlite.prepare("SELECT event_history FROM listing_source_notes WHERE identity_key=?").get(key()).event_history, new RegExp(first.id));
+  });
+});
+
+test("주소·구분을 바꾼 활성 형제 업무의 원문은 다른 업무 복구에서 지우지 않으며 실존 경합은 거절한다", async (t) => {
+  const db = database(t);
+  const first = await createWork({ workDate: "2026-09-01", content: "살아 있는 합성 원문 A" });
+  const second = await createWork({ workDate: "2026-09-02", content: "복구할 합성 원문 B" });
+  db.sqlite.prepare("UPDATE listings SET source_notes=? WHERE identity_key=?").run("살아 있는 합성 원문 A(매물등록)(2026-09-01)\n복구할 합성 원문 B(매물등록)(2026-09-02)", key());
+  const removed = await move(db, "work", second.id);
+  await workData.saveWorkLog(payload({ revision: first.revision, workDate: "2026-09-01", workType: "전화", details: [property({ unitNumber: "303" })] }), first.id);
+  await deletion.restoreTrash(db.db, removed.trashId);
+  assert.match((await history()).listing.source_notes, /살아 있는 합성 원문 A/);
+  const removedAgain = await move(db, "work", second.id);
+  let concurrent;
+  db.raceBeforeWrite(() => {
+    db.sqlite.prepare("DELETE FROM work_log_properties WHERE work_log_id=?").run(first.id);
+    db.sqlite.prepare("DELETE FROM work_logs WHERE id=?").run(first.id);
+    concurrent = db.snapshot();
+  }, /INSERT INTO work_logs/i);
+  await rejectsStatus(deletion.restoreTrash(db.db, removedAgain.trashId), 409);
+  assert.ok(concurrent);
+  assert.deepEqual(db.snapshot(), concurrent);
+});
+
+test("빈 원문 보관값은 삭제 tombstone으로 유지하며 새 등록이 이전 원문을 불러오지 않는다", async (t) => {
+  const db = database(t);
+  const work = await createWork({ content: "완전히 삭제할 합성 원문" });
+  db.sqlite.prepare("UPDATE listings SET source_notes=? WHERE identity_key=?").run("완전히 삭제할 합성 원문(매물등록)(2026-09-14)", key());
+  await move(db, "work", work.id);
+  assert.equal(db.sqlite.prepare("SELECT source_notes FROM listing_source_notes WHERE identity_key=?").get(key()).source_notes, "");
+  await createWork({ workDate: "2026-09-15", content: "새 합성 메모" });
+  assert.equal((await history()).listing.source_notes, "");
+});
+
+test("원문 보관 테이블의 같은 초 변경도 삭제 미리보기와 쓰기 배치의 충돌 검사에 포함한다", async (t) => {
+  const db = database(t);
+  const work = await createWork();
+  const preview = await deletion.getDeletionPreview(db.db, "work", work.id);
+  db.sqlite.prepare("INSERT INTO listing_source_notes(identity_key,source_notes) VALUES (?,?)").run(key(), "다른 기기의 합성 원문");
+  const changed = db.snapshot();
+  await rejectsStatus(deletion.moveToTrash(db.db, "work", work.id, preview.revision), 409);
+  assert.deepEqual(db.snapshot(), changed);
+  const latest = await deletion.getDeletionPreview(db.db, "work", work.id);
+  let concurrent;
+  db.raceBeforeWrite(() => {
+    db.sqlite.prepare("UPDATE listing_source_notes SET source_notes=? WHERE identity_key=?").run("배치 직전의 합성 원문 변경", key());
+    concurrent = db.snapshot();
+  });
+  await rejectsStatus(deletion.moveToTrash(db.db, "work", work.id, latest.revision), 409);
+  assert.ok(concurrent);
+  assert.deepEqual(db.snapshot(), concurrent);
+});
+
+test("원문 보관값이 복구 직전 바뀌면 복구 전체를 거절하고 새 원문과 휴지통을 보존한다", async (t) => {
+  const db = database(t);
+  const work = await createWork();
+  const removed = await move(db, "work", work.id);
+  let concurrent;
+  db.raceBeforeWrite(() => {
+    db.sqlite.prepare("UPDATE listing_source_notes SET source_notes=? WHERE identity_key=?").run("복구 직전의 새 합성 원문", key());
+    concurrent = db.snapshot();
+  }, /INSERT INTO work_logs/i);
+  await rejectsStatus(deletion.restoreTrash(db.db, removed.trashId), 409);
+  assert.ok(concurrent);
+  assert.deepEqual(db.snapshot(), concurrent);
+});
+
 test("삭제 확인값 누락·잘못된 확인값·없는 대상·중복 삭제는 자료를 변경하지 않는다", async (t) => {
   const db = database(t);
   const work = await createWork();
@@ -517,7 +655,7 @@ test("할 일은 완료일·기한·고객·사라진 매물 연결까지 원래
   const db = database(t);
   await createWork();
   const item = await followups.createFollowUp(db.db, { title: "합성 100% 확인", notes: "완료한 일의 보관 메모", dueDate: "2026-09-20", customerId: "synthetic-customer", listingKey: key() });
-  await followups.updateFollowUp(db.db, item.id, { completed: true });
+  await followups.updateFollowUp(db.db, item.id, { completed: true, revision: item.revision });
   const before = row(db, "follow_ups", item.id);
   const removed = await move(db, "followup", item.id);
   assert.equal((await followups.getFollowUps(db.db, new URLSearchParams("status=all"))).items.length, 0);
@@ -769,7 +907,7 @@ test("토지는 전체 주소만으로 저장·주소 검색·이력·삭제 복
   const land = property({ propertyType: "토지", buildingName: "인천 서구 검암동 123-45", buildingDong: "", unitNumber: "" });
   const work = await createWork({ details: [land] });
   const identity = key(land);
-  const listing = await historyRoute.GET(new Request("https://synthetic.invalid"), { params: Promise.resolve({ key: encodeURIComponent(identity) }) });
+  const listing = await historyRoute.GET(new Request("https://synthetic.invalid"), { params: Promise.resolve({ key: identity }) });
   assert.equal(listing.status, 200);
   assert.equal((await listing.json()).workLogs[0].id, work.id);
   for (const query of ["검암동 123-45", "123-45", "인천 서구 검암동 123-45"]) {

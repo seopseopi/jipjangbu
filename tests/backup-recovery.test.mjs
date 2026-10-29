@@ -4,7 +4,7 @@ import { randomBytes, createCipheriv } from "node:crypto";
 import { checkBackup } from "../scripts/check-backup.mjs";
 import { STRUCTURE_TABLES } from "../db/structure-schema.js";
 
-const tables = [...STRUCTURE_TABLES, "customers", "work_logs", "work_log_properties", "listings", "listing_events", "work_types", "property_buildings", "follow_ups", "trash_records"];
+const tables = [...STRUCTURE_TABLES, "customers", "work_logs", "work_log_properties", "listings", "listing_source_notes", "listing_events", "work_types", "property_buildings", "follow_ups", "trash_records"];
 function fixture() {
   const data = Object.fromEntries(tables.map((name) => [name, []]));
   data.customers.push({ id: "test", name: "가상 고객" });
@@ -29,4 +29,26 @@ test("누락된 테이블, 건수 불일치 및 깨진 관계는 복구 성공�
   await assert.rejects(checkBackup(Buffer.from(JSON.stringify(backup))), /건수 불일치/);
   delete backup.tables.customers;
   await assert.rejects(checkBackup(Buffer.from(JSON.stringify(backup))), /건수 불일치/);
+});
+
+test("독립 원본 메모와 attribution도 복구하며 과거 v1 백업은 원본 메모에서 이행한다", async () => {
+  const current = fixture();
+  current.tables.listing_source_notes.push({ identity_key: "아파트|보관|101|202", source_notes: "상태가 없어도 보관할 원문", event_history: "[]" });
+  current.counts.listing_source_notes = 1;
+  assert.equal((await checkBackup(Buffer.from(JSON.stringify(current)))).counts.listing_source_notes, 1);
+  const legacy = fixture();
+  delete legacy.tables.listing_source_notes;
+  delete legacy.counts.listing_source_notes;
+  legacy.tables.listings.push({ id: "listing", identity_key: "아파트|원본|101|202", registered_at: "2026-10-01", status: "매물등록", property_type: "아파트", building_name: "원본", source_notes: "이전 백업의 원본 메모" });
+  legacy.counts.listings = 1;
+  assert.equal((await checkBackup(Buffer.from(JSON.stringify(legacy)))).counts.listing_source_notes, 1);
+  const partial = fixture();
+  delete partial.counts.listing_source_notes;
+  await assert.rejects(checkBackup(Buffer.from(JSON.stringify(partial))), /건수 불일치/);
+  for (const event_history of ["not-json", "{}", "[null]", '[{"work_log_id":"work"}]']) {
+    const invalid = fixture();
+    invalid.tables.listing_source_notes.push({ identity_key: "invalid", source_notes: "합성 원문", event_history });
+    invalid.counts.listing_source_notes = 1;
+    await assert.rejects(checkBackup(Buffer.from(JSON.stringify(invalid))), /업무 연결 정보/);
+  }
 });

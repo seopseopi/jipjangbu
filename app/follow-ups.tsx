@@ -18,6 +18,7 @@ export type FollowUpItem = {
   updated_at: string;
   customer_name: string | null;
   listing_label: string | null;
+  revision: string;
 };
 
 export type FollowUpsViewProps = {
@@ -98,6 +99,8 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<LoadError>(null);
   const [mutationError, setMutationError] = useState("");
+  const [mutationConflict, setMutationConflict] = useState(false);
+  const [conflictRecord, setConflictRecord] = useState<{ id: string; latest?: FollowUpItem; loading?: boolean; error?: string } | null>(null);
   const [notice, setNotice] = useState("");
   const [deletionId, setDeletionId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(compact);
@@ -214,6 +217,8 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
     setBusyId(id);
     setMutationError("");
     setNotice("");
+    setMutationConflict(false);
+    setConflictRecord(null);
     try {
       await clientJsonFetch(method === "POST" ? "/api/follow-ups" : `/api/follow-ups/${encodeURIComponent(id)}`, {
         method,
@@ -230,6 +235,13 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
       onChange?.();
     } catch (saveError) {
       setMutationError(errorText(saveError));
+      if ((saveError as { status?: number })?.status === 409) {
+        setMutationConflict(true);
+        if (editingId === id) setConflictRecord({ id });
+        // Refresh quick-action revisions, while preserving the original edit
+        // record and draft until the user explicitly reviews the newer values.
+        await reload();
+      }
     } finally {
       mutationLock.current = false;
       setBusyId(null);
@@ -248,6 +260,7 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
       dueDate: value.dueDate || null,
       customerId: value.customerId || null,
       listingKey: value.listingKey || null,
+      ...(id ? { revision: editingRecord?.revision } : {}),
     }, `“${title}” ${id ? "수정을 저장했습니다." : "할 일을 추가했습니다."}`, () => {
       if (id) { setEditingId(null); setEditingRecord(null); }
       else {
@@ -260,8 +273,8 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
     });
   }
 
-  function startEdit(item: FollowUpItem) {
-    if (busyId || !listReady) return;
+  function startEdit(item: FollowUpItem, confirmedLatest = false) {
+    if (busyId || (!confirmedLatest && !listReady)) return;
     if (editDirty && !window.confirm("저장하지 않은 수정 내용이 있습니다. 취소하고 다른 할 일을 수정할까요?")) return;
     const next = { title: item.title, notes: item.notes ?? "", dueDate: item.due_date ?? "", customerId: item.customer_id ?? "", listingKey: item.listing_key ?? "" };
     setEditingId(item.id);
@@ -270,7 +283,21 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
     setEditBaseline(next);
     setNotice("");
     setMutationError("");
+    setMutationConflict(false);
+    setConflictRecord(null);
     window.requestAnimationFrame(() => document.getElementById(`${formId}-${item.id}-title`)?.focus());
+  }
+
+  async function reviewConflict() {
+    if (!conflictRecord || conflictRecord.loading || busyId) return;
+    const id = conflictRecord.id;
+    setConflictRecord({ id, loading: true });
+    try {
+      const { item } = await clientJsonFetch<{ item: FollowUpItem }>(`/api/follow-ups/${encodeURIComponent(id)}`, { cache: "no-store" });
+      setConflictRecord((current) => current?.id === id ? { id, latest: item } : current);
+    } catch (error) {
+      setConflictRecord((current) => current?.id === id ? { id, error: errorText(error) } : current);
+    }
   }
 
   function cancelForm(editing?: string) {
@@ -285,6 +312,8 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
       setShowForm(compact);
     }
     setMutationError("");
+    setMutationConflict(false);
+    setConflictRecord(null);
   }
 
   function openNewForm() {
@@ -381,7 +410,15 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
 
     {!compact && showForm && renderForm(draft, setDraft)}
     {editingId && <div className="followup-edit-panel"><p className="followup-edit-heading"><Icon name="edit" size={18} /><strong>할 일 수정 중</strong><span>저장하거나 취소해 주세요.</span></p>{renderForm(editDraft, setEditDraft, editingId)}</div>}
-    {mutationError && <div className="followup-message followup-error" role="alert"><span><Icon name="warning" size={18} /><span>변경을 저장하지 못했습니다. {mutationError}<br />입력한 내용은 유지됩니다. 해당 버튼으로 다시 시도해 주세요.</span></span></div>}
+    {mutationError && <div className="followup-message followup-error" role="alert"><span><Icon name="warning" size={18} /><span>변경을 저장하지 못했습니다. {mutationError}<br />{mutationConflict ? "입력한 내용은 유지됩니다. 최신 내용을 확인하거나 갱신된 목록에서 다시 선택해 주세요." : "입력한 내용은 유지됩니다. 해당 버튼으로 다시 시도해 주세요."}</span></span>{conflictRecord && <button type="button" className="followup-button" disabled={!!busyId || conflictRecord.loading} onClick={() => void reviewConflict()}>{conflictRecord.loading ? "확인 중…" : "최신 내용 확인"}</button>}</div>}
+    {conflictRecord?.error && <p className="form-error" role="alert">{conflictRecord.error} 입력 중인 내용은 유지됩니다.</p>}
+    {conflictRecord?.latest && <section className="followup-conflict" aria-label="충돌한 할 일의 최신 내용">
+      <h3>최신 저장 내용</h3><strong>{conflictRecord.latest.title}</strong>
+      <p>{conflictRecord.latest.notes || "메모 없음"}</p>
+      <p>기한: {conflictRecord.latest.due_date || "날짜 미정"} · {conflictRecord.latest.completed_at ? "완료" : "진행 중"}</p>
+      <button type="button" className="followup-button" disabled={!!busyId} onClick={() => startEdit(conflictRecord.latest!, true)}>최신 내용으로 다시 열기</button>
+      <p className="form-help">다시 열면 현재 초안을 취소할지 먼저 확인합니다. 필요한 내용은 그 전에 복사해 주세요.</p>
+    </section>}
     {readState === "error" && <div className="followup-message followup-error" role="alert"><span><Icon name="warning" size={18} /><span>할 일 목록을 확인하지 못했습니다.<br />{loadError?.message}</span></span><button className="followup-button" disabled={loading || !!busyId} onClick={() => { void reload({ filter, search: query.trim() }); }}><Icon name="refresh" size={18} />다시 불러오기</button></div>}
     {notice && <div className="followup-message followup-notice" role="status"><span><Icon name="check" size={18} />{notice}</span>{notice.includes("휴지통") && onOpenTrash && <button type="button" className="followup-button" onClick={onOpenTrash}>휴지통 보기</button>}<button className="followup-dismiss" aria-label="안내 닫기" onClick={() => setNotice("")}><Icon name="close" size={20} /></button></div>}
 
@@ -394,7 +431,7 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
           <div className="followup-item-top">
             <span className={`followup-due${!item.completed_at && item.due_date === today ? " is-today" : ""}`}><Icon name={item.completed_at ? "check" : item.due_date && item.due_date < today ? "warning" : "calendar"} size={16} /><time dateTime={item.completed_at?.slice(0, 10) ?? item.due_date ?? undefined}>{dueText(item, today)}</time>{!item.completed_at && item.due_date && item.due_date < today && <small className="followup-overdue-label">기한 지남</small>}</span>
             <h3>{item.title}</h3>
-          <button className="followup-check" title={item.completed_at ? "다시 진행하기" : "완료하기"} aria-label={`${item.title}: ${item.completed_at ? "다시 진행하기" : "완료하기"}`} aria-pressed={!!item.completed_at} disabled={!!busyId || !listReady || !!editingId} onClick={() => { if (!window.confirm(`“${item.title}” 할 일을 ${item.completed_at ? "다시 진행할까요?" : "완료 처리할까요?"}`)) return; void mutate(item.id, "PATCH", { completed: !item.completed_at }, `“${item.title}” ${item.completed_at ? "할 일을 다시 열었습니다. 전체 진행에서 확인할 수 있습니다." : "할 일을 완료했습니다. 완료 목록에서 다시 열 수 있습니다."}`); }}><span aria-hidden="true">{busyId === item.id ? <Icon name="clock" size={16} /> : item.completed_at ? <Icon name="check" size={18} /> : null}</span>{item.completed_at ? "다시 진행" : "완료"}</button>
+          <button className="followup-check" title={item.completed_at ? "다시 진행하기" : "완료하기"} aria-label={`${item.title}: ${item.completed_at ? "다시 진행하기" : "완료하기"}`} aria-pressed={!!item.completed_at} disabled={!!busyId || !listReady || !!editingId} onClick={() => { if (!window.confirm(`“${item.title}” 할 일을 ${item.completed_at ? "다시 진행할까요?" : "완료 처리할까요?"}`)) return; void mutate(item.id, "PATCH", { completed: !item.completed_at, revision: item.revision }, `“${item.title}” ${item.completed_at ? "할 일을 다시 열었습니다. 전체 진행에서 확인할 수 있습니다." : "할 일을 완료했습니다. 완료 목록에서 다시 열 수 있습니다."}`); }}><span aria-hidden="true">{busyId === item.id ? <Icon name="clock" size={16} /> : item.completed_at ? <Icon name="check" size={18} /> : null}</span>{item.completed_at ? "다시 진행" : "완료"}</button>
           </div>
           <div className="followup-item-body">
             {item.notes && <p className="followup-notes">{item.notes}</p>}
@@ -404,7 +441,7 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
             </div>}
             <div className="followup-item-actions">
               <button disabled={!!busyId || !listReady} onClick={() => startEdit(item)}><Icon name="edit" size={16} />수정</button>
-              {!item.completed_at && <button disabled={!!busyId || !listReady || !!editingId || item.due_date === "9999-12-31"} onClick={() => { const base = item.due_date && item.due_date > today ? item.due_date : today; void mutate(item.id, "PATCH", { dueDate: nextDay(base) }, `“${item.title}” 예정일을 ${nextDay(base)}로 미뤘습니다.`); }}><Icon name="calendarPlus" size={16} />{!item.due_date || item.due_date <= today ? "내일로 미루기" : "하루 미루기"}</button>}
+              {!item.completed_at && <button disabled={!!busyId || !listReady || !!editingId || item.due_date === "9999-12-31"} onClick={() => { const base = item.due_date && item.due_date > today ? item.due_date : today; void mutate(item.id, "PATCH", { dueDate: nextDay(base), revision: item.revision }, `“${item.title}” 예정일을 ${nextDay(base)}로 미뤘습니다.`); }}><Icon name="calendarPlus" size={16} />{!item.due_date || item.due_date <= today ? "내일로 미루기" : "하루 미루기"}</button>}
               <button className="followup-delete" disabled={!!busyId || !listReady || !!editingId} onClick={() => setDeletionId(item.id)}><Icon name="delete" size={16} />삭제</button>
             </div>
           </div>

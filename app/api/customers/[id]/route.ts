@@ -7,7 +7,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     await ready();
     const { id } = await params;
     const customer = await getD1().prepare("SELECT id, name, notes, created_at, updated_at, is_demo FROM customers WHERE id = ?")
-      .bind(decodeURIComponent(id)).first();
+      .bind(id).first();
     return customer ? Response.json({ customer }) : Response.json({ error: "고객을 찾을 수 없습니다." }, { status: 404 });
   } catch (error) { return apiError(error, "고객 정보를 불러오지 못했습니다."); }
 }
@@ -27,7 +27,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const customer = await getD1().prepare(`UPDATE customers SET name = ?, notes = ?, is_demo = 0, updated_at = CURRENT_TIMESTAMP
       WHERE id = ? AND name = ? AND notes = ? AND created_at = ? AND updated_at = ? AND is_demo = ?
       RETURNING id, name, notes, created_at, updated_at, is_demo`)
-      .bind(name, body.notes?.trim() ?? "", decodeURIComponent(id), expected.name, expected.notes, expected.created_at, expected.updated_at, expected.is_demo).first();
+      .bind(name, body.notes?.trim() ?? "", id, expected.name, expected.notes, expected.created_at, expected.updated_at, expected.is_demo).first();
     if (!customer) return Response.json({ error: "다른 기기에서 고객 정보가 변경되었거나 삭제되었습니다. 작성 내용을 복사한 뒤 최신 정보를 다시 확인해 주세요." }, { status: 409 });
     return Response.json({ ok: true, customer });
   } catch (error) {
@@ -39,7 +39,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   try {
     await ready();
     const { id } = await params;
-    const customerId = decodeURIComponent(id);
+    const customerId = id;
     return Response.json(await moveToTrash(getD1(), "customer", customerId, await readDeletionRevision(request)));
   } catch (error) {
     if (error instanceof DeletionError) return Response.json({ error: error.message }, { status: error.status });

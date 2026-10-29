@@ -87,8 +87,19 @@ export const workLogProperties = sqliteTable(
       table.buildingDong,
       table.unitNumber,
     ),
+    index("idx_work_log_properties_source_log").on(sql`trim(${table.source})`, table.workLogId),
   ],
 );
+
+// Original notes are business data independent of the current-listing projection.
+export const listingSourceNotes = sqliteTable("listing_source_notes", {
+  identityKey: text("identity_key").primaryKey(),
+  sourceNotes: text("source_notes").notNull().default(""),
+  eventHistory: text("event_history").notNull().default("[]"),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [
+  check("listing_source_notes_event_history_array", sql`json_valid(${table.eventHistory}) AND json_type(${table.eventHistory}) = 'array'`),
+]);
 
 export const listings = sqliteTable(
   "listings",

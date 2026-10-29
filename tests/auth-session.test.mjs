@@ -42,3 +42,35 @@ test("로그아웃과 암호 변경은 복사된 쿠키도 무효화한다", asy
   env.APP_ADMIN_PASSWORD_HASH += "changed";
   assert.equal((await handleSecurityRequest(new Request("https://example.invalid/api/search", { headers: { Cookie: secondCookie } }), env, ctx)).status, 401);
 });
+
+test("차단 중 반복 요청도 원래 차단 만료를 밀지 않으며 만료 시 새 집계를 시작한다", async (t) => {
+  let instant = Date.UTC(2026, 9, 29, 12);
+  const start = instant;
+  t.mock.method(Date, "now", () => instant);
+  const { sqlite, login } = fixture(t);
+  for (let i = 0; i < 5; i++) assert.equal((await login("wrong")).status, i === 4 ? 429 : 401);
+  for (const seconds of [60, 600, 899]) {
+    instant = start + seconds * 1000;
+    const response = await login("correct-password");
+    assert.equal(response.status, 429);
+    assert.equal(Number(response.headers.get("Retry-After")), 900 - seconds);
+    assert.equal(sqlite.prepare("SELECT updated_at FROM auth_attempts").get().updated_at, start / 1000);
+  }
+  instant = start + 900000;
+  assert.equal((await login("correct-password")).status, 200, "정확한 만료 시각에 올바른 암호를 허용한다");
+  assert.equal(sqlite.prepare("SELECT COUNT(*) AS count FROM auth_attempts").get().count, 0);
+});
+
+test("만료 직후 실패는 새 창의 첫 실패이며 잘못된 JSON 형태는 400으로 응답한다", async (t) => {
+  let instant = Date.UTC(2026, 9, 29, 12);
+  t.mock.method(Date, "now", () => instant);
+  const { sqlite, login, env, ctx } = fixture(t);
+  for (let i = 0; i < 5; i++) await login("wrong");
+  instant += 901000;
+  assert.equal((await login("wrong")).status, 401);
+  assert.deepEqual({ ...sqlite.prepare("SELECT attempts, blocked_until FROM auth_attempts").get() }, { attempts: 1, blocked_until: 0 });
+  const response = await handleSecurityRequest(new Request("https://example.invalid/api/auth/login", {
+    method: "POST", headers: { "Content-Type": "application/json", "CF-Connecting-IP": "203.0.113.6" }, body: "null",
+  }), env, ctx);
+  assert.equal(response.status, 400);
+});

@@ -1,8 +1,8 @@
 import type { DeletionEntityType, DeletionPreview, DeletionResult, RestoreResult, TrashDetailResponse, TrashItem, TrashListResponse } from "../app/deletion-types";
-import { listingKey, listingRebuildStatements } from "./listing-sync";
+import { listingKey, listingRebuildStatements, saveListingSourceStatement, type SourceEvent } from "./listing-sync";
 
 type Row = Record<string, string | number | null>;
-type Snapshot = { work?: Row; customer?: Row | null; followup?: Row; details?: Row[]; events?: Row[]; listings?: Row[]; relatedEvents?: Row[]; dependencies?: number };
+type Snapshot = { work?: Row; customer?: Row | null; followup?: Row; details?: Row[]; events?: Row[]; listings?: Row[]; sourceNotes?: Row[]; relatedEvents?: Row[]; dependencies?: number };
 type StoredTrash = { id: string; entity_type: DeletionEntityType; entity_id: string; title: string; subtitle: string; search_text: string; snapshot: string; deleted_at: string };
 
 const columns = {
@@ -11,19 +11,23 @@ const columns = {
   work_log_properties: "id work_log_id sequence property_type building_name building_dong unit_number size_type sale_price jeonse_price monthly_rent source".split(" "),
   listing_events: "id listing_key work_log_id detail_id event_date event_order status property_type building_name building_dong unit_number size_type sale_price jeonse_price monthly_rent source notes is_demo created_at".split(" "),
   listings: "id identity_key registered_at closed_at status property_type building_name building_dong unit_number size_type sale_price jeonse_price monthly_rent notes source_notes is_demo updated_at".split(" "),
+  listing_source_notes: "identity_key source_notes event_history updated_at".split(" "),
   follow_ups: "id title notes due_date customer_id listing_key completed_at created_at updated_at".split(" "),
 } as const;
 type Table = keyof typeof columns;
 const objectSql = (table: Table, alias: string) => `json_object(${columns[table].map((column) => `'${column}', ${alias}.${column}`).join(",")})`;
 const rowsSql = (table: Table, alias: string, condition: string, order = `${alias}.id`) =>
   `json((SELECT json_group_array(json(value)) FROM (SELECT ${objectSql(table, alias)} AS value FROM ${table} ${alias} WHERE ${condition} ORDER BY ${order})))`;
-const affectedKeys = "SELECT listing_key FROM listing_events WHERE work_log_id = w.id";
+const affectedKeys = `SELECT listing_key FROM listing_events WHERE work_log_id = w.id
+  UNION SELECT original.identity_key FROM listing_source_notes original, json_each(original.event_history) history
+    WHERE json_extract(history.value, '$.work_log_id') = w.id`;
 const snapshots = {
   work: `SELECT json_object('work', ${objectSql("work_logs", "w")},
     'customer', (SELECT ${objectSql("customers", "c")} FROM customers c WHERE c.id = w.customer_id),
     'details', ${rowsSql("work_log_properties", "p", "p.work_log_id = w.id", "p.sequence, p.id")},
     'events', ${rowsSql("listing_events", "e", "e.work_log_id = w.id")},
     'listings', ${rowsSql("listings", "l", `l.identity_key IN (${affectedKeys})`)},
+    'sourceNotes', ${rowsSql("listing_source_notes", "s", `s.identity_key IN (${affectedKeys})`, "s.identity_key")},
     'relatedEvents', ${rowsSql("listing_events", "r", `r.listing_key IN (${affectedKeys})`)}) AS snapshot
     FROM work_logs w WHERE w.id = ?`,
   customer: `SELECT json_object('customer', ${objectSql("customers", "c")}, 'dependencies',
@@ -61,6 +65,17 @@ async function fingerprint(raw: string) {
 }
 
 const text = (value: unknown) => value == null ? "" : String(value);
+function sourceHistory(source?: Row): SourceEvent[] {
+  return source ? JSON.parse(text(source.event_history) || "[]") as SourceEvent[] : [];
+}
+function sourceRecords(snapshot: Snapshot) {
+  const sources = new Map((snapshot.sourceNotes ?? []).map((source) => [text(source.identity_key), source]));
+  for (const listing of snapshot.listings ?? []) {
+    const key = text(listing.identity_key);
+    sources.set(key, { ...sources.get(key), ...listing });
+  }
+  return sources;
+}
 const address = (row: Row) => [row.building_name, row.building_dong && `${row.building_dong}동`, row.unit_number && `${row.unit_number}호`].filter(Boolean).join(" ");
 function previewFor(type: DeletionEntityType, id: string, snapshot: Snapshot, revision: string): DeletionPreview {
   const row = snapshot.work ?? snapshot.followup ?? snapshot.customer!;
@@ -140,12 +155,17 @@ export async function moveToTrash(db: D1Database, type: DeletionEntityType, id: 
   if (type === "work") {
     statements.push(db.prepare("DELETE FROM listing_events WHERE work_log_id = ?").bind(id),
       db.prepare("DELETE FROM work_log_properties WHERE work_log_id = ?").bind(id), db.prepare("DELETE FROM work_logs WHERE id = ?").bind(id));
-    for (const listing of value.listings ?? []) {
-      const key = text(listing.identity_key);
-      const source = pruneSource(text(listing.source_notes), (value.events ?? []).filter((event) => event.listing_key === key), (value.relatedEvents ?? []).filter((event) => event.listing_key === key && event.work_log_id !== id));
+    for (const [key, original] of sourceRecords(value)) {
+      const history = sourceHistory(original);
+      const removed = [...(value.events ?? []).filter((event) => event.listing_key === key), ...history.filter((event) => event.work_log_id === id)];
+      const surviving = [...(value.relatedEvents ?? []).filter((event) => event.listing_key === key && event.work_log_id !== id), ...history.filter((event) => event.work_log_id !== id)];
+      const source = pruneSource(text(original.source_notes), removed, surviving);
       statements.push(db.prepare("UPDATE listings SET source_notes = ? WHERE identity_key = ?").bind(source, key));
+      statements.push(saveListingSourceStatement(db, key, source, history.filter((event) => event.work_log_id !== id)));
     }
-    statements.push(...listingRebuildStatements((value.events ?? []).map((event) => text(event.listing_key)), db));
+    statements.push(...listingRebuildStatements(new Set([
+      ...(value.events ?? []).map((event) => text(event.listing_key)), ...sourceRecords(value).keys(),
+    ]), db));
   } else statements.push(db.prepare(`DELETE FROM ${type === "customer" ? "customers" : "follow_ups"} WHERE id = ?`).bind(id));
   try { await db.batch(statements); }
   catch (error) { if (constraintError(error)) throw new DeletionError(conflictMessage, 409); throw error; }
@@ -247,40 +267,82 @@ export async function restoreTrash(db: D1Database, id: string): Promise<RestoreR
   const type = record.entity_type, table: Table = type === "work" ? "work_logs" : type === "customer" ? "customers" : "follow_ups";
   const row = snapshot.work ?? snapshot.followup ?? snapshot.customer!;
   const customerId = text(row.customer_id);
-  const keys = [...new Set((snapshot.events ?? []).map((event) => text(event.listing_key)))];
+  const originals = sourceRecords(snapshot);
+  const keys = [...new Set([...(snapshot.events ?? []).map((event) => text(event.listing_key)), ...originals.keys()])];
+  const originalEvents = [
+    ...(snapshot.relatedEvents ?? []), ...(snapshot.events ?? []), ...[...originals.values()].flatMap(sourceHistory),
+  ];
+  const originalWorkIds = [...new Set(originalEvents.map((event) => text(event.work_log_id)).filter(Boolean))];
   // Only affected listings' pending events are needed. Keep unrelated archived
   // snapshots out of this context as the long-lived trash grows.
-  const pendingCondition = keys.length ? `entity_type = 'work' AND EXISTS (
+  const pendingCondition = `entity_type = 'work' AND (EXISTS (
     SELECT 1 FROM json_each(trash_records.snapshot, '$.events') archived_event
-    WHERE json_extract(archived_event.value, '$.listing_key') IN (${keys.map(() => "?").join(",")})
-  )` : "0";
+    WHERE json_extract(archived_event.value, '$.listing_key') IN (SELECT value FROM json_each(?))
+  ) OR EXISTS (
+    SELECT 1 FROM json_each(trash_records.snapshot, '$.sourceNotes') archived_source
+    WHERE json_extract(archived_source.value, '$.identity_key') IN (SELECT value FROM json_each(?))
+  ))`;
   const contextSql = `SELECT json_object('trash', (SELECT snapshot FROM trash_records WHERE id = ?),
     'occupied', (SELECT COUNT(*) FROM ${table} WHERE id = ?),
     'customer', (SELECT ${objectSql("customers", "c")} FROM customers c WHERE c.id = ?),
-    'listings', ${rowsSql("listings", "l", keys.length ? `l.identity_key IN (${keys.map(() => "?").join(",")})` : "0")},
-    'events', ${rowsSql("listing_events", "e", keys.length ? `e.listing_key IN (${keys.map(() => "?").join(",")})` : "0")},
-    'pending', json((SELECT json_group_array(json_object('id', id, 'events', json_extract(snapshot, '$.events'))) FROM (SELECT id, snapshot FROM trash_records WHERE ${pendingCondition} ORDER BY id)))) AS state`;
-  const contextBindings = [id, record.entity_id, customerId, ...keys, ...keys, ...keys];
+    'listings', ${rowsSql("listings", "l", "l.identity_key IN (SELECT value FROM json_each(?))")},
+    'sourceNotes', ${rowsSql("listing_source_notes", "s", "s.identity_key IN (SELECT value FROM json_each(?))", "s.identity_key")},
+    'sourceWorkIds', json((SELECT json_group_array(id) FROM (SELECT id FROM work_logs WHERE id IN (
+      SELECT value FROM json_each(?)
+      UNION SELECT json_extract(history.value, '$.work_log_id')
+        FROM listing_source_notes original, json_each(original.event_history) history
+        WHERE original.identity_key IN (SELECT value FROM json_each(?))
+    ) ORDER BY id))),
+    'events', ${rowsSql("listing_events", "e", "e.listing_key IN (SELECT value FROM json_each(?))")},
+    'pending', json((SELECT json_group_array(json_object('id', id, 'workId', json_extract(snapshot, '$.work.id'),
+      'events', json_extract(snapshot, '$.events'), 'sourceNotes', json_extract(snapshot, '$.sourceNotes')))
+      FROM (SELECT id, snapshot FROM trash_records WHERE ${pendingCondition} ORDER BY id)))) AS state`;
+  const keyList = JSON.stringify(keys);
+  // Event attribution and old addresses can grow beyond the current ten
+  // properties. JSON sets keep this guard below D1's bind-variable limit.
+  const contextBindings = [id, record.entity_id, customerId, keyList, keyList,
+    JSON.stringify(originalWorkIds), keyList, keyList, keyList, keyList];
   const context = await db.prepare(contextSql).bind(...contextBindings).first<{ state: string }>();
-  const state = JSON.parse(context!.state) as { trash: string | null; occupied: number; customer: Row | null; listings: Row[]; events: Row[]; pending: { id: string; events: Row[] }[] };
+  const state = JSON.parse(context!.state) as { trash: string | null; occupied: number; customer: Row | null; listings: Row[]; sourceNotes: Row[]; sourceWorkIds: string[]; events: Row[]; pending: { id: string; workId: string; events: Row[]; sourceNotes: Row[] }[] };
   if (state.trash !== record.snapshot) throw new DeletionError("이미 복구되었거나 변경된 항목입니다. 휴지통을 다시 확인해 주세요.", 409);
   if (state.occupied) throw new DeletionError("같은 ID의 자료가 이미 있어 복구하지 않았습니다. 현재 기록을 확인해 주세요.", 409);
   if (customerId && !state.customer) throw new DeletionError("연결된 고객이 없어 복구할 수 없습니다. 고객 정보를 먼저 확인해 주세요.", 409);
   const guard = { sql: `(${contextSql}) = ?`, bindings: [...contextBindings, context!.state] };
   const statements = [insertRow(db, table, row, guard)];
   if (type === "work") {
+    const activeWorkIds = new Set([...state.sourceWorkIds, record.entity_id]);
     for (const detail of snapshot.details ?? []) statements.push(insertRow(db, "work_log_properties", detail));
     for (const event of snapshot.events ?? []) statements.push(insertRow(db, "listing_events", event));
-    for (const original of snapshot.listings ?? []) {
-      const key = text(original.identity_key), current = state.listings.find((listing) => listing.identity_key === key);
-      const stillDeleted = state.pending.filter((pending) => pending.id !== id).flatMap((pending) => pending.events ?? []).filter((event) => event.listing_key === key);
-      const activeEvents = [...state.events.filter((event) => event.listing_key === key), ...(snapshot.events ?? []).filter((event) => event.listing_key === key)];
-      const restoredSource = pruneSource(text(original.source_notes), stillDeleted, activeEvents);
-      const currentSource = text(current?.source_notes);
+    for (const [key, original] of originals) {
+      const current = state.listings.find((listing) => listing.identity_key === key);
+      const preserved = state.sourceNotes.find((source) => source.identity_key === key);
+      const restoredHistory = [...new Map([
+        ...sourceHistory(preserved), ...sourceHistory(original).filter((event) => event.work_log_id === record.entity_id),
+        ...(snapshot.events ?? []).filter((event) => event.listing_key === key).map((event) => ({
+          work_log_id: text(event.work_log_id), event_date: text(event.event_date), status: text(event.status), notes: text(event.notes),
+        })),
+      ].filter((event) => activeWorkIds.has(event.work_log_id))
+        .map((event) => [JSON.stringify(event), event])).values()];
+      const stillDeleted = state.pending.filter((pending) => pending.id !== id).flatMap((pending) => [
+        ...(pending.events ?? []).filter((event) => event.listing_key === key),
+        ...(pending.sourceNotes ?? []).filter((source) => source.identity_key === key)
+          .flatMap(sourceHistory).filter((event) => event.work_log_id === pending.workId),
+      ]);
+      const activeEvents = [...state.events.filter((event) => event.listing_key === key), ...restoredHistory];
+      // A sibling may have been permanently removed from trash after this
+      // snapshot was made. Its old source text must stay deleted as well.
+      // Test work existence, not current property/status: edited live work
+      // still owns its original text even after changing address or work type.
+      const absentOrigins = [
+        ...(snapshot.relatedEvents ?? []).filter((event) => event.listing_key === key),
+        ...sourceHistory(original),
+      ].filter((event) => !activeWorkIds.has(text(event.work_log_id)));
+      const restoredSource = pruneSource(text(original.source_notes), [...stillDeleted, ...absentOrigins], activeEvents);
+      const currentSource = text(current?.source_notes ?? preserved?.source_notes);
       // Retain newer source-only notes. Merge only missing dated entries/text,
       // never replace an existing listing's source with the older full snapshot.
-      let source = current ? currentSource : restoredSource;
-      if (current && restoredSource.trim()) {
+      let source = current || preserved ? currentSource : restoredSource;
+      if ((current || preserved) && restoredSource.trim()) {
         let cursor = 0;
         for (const match of restoredSource.matchAll(/\([^()\r\n]+\)\s*\(\d{4}-\d{2}-\d{2}\)/g)) {
           const end = match.index + match[0].length, segment = restoredSource.slice(cursor, end);
@@ -291,7 +353,8 @@ export async function restoreTrash(db: D1Database, id: string): Promise<RestoreR
         if (tail.trim() && !source.includes(tail.trim())) source += `${source.trim() ? "\n" : ""}${tail.trim()}`;
       }
       if (current) statements.push(db.prepare("UPDATE listings SET source_notes = ? WHERE identity_key = ?").bind(source, key));
-      else statements.push(insertRow(db, "listings", { ...original, source_notes: source }));
+      else if ((snapshot.listings ?? []).some((listing) => listing.identity_key === key)) statements.push(insertRow(db, "listings", { ...original, source_notes: source }));
+      statements.push(saveListingSourceStatement(db, key, source, restoredHistory));
     }
     statements.push(...listingRebuildStatements(keys, db));
   }

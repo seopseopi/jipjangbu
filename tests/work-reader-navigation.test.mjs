@@ -19,6 +19,7 @@ function declaration(name) {
   return node.getText(ast);
 }
 function evaluate(code, environment) {
+  environment = { currentRecordKey: { current: null }, restoreRecord: { current: () => {} }, ...environment };
   const output = ts.transpileModule(code, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, jsx: ts.JsxEmit.React } }).outputText;
   return new Function(...Object.keys(environment), `${output}; return result;`)(...Object.values(environment));
 }
