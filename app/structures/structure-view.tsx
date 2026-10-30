@@ -19,6 +19,7 @@ import {
   linkedStructureUnit,
   structureGroups,
   structurePropertyDong,
+  structureGroupKey,
 } from "./catalog";
 import type { Catalog, History, PropertyRow, RevisionData } from "./contracts";
 import "./structures.css";
@@ -69,7 +70,7 @@ export function StructureView({
           setComplex(`complex:${u.complex_id}`);
           setDong(u.building_name);
         } else if (p) {
-          setComplex(`listing:${p.building_name}`);
+          setComplex(structureGroupKey(data, p));
           setDong(p.building_dong);
         }
       })
@@ -124,7 +125,8 @@ export function StructureView({
           selectedProperties.some((p) => p.identity_key === l.identity_key),
       ),
   );
-  const saved = () => {
+  const saved = (focusKey?: string) => {
+    if (focusKey) setKey(focusKey);
     clearClientReadCache();
     setGeneration((n) => n + 1);
     setManager(false);

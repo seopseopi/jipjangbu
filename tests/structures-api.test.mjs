@@ -336,3 +336,44 @@ test('세대 연결은 추가 근거 입력 없이 저장하고 첫 연결부터
  assert.equal((await post({...assignment,dong:'101동',number:'301호'})).status,201);
  assert.equal(db.prepare('SELECT evidence FROM structure_assignments').get().evidence,'');
 });
+
+const {importPublicPlans,publicPlanCandidate}=await import('../worker/structure-public-import.ts');
+function importListing(db,{key='아파트|아이파크1차|101|9001',dong='101',size='33',closed=null,demo=0}={}) {
+ db.prepare(`INSERT INTO listings(id,identity_key,status,property_type,building_name,building_dong,unit_number,size_type,closed_at,is_demo)
+ VALUES(?,?,'매물등록','아파트','아이파크1차',?,'9001',?,?,?)`).run(crypto.randomUUID(),key,dong,size,closed,demo);
+ return key;
+}
+async function importFixture() {
+ const bytes=Uint8Array.from([255,216,255,0,1,2,3,4,5]);
+ const sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+ const {APARTMENT_SOURCES}=await import('../app/structures/source-contract.ts');
+ const type=APARTMENT_SOURCES.find(s=>s.alias==='아이파크1차').types.find(t=>t.id==='62354');
+ const model={typeId:type.id,sourceImage:type.basicImage,sha256,crop:{x:0,y:0,width:1,height:1},plan:{...DEMO_PLAN,isDemo:false}};
+ return {bytes,model,image:async()=>new Response(bytes,{headers:{'Content-Type':'image/jpeg'}})};
+}
+test('공개 도면 일괄 연결은 현재 단일 타입만 등록하고 방향·확장을 미확인으로 보존하며 재실행해도 중복하지 않는다',async t=>{
+ const sqlite=database(t),{bucket,objects}=fileBucket(t),f=await importFixture();
+ importListing(sqlite);importListing(sqlite,{key:'아파트|아이파크1차|107|9001',dong:'107',size:'33'});
+ importListing(sqlite,{key:'아파트|아이파크1차|102|9001',dong:'102',closed:'2026-01-01'});
+ importListing(sqlite,{key:'아파트|아이파크1차|104|9001',dong:'104',demo:1});
+ const result=await importPublicPlans(globalThis[symbol],bucket,f.image,[f.model]);
+ assert.equal(result.linked,1);assert.equal(result.registered,1);assert.equal(result.skipped,1);assert.deepEqual(result.errors,[]);
+ const assignment=sqlite.prepare('SELECT * FROM structure_assignments').get();
+ assert.equal(assignment.mirror,null);assert.equal(assignment.rotation,null);assert.equal(assignment.actual_condition,'unknown');
+ assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM structure_plan_processing').get().n,1);assert.equal(objects.size,1);
+ const again=await importPublicPlans(globalThis[symbol],bucket,f.image,[f.model]);
+ assert.equal(again.linked,0);assert.equal(again.registered,0);assert.equal(objects.size,1);
+ assert.equal(publicPlanCandidate({building_name:'아이파크2차',building_dong:'207',unit_number:'804',size_type:'48A',identity_key:'x'}),null);
+});
+test('가공 원본 SHA 변경과 동호수 장부 변경을 감지하면 연결하지 않는다',async t=>{
+ const sqlite=database(t),{bucket,objects}=fileBucket(t),f=await importFixture();
+ importListing(sqlite);
+ const bad=await importPublicPlans(globalThis[symbol],bucket,async()=>new Response(new Uint8Array([255,216,255,1,2,3,4,5]),{headers:{'Content-Type':'image/jpeg'}}),[f.model]);
+ assert.equal(bad.linked,0);assert.equal(bad.errors.length,1);assert.equal(objects.size,0);
+ const raced=await importPublicPlans(globalThis[symbol],bucket,async()=>{
+  sqlite.prepare("UPDATE listings SET size_type='45'").run();return f.image();
+ },[f.model]);
+ assert.equal(raced.linked,0);assert.equal(raced.errors.length,1);
+ assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM structure_units').get().n,0);
+ assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM structure_listing_links').get().n,0);
+});

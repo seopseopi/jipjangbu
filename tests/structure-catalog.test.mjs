@@ -21,3 +21,10 @@ test("업무 기록이 없는 관리 아파트도 전체 도면 수집 목록에
  const data={properties:[],complexes:[],units:[],revisions:[],links:[],managedBuildings:[{id:'managed',building_name:'아파트A'}]};
  assert.equal(structureGroups(data)[0].name,'아파트A');assert.equal(structureGroups(data)[0].properties.length,0);
 });
+
+test('공식 이름·주소가 일치하는 등록 단지는 장부 별칭과 연결 대기 매물을 한 목록으로 표시한다',()=>{
+ const data={complexes:[{id:'real',name:'검단아이파크',address:'인천광역시 검단구 완정로92번길 28'}],units:[],revisions:[],links:[],managedBuildings:[{id:'lookup',building_name:'아이파크1차'}],properties:[{identity_key:'pending',building_name:'아이파크1차',building_dong:'107',unit_number:'601'}]};
+ const groups=structureGroups(data);assert.equal(groups.length,1);assert.equal(groups[0].name,'아이파크1차');assert.equal(groups[0].properties[0].identity_key,'pending');
+ const wrongAddress={...data,complexes:[{...data.complexes[0],address:'다른 주소'}]};
+ assert.equal(structureGroups(wrongAddress).length,2);
+});
