@@ -1,5 +1,5 @@
-import type { Catalog, PropertyRow } from "./contracts";
-import { apartmentSources, APARTMENT_SOURCES } from "./source-contract.ts";
+import type { Catalog, PropertyRow, StructureUnit } from "./contracts";
+import { apartmentSources, APARTMENT_SOURCES, sourceTypeCandidates } from "./source-contract.ts";
 
 function knownComplex(catalog: Catalog, name: string) {
   const sources = apartmentSources(name);
@@ -57,4 +57,28 @@ export function structurePropertyDong(catalog: Catalog, property: PropertyRow) {
     linkedStructureUnit(catalog, property.identity_key)?.building_name ??
     property.building_dong
   );
+}
+
+/** Recheck current journal identity and type before displaying a saved link.
+ * Historical size labels and unknown household alterations never become proof. */
+export function structureConnectionIssue(catalog: Catalog, property: PropertyRow | undefined, unit: StructureUnit | undefined) {
+  if(!property || !unit)return "";
+  const normalize=(s:string,suffix:string)=>s.trim().replace(new RegExp(`${suffix}$`),"");
+  if(normalize(property.building_dong,"동")!==normalize(unit.building_name,"동") ||
+    normalize(property.unit_number,"호")!==normalize(unit.number,"호"))
+    return "장부 동·호수와 연결된 도면이 다릅니다. 연결을 확인해 주세요.";
+  const complex=catalog.complexes.find(c=>c.id===unit.complex_id);
+  const sources=apartmentSources(property.building_name);
+  const source=sources.find(s=>s.name===complex?.name && s.address===complex.address);
+  if(sources.length && !source)return "장부 단지와 연결된 도면의 단지가 다릅니다. 연결을 확인해 주세요.";
+  const revision=catalog.revisions.find(r=>r.id===unit.revision_id);
+  if(!source || !revision || !property.current_size_type?.trim())return "";
+  const type=source.types.find(t=>t.label===revision.type_name);
+  if(!type)return ""; // Manually supplied models use their own reviewed source.
+  const labels=property.current_size_type.split(",").map(s=>s.trim()).filter(Boolean);
+  if(labels.some(label=>{
+    const matches=sourceTypeCandidates(source,label,property.building_dong);
+    return !matches.some(t=>t.id===type.id);
+  }))return "최신 장부 평형과 연결된 도면이 다릅니다. 타입을 확인해 주세요.";
+  return "";
 }

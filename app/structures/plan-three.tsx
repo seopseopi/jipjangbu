@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable react/no-unknown-property -- R3F JSX describes Three.js objects, not HTML. */
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import {
   Shape,
@@ -12,14 +12,20 @@ import {
   type Mesh,
   type MeshStandardMaterial,
   type OrthographicCamera,
+  type PerspectiveCamera,
 } from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { ReferenceFixtures, useFloorTextures, Fitting } from "./plan-fixtures";
 import { reviewedInterior, roomFinish } from "./interior-details";
 import { InteriorFurniture } from "./interior-furniture";
+import { RoomContents } from "./room-contents";
+import { layoutRoomLabels, type RoomLabelAnchor } from "./label-layout";
 import { referenceFinish } from "./reference-finishes";
 import { hasReferenceFinishes } from "./hillstate-reference";
-import { overheadFrame, recommendedView } from "./overhead-frame";
+import {
+  cameraPlanKey, cameraPose, initialCameraView, perspectiveSpan, resizeCameraView,
+  type PlanCameraMemory,
+} from "./camera-continuity";
 import {
   roomColor,
   transformPoint,
@@ -30,34 +36,53 @@ import {
   type Transform,
 } from "./plan";
 
-function OverheadControls({
-  plan,
-  transform,
-  reset,
-  zoom,
-  onFailure,
-}: {
+type ViewControlsProps = {
   plan: Plan;
   transform: Transform;
   reset: number;
   zoom: number;
   onFailure: () => void;
-}) {
+  viewMemory: RefObject<PlanCameraMemory>;
+  topView?: boolean;
+};
+function ViewControls({
+  plan, transform, reset, zoom, onFailure, viewMemory, topView = false, flat,
+}: ViewControlsProps & { flat: boolean }) {
   const { camera, gl, size, invalidate } = useThree();
   const controlsRef = useRef<OrbitControls | null>(null);
-  const frame = useMemo(
-    () => overheadFrame(plan, transform, size.width, size.height),
+  const ready = useRef(false);
+  const defaults = useMemo(
+    () => initialCameraView(plan, transform, size.width, size.height),
     [plan, transform, size.width, size.height],
   );
+  const key = cameraPlanKey(plan, transform);
   useEffect(() => {
     const controls = new OrbitControls(camera, gl.domElement);
-    controls.enableRotate = false;
+    controls.enableRotate = !flat;
     controls.screenSpacePanning = true;
-    controls.mouseButtons.LEFT = MOUSE.PAN;
-    controls.touches.ONE = TOUCH.PAN;
-    controls.touches.TWO = TOUCH.DOLLY_PAN;
+    if (flat) {
+      controls.mouseButtons.LEFT = MOUSE.PAN;
+      controls.touches.ONE = TOUCH.PAN;
+      controls.touches.TWO = TOUCH.DOLLY_PAN;
+    } else controls.maxPolarAngle = Math.PI / 3;
     controlsRef.current = controls;
-    const changed = () => invalidate();
+    ready.current = false;
+    const changed = () => {
+      const saved = viewMemory.current.view;
+      if (ready.current && saved) {
+        const delta = camera.position.clone().sub(controls.target);
+        viewMemory.current.view = {
+          ...saved,
+          target: controls.target.toArray(),
+          span: flat
+            ? ((camera as OrthographicCamera).top - (camera as OrthographicCamera).bottom) / camera.zoom
+            : perspectiveSpan(delta.length()),
+          yaw: flat ? saved.yaw : Math.atan2(delta.x, delta.z),
+          pitch: flat || saved.topView ? saved.pitch : Math.atan2(delta.y, Math.hypot(delta.x, delta.z)),
+        };
+      }
+      invalidate();
+    };
     const lost = (event: Event) => {
       event.preventDefault();
       onFailure();
@@ -65,113 +90,60 @@ function OverheadControls({
     controls.addEventListener("change", changed);
     gl.domElement.addEventListener("webglcontextlost", lost);
     return () => {
+      ready.current = false;
       controls.removeEventListener("change", changed);
       controls.dispose();
       controlsRef.current = null;
       gl.domElement.removeEventListener("webglcontextlost", lost);
     };
-  }, [camera, gl, invalidate, onFailure]);
-  /* eslint-disable react-hooks/immutability -- Three.js camera is mutable renderer state, updated in effects. */
+  }, [camera, gl, invalidate, onFailure, flat, viewMemory]);
+  /* eslint-disable react-hooks/immutability -- Three.js camera and orbit state are mutable renderer objects. */
   useEffect(() => {
     const controls = controlsRef.current;
     if (!controls) return;
-    camera.position.set(frame.x, 25, frame.z + 0.001);
-    (camera as OrthographicCamera).zoom = frame.zoom * zoom;
+    const memory = viewMemory.current;
+    const fresh = memory.key !== key || memory.reset !== reset || !memory.view;
+    let view = fresh ? defaults : memory.view!;
+    if (!fresh && (view.width !== size.width || view.height !== size.height))
+      view = resizeCameraView(view, defaults);
+    view = {
+      ...view,
+      span: view.span * view.zoom / zoom,
+      zoom,
+      topView,
+    };
+    const pose = cameraPose(view, flat);
+    ready.current = false;
+    camera.up.set(...pose.up);
+    camera.position.set(...pose.position);
+    camera.zoom = pose.zoom;
+    controls.target.set(...view.target);
+    if (flat) {
+      const baseZoom = size.height / defaults.defaultSpan;
+      controls.minZoom = baseZoom * 0.3;
+      controls.maxZoom = baseZoom * 3.5;
+    } else {
+      const baseDistance = defaults.defaultSpan / perspectiveSpan(1);
+      controls.minDistance = baseDistance * 0.285;
+      controls.maxDistance = baseDistance * 3.5;
+      (camera as PerspectiveCamera).fov = 42;
+    }
     camera.updateProjectionMatrix();
-    controls.target.set(frame.x, 0, frame.z);
-    controls.minZoom = frame.zoom * 0.65;
-    controls.maxZoom = frame.zoom * 3;
     controls.update();
+    memory.key = key;
+    memory.reset = reset;
+    memory.view = view;
+    ready.current = true;
     invalidate();
-  }, [camera, frame, reset, zoom, invalidate]);
+  }, [camera, defaults, key, reset, zoom, topView, flat, size.width, size.height, invalidate, viewMemory]);
   /* eslint-enable react-hooks/immutability */
   return null;
 }
-
-function Controls({
-  plan,
-  transform,
-  reset,
-  zoom,
-  onFailure,
-  topView,
-}: {
-  plan: Plan;
-  transform: Transform;
-  reset: number;
-  zoom: number;
-  onFailure: () => void;
-  topView: boolean;
-}) {
-  const { camera, gl, invalidate, size } = useThree();
-  const view = useMemo(
-    () => recommendedView(plan, transform, size.width, size.height),
-    [plan, transform, size.width, size.height],
-  );
-  const fit = JSON.stringify(view);
-  const controlsRef = useRef<OrbitControls | null>(null);
-  const previousView = useRef<{
-    zoom: number;
-    reset: number;
-    topView: boolean;
-    fit: string;
-  } | null>(null);
-  useEffect(() => {
-    const controls = new OrbitControls(camera, gl.domElement);
-    controlsRef.current = controls;
-    controls.target.set(0, 0, 0);
-    controls.maxPolarAngle = Math.PI / 3;
-    controls.minDistance = 4;
-    controls.maxDistance = 45;
-    controls.update();
-    const changed = () => invalidate();
-    controls.addEventListener("change", changed);
-    const lost = (event: Event) => {
-      event.preventDefault();
-      onFailure();
-    };
-    gl.domElement.addEventListener("webglcontextlost", lost);
-    invalidate();
-    return () => {
-      controls.removeEventListener("change", changed);
-      controls.dispose();
-      controlsRef.current = null;
-      previousView.current = null;
-      gl.domElement.removeEventListener("webglcontextlost", lost);
-    };
-  }, [camera, gl, invalidate, onFailure]);
-  useEffect(() => {
-    const controls = controlsRef.current,
-      previous = previousView.current;
-    if (!controls) return;
-    if (
-      !previous ||
-      previous.reset !== reset ||
-      previous.topView !== topView ||
-      previous.fit !== fit
-    ) {
-      controls.maxDistance = Math.max(45, view.distance * 2);
-      controls.minDistance = view.distance * 0.3;
-      controls.target.set(...view.target);
-      const direction = topView ? [0, 1, 0.0001] : view.direction;
-      camera.position
-        .set(...view.target)
-        .addScaledVector(
-          new Vector3(direction[0], direction[1], direction[2]),
-          view.distance / zoom,
-        );
-    } else if (previous.zoom !== zoom) {
-      // Dolly along the current line of sight; do not discard the user's orbit or pan.
-      camera.position
-        .sub(controls.target)
-        .multiplyScalar(previous.zoom / zoom)
-        .add(controls.target);
-    }
-    previousView.current = { zoom, reset, topView, fit };
-    controls.update();
-    invalidate();
-  }, [camera, fit, view, zoom, reset, topView, invalidate]);
-  return null;
+function OverheadControls(props: ViewControlsProps) {
+  return <ViewControls {...props} flat />;
+}
+function Controls(props: ViewControlsProps & { topView: boolean }) {
+  return <ViewControls {...props} flat={false} />;
 }
 function Scene({
   plan,
@@ -179,6 +151,7 @@ function Scene({
   selected,
   onSelect,
   labels,
+  leaders,
   lowWalls,
   showRoute,
   flatView = false,
@@ -187,7 +160,8 @@ function Scene({
   transform: Transform;
   selected: string;
   onSelect: (id: string) => void;
-  labels: React.RefObject<(HTMLSpanElement | null)[]>;
+  labels: React.RefObject<(HTMLElement | null)[]>;
+  leaders: React.RefObject<(SVGLineElement | null)[]>;
   lowWalls: boolean;
   showRoute: boolean;
   flatView?: boolean;
@@ -243,22 +217,51 @@ function Scene({
         material.depthWrite = !front;
         mesh.castShadow = !front;
       });
+    const anchors: RoomLabelAnchor[] = [];
+    const indexById = new Map<string,number>();
     plan.rooms.forEach((room, i) => {
       const el = labels.current[i];
       if (!el) return;
+      el.style.setProperty("visibility","hidden");
+      if (leaders.current[i]) leaders.current[i]!.style.setProperty("visibility","hidden");
+      if (el.hidden) return;
       const p = pos(room.label);
       vector.current.set(p[0], detailed ? 1.15 : 0.12, p[2]).project(camera);
-      el.style.transform = `translate(-50%, -50%) translate(${((vector.current.x + 1) * size.width) / 2}px,${((-vector.current.y + 1) * size.height) / 2}px)`;
-      el.style.visibility = vector.current.z > 1 ? "hidden" : "visible";
+      if(vector.current.z < -1 || vector.current.z > 1) return;
+      anchors.push({id:room.id, x:((vector.current.x+1)*size.width)/2,
+        y:((-vector.current.y+1)*size.height)/2,
+        width:el.offsetWidth,height:el.offsetHeight,
+        priority:selected===room.id?100:room.name==="거실"?70:50});
+      indexById.set(room.id,i);
     });
-    const entryEl = labels.current[plan.rooms.length];
+    const entryIndex=plan.rooms.length, entryEl=labels.current[entryIndex];
+    if(entryEl){
+      entryEl.style.setProperty("visibility","hidden");
+      if(leaders.current[entryIndex])leaders.current[entryIndex]!.style.setProperty("visibility","hidden");
+    }
     if (plan.entry && entryEl) {
-      const p = pos(plan.entry.route[0]);
-      vector.current.set(p[0], 0.25, p[2]).project(camera);
-      entryEl.style.setProperty(
-        "transform",
-        `translate(-50%, -120%) translate(${((vector.current.x + 1) * size.width) / 2}px,${((-vector.current.y + 1) * size.height) / 2}px)`,
-      );
+      const p=pos(plan.entry.route[0]);
+      vector.current.set(p[0],.25,p[2]).project(camera);
+      if(vector.current.z>=-1 && vector.current.z<=1){
+        anchors.push({id:"entry-pin",x:((vector.current.x+1)*size.width)/2,
+          y:((-vector.current.y+1)*size.height)/2-entryEl.offsetHeight*.7,
+          width:entryEl.offsetWidth,height:entryEl.offsetHeight+8,priority:selected?35:90});
+        indexById.set("entry-pin",entryIndex);
+      }
+    }
+    const originalById=new Map(anchors.map(a=>[a.id,a]));
+    for(const placement of layoutRoomLabels(anchors,size.width,size.height)){
+      const i=indexById.get(placement.id)!, el=labels.current[i]!;
+      if(!placement.visible)continue;
+      el.style.setProperty("transform",`translate(-50%, -50%) translate(${placement.x}px,${placement.y}px)`);
+      el.style.setProperty("visibility","visible");
+      el.setAttribute("data-shifted",String(placement.moved));
+      const leader=leaders.current[i], anchor=originalById.get(placement.id)!;
+      if(leader && placement.moved){
+        leader.setAttribute("x1",String(anchor.x));leader.setAttribute("y1",String(anchor.y));
+        leader.setAttribute("x2",String(placement.x));leader.setAttribute("y2",String(placement.y));
+        leader.style.setProperty("visibility","visible");
+      }
     }
   });
   return (
@@ -335,7 +338,9 @@ function Scene({
                 roughness={interior && /욕실|현관/.test(room.name) ? 0.4 : 0.78}
                 color={
                   selected === room.id
-                    ? "#8ab6aa"
+                    ? "#9fcdb9"
+                    : selected
+                      ? "#d2d8d4"
                     : detailed || interior
                       ? "#ffffff"
                       : roomColor(room)
@@ -344,22 +349,13 @@ function Scene({
             </mesh>
           ))}
           {detailed && <ReferenceFixtures onSelect={onSelect} />}
-          {interior && (
-            <>
-              {interior.fixtures.map((f) => (
-                <group
-                  key={f.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelect(f.roomId);
-                  }}
-                >
-                  <Fitting fixture={f} />
-                </group>
-              ))}
-              <InteriorFurniture plan={plan} />
-            </>
-          )}
+          {interior && plan.rooms.map(room => (
+            <RoomContents key={room.id} dimmed={!!selected && selected!==room.id}
+              onSelect={()=>onSelect(room.id)}>
+              {interior.fixtures.filter(f=>f.roomId===room.id).map(f=><Fitting key={f.id} fixture={f} />)}
+              <InteriorFurniture plan={plan} roomId={room.id} />
+            </RoomContents>
+          ))}
           {plan.walls.flatMap((w) =>
             wallSolids(w, [...plan.doors, ...plan.windows]).map((s, i) => {
               const top = flatView
@@ -575,6 +571,7 @@ function Scene({
   );
 }
 export default function PlanThree(props: {
+  viewMemory: RefObject<PlanCameraMemory>;
   plan: Plan;
   transform: Transform;
   selected: string;
@@ -588,7 +585,8 @@ export default function PlanThree(props: {
   showLabels: boolean;
   flatView?: boolean;
 }) {
-  const labels = useRef<(HTMLSpanElement | null)[]>([]);
+  const labels = useRef<(HTMLElement | null)[]>([]);
+  const leaders = useRef<(SVGLineElement | null)[]>([]);
   const interior = useMemo(() => reviewedInterior(props.plan), [props.plan]);
   return (
     <div
@@ -619,6 +617,7 @@ export default function PlanThree(props: {
       >
         {props.flatView ? (
           <OverheadControls
+            viewMemory={props.viewMemory}
             plan={props.plan}
             transform={props.transform}
             reset={props.reset}
@@ -627,6 +626,7 @@ export default function PlanThree(props: {
           />
         ) : (
           <Controls
+            viewMemory={props.viewMemory}
             plan={props.plan}
             transform={props.transform}
             reset={props.reset}
@@ -635,27 +635,35 @@ export default function PlanThree(props: {
             topView={props.topView}
           />
         )}
-        <Scene {...props} labels={labels} />
+        <Scene {...props} labels={labels} leaders={leaders} />
       </Canvas>
-      <div className="structure-labels" aria-hidden="true">
+      <div className="structure-labels">
+        <svg className="structure-label-leaders" aria-hidden="true">
+          {[...props.plan.rooms.map(r=>r.id),"entry-pin"].map((id,i)=><line key={id}
+            ref={el=>{leaders.current[i]=el;}} />)}
+        </svg>
         {props.plan.rooms.map((r, i) => (
-          <span
+          <button
+            type="button"
             key={r.id}
-            className={`${props.selected === r.id ? "is-selected" : ""} ${r.id === props.plan.entry?.roomId ? "is-entrance" : ""}`}
+            aria-pressed={props.selected===r.id}
+            onClick={()=>props.onSelect(r.id)}
+            className={`${props.selected === r.id ? "is-selected" : props.selected ? "is-muted" : ""} ${r.id === props.plan.entry?.roomId ? "is-entrance" : ""}`}
             hidden={
               !props.showLabels ||
-              (!!interior && /발코니/.test(r.name) && props.selected !== r.id)
+              (!!interior && /발코니/.test(r.name) && props.selected !== r.id) ||
+              (r.id===props.plan.entry?.roomId && props.selected!==r.id)
             }
             ref={(el) => {
               labels.current[i] = el;
             }}
           >
             {r.name}
-          </span>
+          </button>
         ))}
         {props.plan.entry && (
           <span
-            className="structure-entry-pin"
+            className={`structure-entry-pin${props.selected && props.selected!==props.plan.entry.roomId ? " is-muted" : ""}`}
             ref={(el) => {
               labels.current[props.plan.rooms.length] = el;
             }}

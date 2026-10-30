@@ -1,5 +1,6 @@
 "use client";
 import { useId } from "react";
+import { layoutRoomLabels } from "./label-layout";
 import { hasReferenceFinishes } from "./hillstate-reference";
 import { referenceFinish } from "./reference-finishes";
 import {
@@ -47,6 +48,14 @@ export function PlanSvg({
     (Math.max(...xs) + Math.min(...xs)) / 2,
     (Math.max(...ys) + Math.min(...ys)) / 2,
   ];
+  const labelScale=80;
+  const left=center[0]-width/zoom/2, top=center[1]-height/zoom/2;
+  const labelPositions=layoutRoomLabels(plan.rooms.filter(()=>showLabels).map(room=>{
+    const [x,y]=point(room.label);
+    return {id:room.id,x:(x-left)*labelScale,y:(y-top)*labelScale,
+      width:Math.max(.65,room.name.length*.3)*labelScale,height:.42*labelScale,
+      priority:room.id===selected?100:room.name==="거실"?70:50};
+  }),width/zoom*labelScale,height/zoom*labelScale);
   const line = (a: Point, b: Point) => ({
     x1: point(a)[0],
     y1: point(a)[1],
@@ -75,7 +84,7 @@ export function PlanSvg({
         </marker>
       </defs>
       {plan.rooms.map((room) => (
-        <g key={room.id}>
+        <g key={room.id} opacity={selected && selected!==room.id ? .45 : 1}>
           <polygon
             role="button"
             tabIndex={0}
@@ -220,29 +229,16 @@ export function PlanSvg({
             </g>
           );
         })()}
-      {plan.rooms
-        .filter(() => showLabels)
-        .map((room) => {
-          const [x, y] = point(room.label);
-          return (
-            <text
-              key={room.id}
-              x={x}
-              y={y}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize={room.id === plan.entry?.roomId ? 0.32 : 0.29}
-              fontWeight={650}
-              fill="#263746"
-              stroke="#ffffffcc"
-              strokeWidth={0.065}
-              paintOrder="stroke"
-              style={{ pointerEvents: "none" }}
-            >
-              {room.name}
-            </text>
-          );
-        })}
+      {labelPositions.filter(p=>p.visible).map(label=>{
+        const room=plan.rooms.find(r=>r.id===label.id)!;
+        const anchor=point(room.label),x=left+label.x/labelScale,y=top+label.y/labelScale;
+        return <g key={room.id} opacity={selected&&selected!==room.id ? .3 : 1} pointerEvents="none">
+          {label.moved && <line x1={anchor[0]} y1={anchor[1]} x2={x} y2={y} stroke="#607b72" strokeWidth={.02} />}
+          <text x={x} y={y} textAnchor="middle" dominantBaseline="middle"
+            fontSize={.29} fontWeight={650} fill="#263746" stroke="#ffffffcc"
+            strokeWidth={.065} paintOrder="stroke">{room.name}</text>
+        </g>;
+      })}
     </svg>
   );
 }

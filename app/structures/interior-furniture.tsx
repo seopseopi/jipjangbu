@@ -209,10 +209,10 @@ function Dressing({ room }: { room: Room }) {
 }
 /** Movable furniture and wardrobe fronts are illustrative, never imported as
  * surveyed fixtures or used for fit/clearance decisions. */
-export function InteriorFurniture({ plan }: { plan: Plan }) {
+export function InteriorFurniture({ plan, roomId }: { plan: Plan; roomId?: string }) {
   return (
     <group>
-      {plan.rooms.map((r) =>
+      {plan.rooms.filter(r=>!roomId||r.id===roomId).map((r) =>
         /침실/.test(r.name) ? (
           <Bed key={r.id} room={r} master={r.name === "침실 1"} />
         ) : r.name === "거실" ? (

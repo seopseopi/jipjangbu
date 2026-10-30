@@ -6,6 +6,7 @@ export type PropertyRow = {
   building_dong: string;
   unit_number: string;
   size_types?: string;
+  current_size_type?: string | null;
   active_count: number;
   listing_count: number;
 };
