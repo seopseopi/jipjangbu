@@ -9,7 +9,6 @@ import {
 } from "react";
 import {
   Building2,
-  Box,
   ChevronRight,
   FileCheck2,
   Layers3,
@@ -18,14 +17,12 @@ import {
 } from "lucide-react";
 import { clientJsonFetch, clearClientReadCache } from "../client-api";
 import { PlanViewer } from "./plan-viewer";
-import { DEMO_PLAN } from "./plan";
-import { apartmentSources, APARTMENT_SOURCES } from "./source-contract";
+import { apartmentSources } from "./source-contract";
 import {
   ApartmentSourcePanel,
   type SourceSelection,
 } from "./apartment-source-panel";
 import { StructureManager } from "./structure-manager";
-import { RealPlanPreview } from "./real-plan-preview";
 import {
   linkedStructureUnit,
   structureGroups,
@@ -60,9 +57,6 @@ export function StructureView({
     [complex, setComplex] = useState(""),
     [dong, setDong] = useState(""),
     [key, setKey] = useState(initialKey),
-    [demo, setDemo] = useState(false),
-    [reference, setReference] = useState(false),
-    [demoUnit, setDemoUnit] = useState("체험 A"),
     [manager, setManager] = useState(false),
     [sourceSelection, setSourceSelection] = useState<
       SourceSelection | undefined
@@ -158,39 +152,14 @@ export function StructureView({
         <div className="structure-intro-actions">
           <button
             type="button"
-            className="primary-button"
-            onClick={() => {
-              setReference(!reference);
-              setDemo(false);
-              setManager(false);
-            }}
-          >
-            <FileCheck2 size={17} />
-            {reference ? "매물·세대 목록" : "참고 도면 예제"}
-          </button>
-          <button
-            type="button"
             className="secondary-button"
             onClick={() => {
-              setDemo(!demo);
-              setReference(false);
-              setManager(false);
-            }}
-          >
-            <Box size={17} />
-            {demo ? "실제 매물로 돌아가기" : "가상 구조 체험"}
-          </button>
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={() => {
+              setSourceSelection(undefined);
               setManager(!manager);
-              setReference(false);
-              setDemo(false);
             }}
           >
             <Settings2 size={17} />
-            {manager ? "관리 닫기" : "도면·연결 관리"}
+            {manager ? "닫기" : "도면 관리"}
           </button>
         </div>
       </div>
@@ -202,16 +171,6 @@ export function StructureView({
           </button>
         </p>
       )}
-      <p className="structure-coverage">
-        관리 목록 {catalog.managedBuildings?.length ?? 0}곳 · 수집 타입{" "}
-        {APARTMENT_SOURCES.reduce((n, s) => n + s.types.length, 0)}개 · 평면도
-        원본{" "}
-        {APARTMENT_SOURCES.reduce(
-          (n, s) => n + s.types.filter((t) => t.basicImage).length,
-          0,
-        )}
-        개 · 장부 세대 연결 {catalog.links.length}/{catalog.properties.length}
-      </p>
       {manager ? (
         <StructureManager
           key={
@@ -225,40 +184,6 @@ export function StructureView({
           unit={unit}
           onSaved={saved}
         />
-      ) : reference ? (
-        <RealPlanPreview />
-      ) : demo ? (
-        <>
-          <div className="structure-notice">
-            <strong>가상 구조 체험 · 실매물과 무관한 예시</strong>
-            <p>
-              화면과 조작을 확인하는 가상 도면입니다. 실제 아파트의
-              구조·치수·호수가 아닙니다.
-            </p>
-          </div>
-          <div className="structure-demo-bar">
-            <span>
-              가상 단지 <ChevronRight size={14} /> 체험동
-            </span>
-            <div className="structure-segment">
-              {["체험 A", "체험 B (반전)"].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  aria-pressed={demoUnit === n}
-                  onClick={() => setDemoUnit(n)}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-          <PlanViewer
-            key={demoUnit}
-            plan={DEMO_PLAN}
-            transform={{ mirror: demoUnit !== "체험 A", rotation: 0 }}
-          />
-        </>
       ) : (
         <div className="structure-layout">
           <aside className="structure-picker">
@@ -342,26 +267,21 @@ export function StructureView({
                   <br />
                   도면이 없어도 기존 매물·업무 기록을 확인할 수 있습니다.
                 </p>
-                <button
-                  type="button"
-                  className="primary-button"
-                  onClick={() => setDemo(true)}
-                >
-                  가상 구조 먼저 체험하기
-                </button>
               </div>
             ) : (
               <>
-                <ApartmentSourcePanel
-                  key={`${complex}-${key}`}
-                  name={selectedGroup?.name ?? ""}
-                  sizes={property?.size_types}
-                  dong={property?.building_dong}
-                  onRegister={(s) => {
-                    setSourceSelection(s);
-                    setManager(true);
-                  }}
-                />
+                {!key && (
+                  <ApartmentSourcePanel
+                    key={`${complex}-${key}`}
+                    name={selectedGroup?.name ?? ""}
+                    sizes={property?.size_types}
+                    dong={property?.building_dong}
+                    onRegister={(s) => {
+                      setSourceSelection(s);
+                      setManager(true);
+                    }}
+                  />
+                )}
                 <div className="structure-breadcrumb">
                   <Building2 size={17} />
                   <strong>{selectedGroup?.name ?? "단지 확인 필요"}</strong>
@@ -495,7 +415,6 @@ function UnitContent({
     [histories, setHistories] = useState<History[]>([]),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true),
-    [tab, setTab] = useState("plan"),
     [workType, setWorkType] = useState("");
   const keys = useMemo(
     () =>
@@ -550,22 +469,6 @@ function UnitContent({
   }, []);
   return (
     <>
-      <div className="structure-mobile-tabs structure-segment">
-        <button
-          type="button"
-          aria-pressed={tab === "plan"}
-          onClick={() => setTab("plan")}
-        >
-          구조
-        </button>
-        <button
-          type="button"
-          aria-pressed={tab === "records"}
-          onClick={() => setTab("records")}
-        >
-          매물·이력 ({records.length})
-        </button>
-      </div>
       {error && (
         <p className="form-error" role="alert">
           {error}
@@ -574,19 +477,24 @@ function UnitContent({
           </button>
         </p>
       )}
-      <div className="structure-detail" data-tab={tab}>
+      <div className="structure-detail structure-detail-simple">
         <section className="structure-plan-panel">
-          {loading ? (
+          {loading ||
+          (unit?.revision_id && revision?.revision.id !== unit.revision_id) ? (
             <p className="structure-empty" role="status">
               세대 자료를 불러오는 중…
             </p>
           ) : revision ? (
             <>
+              <h3 className="structure-unit-title">
+                {unit?.complex_name} ·{" "}
+                {unit
+                  ? `${unit.building_name}${unit.building_name.endsWith("동") ? "" : "동"} ${unit.number}${unit.number.endsWith("호") ? "" : "호"}`
+                  : ""}
+              </h3>
               <div className="structure-plan-heading">
                 <FileCheck2 size={18} />
-                <strong>
-                  {revision.revision.type_name} · v{revision.revision.version}
-                </strong>
+                <strong>{revision.revision.type_name}</strong>
                 <span>
                   {revision.revision.variant === "base"
                     ? "기본형"
@@ -613,7 +521,7 @@ function UnitContent({
                   fallback={<p role="status">도면을 준비하고 있습니다…</p>}
                 >
                   <PlanWorkbench
-                    key={revision.file.revision_id}
+                    key={`${revision.file.revision_id}:${revision.processing?.rowVersion ?? 0}`}
                     data={revision}
                     transform={{
                       mirror: unit?.mirror === 1,
@@ -624,6 +532,7 @@ function UnitContent({
               ) : revision.plan ? (
                 <PlanViewer
                   plan={revision.plan}
+                  minimal
                   transform={{
                     mirror: unit?.mirror === 1,
                     rotation: unit?.rotation ?? 0,
@@ -660,18 +569,9 @@ function UnitContent({
               </button>
             </div>
           )}
-          {revision && (
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={onManage}
-            >
-              도면 연결 관리
-            </button>
-          )}
         </section>
-        <aside className="structure-record-panel">
-          <h3>매물·업무 기록</h3>
+        <details className="structure-record-panel">
+          <summary>업무 기록 ({records.length})</summary>
           {!loading && !histories.some((h) => h.listing) && (
             <p className="structure-help">
               현재 매물 상태 기록 없음 · 방문·상담 이력은 아래에서 확인하세요.
@@ -733,7 +633,7 @@ function UnitContent({
           {!loading && !records.length && (
             <p className="structure-help">연결된 업무 기록이 없습니다.</p>
           )}
-        </aside>
+        </details>
       </div>
     </>
   );

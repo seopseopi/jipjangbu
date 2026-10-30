@@ -169,7 +169,7 @@ test("위장 파일·초과 크기·전송 길이·체크섬 오류는 DB와 R2�
     [bytes, "application/pdf", { "X-File-SHA256": "0".repeat(64) }],
     [bytes, "application/pdf", { "X-File-Name": "../bad.pdf" }],
   ]) assert.equal((await filePost(body, type, headers)).status, 422);
-  assert.equal((await filePost(bytes, "application/pdf", {}, { permissionEvidence: "" })).status, 422);
+  assert.equal((await filePost(bytes, "application/pdf", {}, { source: "" })).status, 422);
   assert.equal(objects.size, 0);
   assert.equal(db.prepare("SELECT COUNT(*) n FROM structure_plan_revisions").get().n, 0);
 });
@@ -189,13 +189,13 @@ test("R2가 파일 읽기 전에 실패해도 전송이 멈추지 않고 DB를 �
   assert.equal((await filePost(new TextEncoder().encode("%PDF-1.4\nsynthetic-file"))).status, 422);
   assert.equal(db.prepare("SELECT COUNT(*) n FROM structure_plan_files").get().n, 0);
 });
-test("도면 등록은 근거·동의가 필요하고 데모를 실단지에 연결하지 않는다", async (t) => {
+test("도면 등록의 필수 식별정보와 데모 연결 차단을 유지한다", async (t) => {
   const db = database(t);
   for (const value of [
     { ...revisionInput(), plan: DEMO_PLAN },
     { ...revisionInput(), plan: HILLSTATE_109_REFERENCE },
     { ...revisionInput(), confirmed: false },
-    { ...revisionInput(), permissionEvidence: "" },
+    { ...revisionInput(), complexName: "" },
   ])
     assert.equal((await post(value)).status, 422);
   assert.equal(
@@ -323,4 +323,16 @@ test('외부 도면 조회는 수집한 주소만 허용하고 리다이렉트·
  assert.equal((await sourceImageApi.GET(new Request(url))).status,502);
  globalThis.fetch=async()=>new Response(new Uint8Array(8*1024*1024+1),{headers:{'Content-Type':'image/png'}});
  assert.equal((await sourceImageApi.GET(new Request(url))).status,502);
+});
+
+test('세대 연결은 추가 근거 입력 없이 저장하고 첫 연결부터 다른 동·호수는 차단한다', async t=>{
+ const db=database(t);
+ db.exec("INSERT INTO customers(id,name) VALUES('simple-c','합성'); INSERT INTO work_logs(id,work_date,customer_id,work_type) VALUES('simple-w','2026-10-30','simple-c','집방문'); INSERT INTO work_log_properties(id,work_log_id,sequence,property_type,building_name,building_dong,unit_number) VALUES('simple-p','simple-w',1,'아파트','합성단지','101','301');");
+ const input=revisionInput();delete input.permissionEvidence;
+ const r=await post(input);assert.equal(r.status,201);const {id}=await r.json();
+ const assignment={action:'assign',revisionId:id,dong:'101',number:'302',mirror:false,rotation:0,actualCondition:'base',expectedVersion:0,confirmed:true,identityKey:'아파트|합성단지|101|301'};
+ assert.equal((await post(assignment)).status,409);
+ assert.equal(db.prepare('SELECT COUNT(*) n FROM structure_units').get().n,0);
+ assert.equal((await post({...assignment,dong:'101동',number:'301호'})).status,201);
+ assert.equal(db.prepare('SELECT evidence FROM structure_assignments').get().evidence,'');
 });

@@ -6,9 +6,6 @@ import {
   type ApartmentSource,
   type SourceType,
 } from "./source-contract";
-import { PlanViewer } from "./plan-viewer";
-import { HILLSTATE_109_REFERENCE } from "./hillstate-reference";
-import { FileViewer } from "./file-viewer";
 export type SourceSelection = {
   source: ApartmentSource;
   type: SourceType;
@@ -27,8 +24,7 @@ export function ApartmentSourcePanel({
 }) {
   const sources = apartmentSources(name),
     [selected, setSelected] = useState(""),
-    [variant, setVariant] = useState<"base" | "expanded">("base"),
-    [showModel, setShowModel] = useState(false);
+    [variant, setVariant] = useState<"base" | "expanded">("base");
   const source = sources[0],
     candidates = source ? sourceTypeCandidates(source, sizes, dong) : [],
     type =
@@ -41,21 +37,18 @@ export function ApartmentSourcePanel({
       </p>
     );
   const image = variant === "base" ? type?.basicImage : type?.expandedImage;
-  const referenceModel =
-    source.alias === "힐스테이트1차" &&
-    type?.exclusiveArea === "84.28" &&
-    variant === "base";
   return (
     <section className="structure-source-library">
-      <span className="structure-eyebrow">
-        수집한 단지·타입 자료 · {source.checkedAt}
-      </span>
+      <span className="structure-eyebrow">타입별 평면도</span>
       <h3>{source.name}</h3>
       <p>{source.address}</p>
-      <p className="structure-notice">{source.note}</p>
-      <a href={source.sourceUrl} target="_blank" rel="noreferrer">
-        단지·평면도 출처 열기 ↗
-      </a>
+      <details className="structure-source">
+        <summary>출처</summary>
+        <p>{source.note}</p>
+        <a href={source.sourceUrl} target="_blank" rel="noreferrer">
+          원본 페이지
+        </a>
+      </details>
       {sizes && (
         <p className="structure-notice">
           장부 평형 {sizes} ·{" "}
@@ -73,13 +66,12 @@ export function ApartmentSourcePanel({
         <>
           <div className="structure-form-grid">
             <label>
-              수집한 타입
+              타입
               <select
-                aria-label="수집한 평면도 타입"
+                aria-label="평면도 타입"
                 value={type.id}
                 onChange={(e) => {
                   setSelected(e.target.value);
-                  setShowModel(false);
                 }}
               >
                 {source.types.map((t) => (
@@ -95,7 +87,6 @@ export function ApartmentSourcePanel({
                 value={variant}
                 onChange={(e) => {
                   setVariant(e.target.value as "base" | "expanded");
-                  setShowModel(false);
                 }}
               >
                 <option value="base">기본형</option>
@@ -110,43 +101,20 @@ export function ApartmentSourcePanel({
           </p>
           {image ? (
             <>
-              <div className="structure-segment">
-                <button
-                  type="button"
-                  aria-pressed={!showModel}
-                  onClick={() => setShowModel(false)}
-                >
-                  수집한 2D 원본
-                </button>
-                <button
-                  type="button"
-                  disabled={!referenceModel}
-                  aria-pressed={showModel}
-                  onClick={() => setShowModel(true)}
-                >
-                  {referenceModel
-                    ? "2D·3D 재구성 (대조 전)"
-                    : "3D 구조 제작 대기"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onRegister({ source, type, variant })}
-                >
-                  이 도면 가공·등록
-                </button>
-              </div>
-              {showModel && referenceModel ? (
-                <PlanViewer plan={HILLSTATE_109_REFERENCE} />
-              ) : (
-                <FileViewer
-                  key={`${type.id}-${variant}`}
-                  file={{
-                    file_name: `${source.name}-${type.label}-${variant}.jpg`,
-                    mime_type: "image/jpeg",
-                  }}
-                  url={`/api/structures/source-image?alias=${encodeURIComponent(source.alias)}&type=${encodeURIComponent(type.id)}&variant=${variant}`}
+              <figure className="structure-clean-image">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/api/structures/source-image?alias=${encodeURIComponent(source.alias)}&type=${encodeURIComponent(type.id)}&variant=${variant}`}
+                  alt={`${source.name} ${type.label} ${variant === "base" ? "기본형" : "확장형"} 평면도`}
                 />
-              )}
+              </figure>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => onRegister({ source, type, variant })}
+              >
+                등록
+              </button>
             </>
           ) : (
             <p className="structure-empty">

@@ -5,8 +5,10 @@ import {
   Suspense,
   useCallback,
   useState,
+  useMemo,
   type ReactNode,
 } from "react";
+import { roomLabelPoint } from "./processing";
 import { PlanSvg } from "./plan-svg";
 import { type Plan, type Transform } from "./plan";
 import { hasReferenceFinishes } from "./hillstate-reference";
@@ -24,12 +26,28 @@ class ThreeBoundary extends Component<
   }
 }
 export function PlanViewer({
-  plan,
+  plan: originalPlan,
+  minimal = false,
   transform = { mirror: false, rotation: 0 },
 }: {
   plan: Plan;
+  minimal?: boolean;
   transform?: Transform;
 }) {
+  const plan = useMemo(
+    () =>
+      hasReferenceFinishes(originalPlan)
+        ? originalPlan
+        : {
+            ...originalPlan,
+            rooms: originalPlan.rooms.map((r) =>
+              r.label[0] === r.polygon[0][0] && r.label[1] === r.polygon[0][1]
+                ? { ...r, label: roomLabelPoint(r.polygon) }
+                : r,
+            ),
+          },
+    [originalPlan],
+  );
   const [mode, setMode] = useState("2d"),
     [selected, setSelected] = useState(""),
     [zoom, setZoom] = useState(1),
@@ -68,7 +86,7 @@ export function PlanViewer({
             aria-pressed={mode === "2d"}
             onClick={() => setMode("2d")}
           >
-            2D 평면도
+            {minimal ? "2D" : "2D 평면도"}
           </button>
           <button
             type="button"
@@ -76,70 +94,78 @@ export function PlanViewer({
             disabled={failed}
             onClick={() => setMode("3d")}
           >
-            3D 구조
+            {minimal ? "3D" : "3D 구조"}
           </button>
         </div>
-        <div className="structure-tools">
+        {!minimal && (
+          <div className="structure-tools">
+            <button
+              type="button"
+              disabled={zoom >= 2}
+              onClick={() => setZoom((z) => Math.min(2, z + 0.2))}
+            >
+              확대 +
+            </button>
+            <button
+              type="button"
+              disabled={zoom <= 0.6}
+              onClick={() => setZoom((z) => Math.max(0.6, z - 0.2))}
+            >
+              축소 −
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setZoom(1);
+                setTopView(false);
+                setShow2dLabels(true);
+                setShow3dLabels(!hasReferenceFinishes(plan));
+                setShowRoute(true);
+                setSelected("");
+                setReset((r) => r + 1);
+              }}
+            >
+              보기 초기화
+            </button>
+          </div>
+        )}
+      </div>
+      {!minimal && (
+        <div className="structure-reading-tools">
           <button
             type="button"
-            disabled={zoom >= 2}
-            onClick={() => setZoom((z) => Math.min(2, z + 0.2))}
+            aria-pressed={showLabels}
+            onClick={() =>
+              mode === "2d"
+                ? setShow2dLabels((v) => !v)
+                : setShow3dLabels((v) => !v)
+            }
           >
-            확대 +
+            방 이름 {showLabels ? "켜짐" : "꺼짐"}
           </button>
-          <button
-            type="button"
-            disabled={zoom <= 0.6}
-            onClick={() => setZoom((z) => Math.max(0.6, z - 0.2))}
-          >
-            축소 −
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setZoom(1);
-              setTopView(false);
-              setShow2dLabels(true);
-              setShow3dLabels(!hasReferenceFinishes(plan));
-              setShowRoute(true);
-              setSelected("");
-              setReset((r) => r + 1);
-            }}
-          >
-            보기 초기화
-          </button>
+          {mode === "3d" && (
+            <button
+              type="button"
+              aria-pressed={topView}
+              onClick={() => setTopView((v) => !v)}
+            >
+              {topView ? "위에서 보기 ✓" : "위에서 보기"}
+            </button>
+          )}
+          {plan.entry && (
+            <button
+              type="button"
+              aria-pressed={showRoute}
+              onClick={() => setShowRoute((v) => !v)}
+            >
+              입구 안내선 {showRoute ? "켜짐" : "꺼짐"}
+            </button>
+          )}
+          {!hasReferenceFinishes(plan) && (
+            <span>침실은 파랑 · 욕실은 청록 · 현관은 주황</span>
+          )}
         </div>
-      </div>
-      <div className="structure-reading-tools">
-        <button
-          type="button"
-          aria-pressed={showLabels}
-          onClick={() => mode === "2d" ? setShow2dLabels(v => !v) : setShow3dLabels(v => !v)}
-        >
-          방 이름 {showLabels ? "켜짐" : "꺼짐"}
-        </button>
-        {mode === "3d" && (
-          <button
-            type="button"
-            aria-pressed={topView}
-            onClick={() => setTopView((v) => !v)}
-          >
-            {topView ? "위에서 보기 ✓" : "위에서 보기"}
-          </button>
-        )}
-        {plan.entry && (
-          <button
-            type="button"
-            aria-pressed={showRoute}
-            onClick={() => setShowRoute((v) => !v)}
-          >
-            입구 안내선 {showRoute ? "켜짐" : "꺼짐"}
-          </button>
-        )}
-        {!hasReferenceFinishes(plan) && (
-          <span>침실은 파랑 · 욕실은 청록 · 현관은 주황</span>
-        )}
-      </div>
+      )}
       <div className="structure-canvas">
         {mode === "2d" ? (
           svg

@@ -29,8 +29,8 @@ export function validateProcessing(
     c.y + c.height > 1.000001
   )
     throw new Error("페이지와 평면도 영역을 확인해 주세요.");
-  if (typeof v.note !== "string" || !v.note.trim() || v.note.length > 2000)
-    throw new Error("가공 근거를 기록해 주세요.");
+  if (v.note != null && (typeof v.note !== "string" || v.note.length > 2000))
+    throw new Error("메모 길이를 확인해 주세요.");
   const plan = v.plan == null ? null : validatePlan(v.plan);
   if (plan?.isDemo || plan?.referenceOnly)
     throw new Error("가상·참고 예제는 실제 도면에 저장할 수 없습니다.");
@@ -38,7 +38,7 @@ export function validateProcessing(
     page: v.page,
     crop: { x: c.x, y: c.y, width: c.width, height: c.height },
     plan,
-    note: v.note.trim(),
+    note: v.note?.trim() ?? "",
   };
 }
 export function tracePlan(
@@ -92,10 +92,72 @@ export function tracePlan(
     outline: boundary,
     rooms: rooms.map((r, i) => {
       const polygon = r.polygon.map(toPoint);
-      return { id: `room-${i}`, name: r.name, polygon, label: polygon[0] };
+      return {
+        id: `room-${i}`,
+        name: r.name,
+        polygon,
+        label: roomLabelPoint(polygon),
+      };
     }),
     walls,
     doors: [],
     windows: [],
   });
+}
+
+/** Keep labels inside a room, away from walls, including concave rooms. */
+export function roomLabelPoint(polygon: Point[]): Point {
+  const xs = polygon.map((p) => p[0]),
+    ys = polygon.map((p) => p[1]),
+    minX = Math.min(...xs),
+    minY = Math.min(...ys),
+    width = Math.max(...xs) - minX,
+    height = Math.max(...ys) - minY;
+  function inside([x, y]: Point) {
+    let result = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const a = polygon[i],
+        b = polygon[j];
+      if (
+        a[1] > y !== b[1] > y &&
+        x < ((b[0] - a[0]) * (y - a[1])) / (b[1] - a[1]) + a[0]
+      )
+        result = !result;
+    }
+    return result;
+  }
+  let best = polygon[0],
+    clearance = -1;
+  for (let i = 1; i < 20; i++)
+    for (let j = 1; j < 20; j++) {
+      const p: Point = [minX + (width * i) / 20, minY + (height * j) / 20];
+      if (!inside(p)) continue;
+      let distance = Infinity;
+      for (let k = 0; k < polygon.length; k++) {
+        const a = polygon[k],
+          b = polygon[(k + 1) % polygon.length],
+          dx = b[0] - a[0],
+          dy = b[1] - a[1],
+          t = Math.max(
+            0,
+            Math.min(
+              1,
+              ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy),
+            ),
+          );
+        distance = Math.min(
+          distance,
+          Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy),
+        );
+      }
+      // Prefer the center when several points have equal wall clearance.
+      const score =
+        distance -
+        1e-5 * Math.hypot(p[0] - minX - width / 2, p[1] - minY - height / 2);
+      if (score > clearance) {
+        best = p;
+        clearance = score;
+      }
+    }
+  return best;
 }

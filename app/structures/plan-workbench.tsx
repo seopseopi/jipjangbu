@@ -14,8 +14,7 @@ export function PlanWorkbench({
   data: RevisionData;
   transform?: Transform;
 }) {
-  const [mode, setMode] = useState(data.processing ? "processed" : "original"),
-    [editing, setEditing] = useState(false),
+  const [editing, setEditing] = useState(false),
     [current, setCurrent] = useState(data);
   const processed = current.processing,
     plan = processed?.plan ?? current.plan;
@@ -57,80 +56,66 @@ export function PlanWorkbench({
     };
   }, [current.revision.id, current.file, processed]);
   if (!current.file)
-    return plan ? <PlanViewer plan={plan} transform={transform} /> : null;
+    return plan ? (
+      <PlanViewer plan={plan} transform={transform} minimal />
+    ) : null;
   return (
-    <section>
-      <div className="structure-segment">
-        <button
-          type="button"
-          aria-pressed={mode === "original"}
-          onClick={() => setMode("original")}
-        >
-          원본 자료
-        </button>
-        <button
-          type="button"
-          disabled={!processed}
-          aria-pressed={mode === "processed"}
-          onClick={() => setMode("processed")}
-        >
-          분리한 평면도
-        </button>
-        <button
-          type="button"
-          disabled={!plan}
-          aria-pressed={mode === "model"}
-          onClick={() => setMode("model")}
-        >
-          2D·3D 구조
-        </button>
-        <button type="button" onClick={() => setEditing((v) => !v)}>
-          {editing ? "편집 닫기" : "평면도 가공·구조 편집"}
-        </button>
-      </div>
-      {editing && (
-        <PlanEditor
-          key={processed?.rowVersion ?? 0}
-          data={current}
-          onSaved={(next) => {
-            setCurrent(next);
-            setEditing(false);
-            setMode("processed");
-          }}
-        />
-      )}
-      {mode === "original" && (
+    <section className="structure-clean-view">
+      {!plan && (transform?.mirror || transform?.rotation) ? (
+        <p className="structure-empty">
+          이 세대의 방향에 맞는 평면도를 연결해 주세요.
+        </p>
+      ) : plan ? (
+        <PlanViewer plan={plan} transform={transform} minimal />
+      ) : processed ? (
+        imageError ? (
+          <p role="alert">{imageError}</p>
+        ) : image ? (
+          <figure className="structure-clean-image">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={image} alt={`${current.revision.type_name} 평면도`} />
+          </figure>
+        ) : (
+          <p role="status">평면도를 불러오는 중…</p>
+        )
+      ) : (
         <FileViewer
           file={current.file}
+          minimal
           url={`/api/structures/files/${current.revision.id}`}
         />
       )}
-      {mode === "processed" &&
-        (imageError ? (
-          <p role="alert">{imageError}</p>
-        ) : image ? (
-          <FileViewer
-            file={{
-              file_name: `${current.revision.type_name} · 분리한 평면도.png`,
-              mime_type: "image/png",
+      <details className="structure-plan-options">
+        <summary>원본·편집</summary>
+        <button type="button" onClick={() => setEditing((v) => !v)}>
+          {editing ? "편집 닫기" : "편집"}
+        </button>
+        {image && (
+          <a href={image} download={`${current.revision.type_name}-평면도.png`}>
+            평면도 저장
+          </a>
+        )}
+        {editing && (
+          <PlanEditor
+            key={processed?.rowVersion ?? 0}
+            data={current}
+            onSaved={(next) => {
+              setCurrent(next);
+              setEditing(false);
             }}
-            url={image}
           />
-        ) : (
-          <p role="status">평면도 영역을 준비하는 중…</p>
-        ))}
-      {mode === "model" && plan && (
-        <PlanViewer plan={plan} transform={transform} />
-      )}
-      {processed && (
-        <p className="structure-help">
-          {processed.page}쪽 · 가공 근거: {processed.note} · v
-          {processed.rowVersion}
-        </p>
-      )}
+        )}
+        {processed && (
+          <FileViewer
+            file={current.file}
+            url={`/api/structures/files/${current.revision.id}`}
+          />
+        )}
+      </details>
     </section>
   );
 }
+
 function PlanEditor({
   data,
   onSaved,
@@ -146,8 +131,6 @@ function PlanEditor({
     [ratio, setRatio] = useState(1),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
-    [note, setNote] = useState(data.processing?.note ?? ""),
-    [confirmed, setConfirmed] = useState(false),
     [width, setWidth] = useState(10),
     [height, setHeight] = useState(2.4),
     [outline, setOutline] = useState<Point[]>([]),
@@ -199,9 +182,6 @@ function PlanEditor({
       Math.max(0, Math.min(1, (e.clientY - r.top) / r.height)),
     ];
   }
-  function invalidate() {
-    setConfirmed(false);
-  }
   async function save() {
     setError("");
     setBusy(true);
@@ -213,8 +193,8 @@ function PlanEditor({
           action: "process",
           revisionId: data.revision.id,
           expectedVersion: data.processing?.rowVersion ?? 0,
-          confirmed,
-          processing: { page, crop, plan, note },
+          confirmed: true,
+          processing: { page, crop, plan, note: "" },
         }),
       });
       clearClientReadCache();
@@ -233,135 +213,132 @@ function PlanEditor({
     <div className="structure-editor">
       <h3>원본에서 평면도 분리</h3>
       <p>
-        1. 평면도 영역을 드래그 → 2. 외곽과 방의 꼭짓점 선택 → 3. 구조 생성·원본
-        대조 후 저장
+        {stage === "crop"
+          ? "평면도만 남기도록 영역을 드래그하세요."
+          : "꼭짓점을 차례로 누르세요."}
       </p>
-      <div className="structure-form-grid">
-        {data.file!.mime_type === "application/pdf" && (
-          <label>
-            평면도 페이지
-            <input
-              type="number"
-              min={1}
-              max={500}
-              value={page}
-              disabled={stage !== "crop"}
-              onChange={(e) => {
-                setPage(Number(e.target.value));
-                setCrop(FULL_CROP);
-                setPlan(null);
-                invalidate();
-              }}
-            />
-          </label>
-        )}
-        <label>
-          시각화 기준 폭 (m)
-          <input
-            type="number"
-            min={0.1}
-            max={100}
-            step={0.1}
-            value={width}
-            onChange={(e) => {
-              setWidth(Number(e.target.value));
-              setPlan(null);
-              invalidate();
-            }}
-          />
-        </label>
-        <label>
-          시각화 층고 (m)
-          <input
-            type="number"
-            min={1}
-            max={5}
-            step={0.1}
-            value={height}
-            onChange={(e) => {
-              setHeight(Number(e.target.value));
-              setPlan(null);
-              invalidate();
-            }}
-          />
-        </label>
-      </div>
-      <div className="structure-segment">
-        <button
-          type="button"
-          onClick={() => {
-            setStage("crop");
-            setPoints([]);
-          }}
-        >
-          영역 자르기
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setStage("outline");
-            setPoints([]);
-          }}
-        >
-          외곽 추적
-        </button>
-        <button
-          type="button"
-          disabled={!outline.length}
-          onClick={() => {
-            setStage("room");
-            setPoints([]);
-          }}
-        >
-          방 추적
-        </button>
-        <button type="button" onClick={() => setPoints((p) => p.slice(0, -1))}>
-          점 취소
-        </button>
-      </div>
-      {stage === "crop" && (
+      <details>
+        <summary>세부 설정</summary>
         <div className="structure-form-grid">
-          {(
-            [
-              ["x", "왼쪽"],
-              ["y", "위쪽"],
-              ["width", "가로"],
-              ["height", "세로"],
-            ] as const
-          ).map(([field, label]) => (
-            <label key={field}>
-              평면도 영역 {label} (%)
+          {data.file!.mime_type === "application/pdf" && (
+            <label>
+              평면도 페이지
               <input
                 type="number"
-                min={field === "x" || field === "y" ? 0 : 1}
-                max={100}
-                step={0.1}
-                value={Number((crop[field] * 100).toFixed(1))}
+                min={1}
+                max={500}
+                value={page}
+                disabled={stage !== "crop"}
                 onChange={(e) => {
-                  const value = Number(e.target.value) / 100;
-                  if (!Number.isFinite(value)) return;
-                  const next = {
-                    ...crop,
-                    [field]: Math.max(
-                      field === "x" || field === "y" ? 0 : 0.01,
-                      Math.min(
-                        field === "x" || field === "y" ? 0.99 : 1,
-                        value,
-                      ),
-                    ),
-                  };
-                  next.width = Math.min(next.width, 1 - next.x);
-                  next.height = Math.min(next.height, 1 - next.y);
-                  setCrop(next);
-                  setOutline([]);
-                  setRooms([]);
+                  setPage(Number(e.target.value));
+                  setCrop(FULL_CROP);
                   setPlan(null);
-                  invalidate();
                 }}
               />
             </label>
-          ))}
+          )}
+          <label>
+            시각화 기준 폭 (m)
+            <input
+              type="number"
+              min={0.1}
+              max={100}
+              step={0.1}
+              value={width}
+              onChange={(e) => {
+                setWidth(Number(e.target.value));
+                setPlan(null);
+              }}
+            />
+          </label>
+          <label>
+            시각화 층고 (m)
+            <input
+              type="number"
+              min={1}
+              max={5}
+              step={0.1}
+              value={height}
+              onChange={(e) => {
+                setHeight(Number(e.target.value));
+                setPlan(null);
+              }}
+            />
+          </label>
         </div>
+      </details>
+      <div className="structure-editor-tools">
+        <label>
+          편집 단계
+          <select
+            aria-label="편집 단계"
+            value={stage}
+            onChange={(e) => {
+              setStage(e.target.value);
+              setPoints([]);
+            }}
+          >
+            <option value="crop">평면도 자르기</option>
+            <option value="outline">외곽 그리기</option>
+            <option value="room" disabled={!outline.length}>
+              방 그리기
+            </option>
+          </select>
+        </label>
+        {stage !== "crop" && (
+          <button
+            type="button"
+            onClick={() => setPoints((p) => p.slice(0, -1))}
+          >
+            되돌리기
+          </button>
+        )}
+      </div>
+      {stage === "crop" && (
+        <details>
+          <summary>영역 미세 조정</summary>
+          <div className="structure-form-grid">
+            {(
+              [
+                ["x", "왼쪽"],
+                ["y", "위쪽"],
+                ["width", "가로"],
+                ["height", "세로"],
+              ] as const
+            ).map(([field, label]) => (
+              <label key={field}>
+                평면도 영역 {label} (%)
+                <input
+                  type="number"
+                  min={field === "x" || field === "y" ? 0 : 1}
+                  max={100}
+                  step={0.1}
+                  value={Number((crop[field] * 100).toFixed(1))}
+                  onChange={(e) => {
+                    const value = Number(e.target.value) / 100;
+                    if (!Number.isFinite(value)) return;
+                    const next = {
+                      ...crop,
+                      [field]: Math.max(
+                        field === "x" || field === "y" ? 0 : 0.01,
+                        Math.min(
+                          field === "x" || field === "y" ? 0.99 : 1,
+                          value,
+                        ),
+                      ),
+                    };
+                    next.width = Math.min(next.width, 1 - next.x);
+                    next.height = Math.min(next.height, 1 - next.y);
+                    setCrop(next);
+                    setOutline([]);
+                    setRooms([]);
+                    setPlan(null);
+                  }}
+                />
+              </label>
+            ))}
+          </div>
+        </details>
       )}
       {url && loadedKey === imageKey ? (
         <svg
@@ -392,12 +369,10 @@ function PlanEditor({
                 setOutline([]);
                 setRooms([]);
                 setPlan(null);
-                invalidate();
               }
             } else if (stage !== "crop") {
               const point = locate(e);
               setPoints((p) => [...p, point]);
-              invalidate();
             }
           }}
         >
@@ -490,7 +465,6 @@ function PlanEditor({
               }
               setPoints([]);
               setPlan(null);
-              invalidate();
             }}
           >
             {stage === "outline" ? "외곽 완료" : "방 추가"} ({points.length}점)
@@ -505,7 +479,6 @@ function PlanEditor({
               onClick={() => {
                 setRooms((v) => v.filter((_, n) => n !== i));
                 setPlan(null);
-                invalidate();
               }}
             >
               {r.name} 삭제
@@ -518,27 +491,25 @@ function PlanEditor({
               try {
                 setPlan(tracePlan(outline, rooms, width, ratio, height));
                 setError("");
-                invalidate();
               } catch (e) {
                 setError((e as Error).message);
               }
             }}
           >
-            추적한 구조로 2D·3D 생성
+            구조 생성
           </button>
         </>
       )}
       {plan && (
         <>
-          <PlanViewer plan={plan} />
+          <PlanViewer plan={plan} minimal />
           <button
             type="button"
             onClick={() => {
               setPlan(null);
-              invalidate();
             }}
           >
-            구조 제거 · 자른 평면도만 저장
+            구조 삭제
           </button>
         </>
       )}
@@ -546,35 +517,13 @@ function PlanEditor({
         치수·층고는 배치 시각화용입니다. 문·창문은 자동 추정하지 않습니다.
         방·벽이 변경되면 구조를 다시 생성하세요.
       </p>
-      <label>
-        가공 근거
-        <textarea
-          maxLength={2000}
-          value={note}
-          onChange={(e) => {
-            setNote(e.target.value);
-            invalidate();
-          }}
-          placeholder="예: 7쪽 74A 기본형에서 평면도 영역을 분리, 방 경계 대조"
-        />
-      </label>
-      <label className="structure-check">
-        <input
-          type="checkbox"
-          checked={confirmed}
-          onChange={(e) => setConfirmed(e.target.checked)}
-        />
-        평면도 영역·타입·생성한 구조를 원본과 대조했습니다.
-      </label>
       {error && <p role="alert">{error}</p>}
       <button
         type="button"
-        disabled={
-          busy || !confirmed || !note.trim() || !url || loadedKey !== imageKey
-        }
+        disabled={busy || !url || loadedKey !== imageKey}
         onClick={save}
       >
-        {busy ? "저장 중…" : "가공 결과 저장"}
+        {busy ? "저장 중…" : "저장"}
       </button>
     </div>
   );
