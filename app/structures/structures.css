@@ -855,3 +855,7 @@
 
 .structure-fit-screen .structure-clean-image { position:relative; }
 .structure-clean-image figcaption { position:absolute; bottom:8px; left:8px; padding:3px 6px; border-radius:4px; background:#ffffffde; color:#53645d; font-size:11px; }
+
+.structure-fit-button { margin-left:auto; border:1px solid #c8d3d0; border-radius:6px; background:#fff; padding:5px 10px; color:#425c52; font-size:12px; }
+.structure-plan-accessible { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.structure-three.is-overhead { background:radial-gradient(ellipse at center,#fff 40%,#f0f3f2 100%); }
