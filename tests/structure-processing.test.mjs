@@ -23,14 +23,28 @@ const {APARTMENT_SOURCES,sourceTypeCandidates,sourceImageUrl}=await import('../a
 test('관리 30곳의 출처를 포함하며 타지역·동명이인 도면을 연결하지 않는다',()=>{
  assert.equal(new Set(APARTMENT_SOURCES.map(s=>s.alias)).size,30);
  assert.ok(APARTMENT_SOURCES.every(s=>s.address.startsWith('인천광역시')));
- assert.equal(APARTMENT_SOURCES.find(s=>s.alias==='금호어울림').name,'검단금호어울림');
+ assert.equal(APARTMENT_SOURCES.find(s=>s.alias==='금호어울림').name,'검단금호어울림(검단2지구)');
  const hill=APARTMENT_SOURCES.find(s=>s.alias==='힐스테이트1차');
  assert.equal(sourceTypeCandidates(hill,'33','107').length,1);
  assert.equal(sourceTypeCandidates(hill,'51A','101').length,0);
- const future=APARTMENT_SOURCES.find(s=>s.alias==='미래지향');assert.equal(sourceTypeCandidates(future,'34','201').length,0);
+ const future=APARTMENT_SOURCES.find(s=>s.alias==='미래지향');
+ assert.equal(sourceTypeCandidates(future,'34','201').length,3);
+ assert.equal(sourceTypeCandidates(future,'33','201').length,0);
+ assert.equal(sourceTypeCandidates(future,'34','301').length,0);
  assert.equal(sourceImageUrl('https://evil.invalid','x','base'),null);
  assert.equal(sourceImageUrl('힐스테이트1차','x','base'),null);
  assert.ok(sourceImageUrl('힐스테이트1차',hill.types[0].id,'base').startsWith('https://file.kbland.kr/image/'));
+});
+test('동별 실제 타입 목록으로 다른 동의 도면 후보를 제외하고 장부 반올림 표기를 지원한다',()=>{
+ const ipark=APARTMENT_SOURCES.find(s=>s.alias==='아이파크1차');
+ assert.equal(sourceTypeCandidates(ipark,'33','107').length,0);
+ assert.deepEqual(sourceTypeCandidates(ipark,'28','107동').map(t=>t.id),['14491']);
+ assert.equal(sourceTypeCandidates(ipark,'33','999').length,0);
+ const second=APARTMENT_SOURCES.find(s=>s.alias==='아이파크2차');
+ assert.equal(sourceTypeCandidates(second,'48B','202').length,0);
+ assert.deepEqual(sourceTypeCandidates(second,'48B','207').map(t=>t.id),['138186']);
+ const woobang=APARTMENT_SOURCES.find(s=>s.alias==='우방2차');
+ assert.deepEqual(sourceTypeCandidates(woobang,'35A','104').map(t=>t.id),['115584']);
 });
 test('영역 편집은 메모 없이 저장 가능하고 방 이름은 벽에서 떨어진 곳에 둔다',async()=>{
  const {roomLabelPoint}=await import('../app/structures/processing.ts');

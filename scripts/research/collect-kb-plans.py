@@ -6,13 +6,15 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 SOURCES={
  '우방2차':32856,
- '힐스테이트2차':22161,'힐스테이트4차':23229,'미래지향':22547,
+ '힐스테이트2차':22161,'힐스테이트4차':23229,'미래지향':36225,
  '아이파크1차':14728,'힐스테이트1차':14727,'아이파크2차':21980,
  '모아미래도엘리트파크':47273,'대림e편한':14890,'현대':7607,'우방1차':31187,
  '검단피오레':14729,'동아':7611,'당하풍림3차':12996,'마전풍림3차':13579,
  '검암풍림3차':12755,'영남탑스빌':7614,'마전하나':7612,'삼라마이다스':14979,
  '마전동남':7613,'영진':7606,'양우내안에':383097,'검단풍림2차':13184,
- '오류힐스테이트2차':22292,'당하KCC':13341}
+ '오류힐스테이트2차':22292,'당하KCC':13341,
+ '금호어울림':12659,'우림필유':14730,'유호':7605,
+ '드림파크어울림1단지':22059,'우방3차(검단오류)':43424}
 
 def collect(item):
  alias,kb=item; url=f'https://kbland.kr/se/c/{kb}'
@@ -35,7 +37,7 @@ def collect(item):
   if '기본평면도이미지파일명' not in obj:continue
   basic=obj.get('기본평면도이미지파일명','');extended=obj.get('확장형평면도이미지파일명','')
   def image(path,file):
-   full=obj.get('이미지도메인URL','')+obj.get(path,'')+file
+   full=(obj.get('이미지도메인URL') or '')+(obj.get(path) or '')+file
    return full if file and full.startswith('https://file.kbland.kr/') else None
   record={'id':str(obj['면적일련번호']),'label':obj['공급면적']+obj.get('주택형타입내용','')+'㎡',
    'supplyArea':obj['공급면적'],'exclusiveArea':obj.get('전용면적'),
@@ -57,7 +59,7 @@ def collect(item):
    candidate=json.loads(m[0]);related.append({k:candidate.get(k) for k in ['단지기본일련번호','단지명','도로기본주소','도로명건물본번']})
   except ValueError:pass
  cache=ROOT/'output/research';cache.mkdir(parents=True,exist_ok=True);(cache/f'kb-{kb}-related.json').write_text(json.dumps(related,ensure_ascii=False))
- address=base.get('신주소') or (base.get('도로기본주소','')+' '+str(base.get('도로명건물본번',''))+('-'+str(base.get('도로명건물부번')) if base.get('도로명건물부번') not in ['0',0,None] else ''))
+ address=base.get('신주소') or ((base['도로기본주소']+' '+str(base.get('도로명건물본번',''))+('-'+str(base.get('도로명건물부번')) if base.get('도로명건물부번') not in ['0',0,None] else '')) if base.get('도로기본주소') else base.get('구주소',''))
  if not address.startswith('인천광역시'):raise ValueError(f'{alias}: unexpected location {address}')
  return {'alias':alias,'name':base.get('단지명',alias),'address':address,'sourceUrl':url,'checkedAt':'2026-10-30','types':list(types.values()),'status':'candidate','note':'공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인.'}
 if __name__=='__main__':
