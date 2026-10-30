@@ -1,4 +1,5 @@
 import sources from "./apartment-sources.json" with { type: "json" };
+import buildingTypes from "./apartment-building-types.json" with { type: "json" };
 export type SourceType = {
   id: string;
   label: string;
@@ -22,6 +23,7 @@ export type ApartmentSource = {
   note: string;
 };
 export const APARTMENT_SOURCES = sources as ApartmentSource[];
+export const APARTMENT_BUILDING_TYPES = buildingTypes;
 export function apartmentSources(name: string) {
   return APARTMENT_SOURCES.filter(
     (s) =>
@@ -43,26 +45,39 @@ export function sourceImageUrl(alias: string, typeId: string, variant: string) {
   return url?.startsWith("https://file.kbland.kr/image/") ? url : null;
 }
 
-// Candidates only: floor of published supply area in pyeong follows the journal's
-// convention, but never becomes evidence of a unit's type or orientation.
+// Building/type metadata narrows candidates, never verifies a particular unit's
+// orientation, extensions, or alterations. Journal labels use both truncated and
+// rounded pyeong; both are suggestions only and may leave multiple candidates.
 export function sourceTypeCandidates(
   source: ApartmentSource,
   sizes: string,
   dong: string,
 ) {
-  if (source.alias === "미래지향" && /^201(?:동)?$/.test(dong.trim()))
+  const normalizedDong = dong.trim().replace(/동$/, "").toUpperCase();
+  const catalog = APARTMENT_BUILDING_TYPES.find(
+    (entry) => entry.alias === source.alias && entry.sourceUrl === source.sourceUrl,
+  );
+  const building = catalog?.buildings.find(
+    (entry) => entry.dong.toUpperCase() === normalizedDong,
+  );
+  if (normalizedDong && catalog && !building) return [];
+  // The source page combines separately addressed complexes; the reviewed source
+  // contains only first-complex candidates, whose official building is 201.
+  if (source.alias === "미래지향" && normalizedDong && normalizedDong !== "201")
     return [];
   const labels = sizes
     .split(",")
     .map((s) => s.trim().toUpperCase())
     .filter(Boolean);
   return source.types.filter((t) =>
+    (!building || building.typeIds.includes(t.id)) &&
     labels.some((label) => {
       const m = label.match(/^(\d+)([A-Z]?)$/);
       if (!m) return false;
       const suffix = t.label.match(/[A-Z](?=㎡)/)?.[0] ?? "";
+      const pyeong = Number(t.supplyArea) / 3.305785;
       return (
-        Number(m[1]) === Math.floor(Number(t.supplyArea) / 3.305785) &&
+        [Math.floor(pyeong), Math.round(pyeong)].includes(Number(m[1])) &&
         (!m[2] || m[2] === suffix)
       );
     }),

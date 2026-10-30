@@ -1,0 +1,2253 @@
+[
+  {
+    "alias": "검단풍림2차",
+    "sourceUrl": "https://kbland.kr/se/c/13184",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "201",
+        "sourceBuildingId": 67488,
+        "typeIds": [
+          "12974"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13184&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67488"
+      },
+      {
+        "dong": "202",
+        "sourceBuildingId": 67489,
+        "typeIds": [
+          "12974"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13184&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67489"
+      },
+      {
+        "dong": "203",
+        "sourceBuildingId": 67490,
+        "typeIds": [
+          "12974"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13184&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67490"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "검단피오레",
+    "sourceUrl": "https://kbland.kr/se/c/14729",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 66707,
+        "typeIds": [
+          "102820",
+          "62355"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66707"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 66708,
+        "typeIds": [
+          "62355"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66708"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 53590,
+        "typeIds": [
+          "14492",
+          "134013"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=53590"
+      },
+      {
+        "dong": "104",
+        "sourceBuildingId": 66709,
+        "typeIds": [
+          "62355"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66709"
+      },
+      {
+        "dong": "105",
+        "sourceBuildingId": 66710,
+        "typeIds": [
+          "62355"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66710"
+      },
+      {
+        "dong": "106",
+        "sourceBuildingId": 66711,
+        "typeIds": [
+          "62355"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66711"
+      },
+      {
+        "dong": "107",
+        "sourceBuildingId": 66712,
+        "typeIds": [
+          "62355"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66712"
+      },
+      {
+        "dong": "108",
+        "sourceBuildingId": 66713,
+        "typeIds": [
+          "62355"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66713"
+      },
+      {
+        "dong": "109",
+        "sourceBuildingId": 53591,
+        "typeIds": [
+          "102820"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=53591"
+      },
+      {
+        "dong": "110",
+        "sourceBuildingId": 66714,
+        "typeIds": [
+          "102820"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66714"
+      },
+      {
+        "dong": "111",
+        "sourceBuildingId": 66715,
+        "typeIds": [
+          "62355"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66715"
+      },
+      {
+        "dong": "112",
+        "sourceBuildingId": 53592,
+        "typeIds": [
+          "62355"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=53592"
+      },
+      {
+        "dong": "113",
+        "sourceBuildingId": 66716,
+        "typeIds": [
+          "62355"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66716"
+      },
+      {
+        "dong": "114",
+        "sourceBuildingId": 66718,
+        "typeIds": [
+          "62355"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66718"
+      },
+      {
+        "dong": "115",
+        "sourceBuildingId": 66719,
+        "typeIds": [
+          "62355"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66719"
+      },
+      {
+        "dong": "116",
+        "sourceBuildingId": 66717,
+        "typeIds": [
+          "102820"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14729&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66717"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "검암풍림3차",
+    "sourceUrl": "https://kbland.kr/se/c/12755",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "401",
+        "sourceBuildingId": 66633,
+        "typeIds": [
+          "12549"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12755&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66633"
+      },
+      {
+        "dong": "402",
+        "sourceBuildingId": 66634,
+        "typeIds": [
+          "60629"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12755&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66634"
+      },
+      {
+        "dong": "403",
+        "sourceBuildingId": 18226,
+        "typeIds": [
+          "12549",
+          "60629"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12755&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=18226"
+      },
+      {
+        "dong": "404",
+        "sourceBuildingId": 18228,
+        "typeIds": [
+          "12549"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12755&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=18228"
+      },
+      {
+        "dong": "405",
+        "sourceBuildingId": 66635,
+        "typeIds": [
+          "60629"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12755&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66635"
+      },
+      {
+        "dong": "406",
+        "sourceBuildingId": 66636,
+        "typeIds": [
+          "12549"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12755&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66636"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "금호어울림",
+    "sourceUrl": "https://kbland.kr/se/c/12659",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 67437,
+        "typeIds": [
+          "12458"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12659&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67437"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 67438,
+        "typeIds": [
+          "12458"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12659&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67438"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 67439,
+        "typeIds": [
+          "12458"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12659&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67439"
+      },
+      {
+        "dong": "104",
+        "sourceBuildingId": 67440,
+        "typeIds": [
+          "12458"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12659&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67440"
+      },
+      {
+        "dong": "105",
+        "sourceBuildingId": 67441,
+        "typeIds": [
+          "12458"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12659&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67441"
+      },
+      {
+        "dong": "106",
+        "sourceBuildingId": 67442,
+        "typeIds": [
+          "12458"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12659&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67442"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "당하KCC",
+    "sourceUrl": "https://kbland.kr/se/c/13341",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "501",
+        "sourceBuildingId": 66671,
+        "typeIds": [
+          "101874"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66671"
+      },
+      {
+        "dong": "502",
+        "sourceBuildingId": 66672,
+        "typeIds": [
+          "101874"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66672"
+      },
+      {
+        "dong": "503",
+        "sourceBuildingId": 66673,
+        "typeIds": [
+          "61135"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66673"
+      },
+      {
+        "dong": "504",
+        "sourceBuildingId": 66674,
+        "typeIds": [
+          "61135"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66674"
+      },
+      {
+        "dong": "505",
+        "sourceBuildingId": 66675,
+        "typeIds": [
+          "61135"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66675"
+      },
+      {
+        "dong": "506",
+        "sourceBuildingId": 66676,
+        "typeIds": [
+          "61135"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66676"
+      },
+      {
+        "dong": "507",
+        "sourceBuildingId": 66677,
+        "typeIds": [
+          "61135"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66677"
+      },
+      {
+        "dong": "508",
+        "sourceBuildingId": 66678,
+        "typeIds": [
+          "61135"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66678"
+      },
+      {
+        "dong": "509",
+        "sourceBuildingId": 19064,
+        "typeIds": [
+          "13127"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=19064"
+      },
+      {
+        "dong": "510",
+        "sourceBuildingId": 66679,
+        "typeIds": [
+          "13127"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66679"
+      },
+      {
+        "dong": "511",
+        "sourceBuildingId": 19066,
+        "typeIds": [
+          "13127"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=19066"
+      },
+      {
+        "dong": "512",
+        "sourceBuildingId": 66680,
+        "typeIds": [
+          "61135"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66680"
+      },
+      {
+        "dong": "513",
+        "sourceBuildingId": 66681,
+        "typeIds": [
+          "61135"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66681"
+      },
+      {
+        "dong": "514",
+        "sourceBuildingId": 66682,
+        "typeIds": [
+          "61135"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66682"
+      },
+      {
+        "dong": "515",
+        "sourceBuildingId": 66683,
+        "typeIds": [
+          "61135"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66683"
+      },
+      {
+        "dong": "516",
+        "sourceBuildingId": 19068,
+        "typeIds": [
+          "61135"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13341&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=19068"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "당하풍림3차",
+    "sourceUrl": "https://kbland.kr/se/c/12996",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "201",
+        "sourceBuildingId": 67424,
+        "typeIds": [
+          "60835",
+          "101642"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12996&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67424"
+      },
+      {
+        "dong": "202",
+        "sourceBuildingId": 67425,
+        "typeIds": [
+          "12787"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12996&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67425"
+      },
+      {
+        "dong": "203",
+        "sourceBuildingId": 67426,
+        "typeIds": [
+          "12787",
+          "133138"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12996&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67426"
+      },
+      {
+        "dong": "204",
+        "sourceBuildingId": 67427,
+        "typeIds": [
+          "12787"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12996&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67427"
+      },
+      {
+        "dong": "205",
+        "sourceBuildingId": 67428,
+        "typeIds": [
+          "133138"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12996&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67428"
+      },
+      {
+        "dong": "206",
+        "sourceBuildingId": 67429,
+        "typeIds": [
+          "133138"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12996&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67429"
+      },
+      {
+        "dong": "207",
+        "sourceBuildingId": 67430,
+        "typeIds": [
+          "12787"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12996&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67430"
+      },
+      {
+        "dong": "208",
+        "sourceBuildingId": 67431,
+        "typeIds": [
+          "133138"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=12996&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67431"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "대림e편한",
+    "sourceUrl": "https://kbland.kr/se/c/14890",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 53953,
+        "typeIds": [
+          "14650"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=53953"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 66850,
+        "typeIds": [
+          "14650"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66850"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 66851,
+        "typeIds": [
+          "14650"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66851"
+      },
+      {
+        "dong": "104",
+        "sourceBuildingId": 66852,
+        "typeIds": [
+          "14650"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66852"
+      },
+      {
+        "dong": "105",
+        "sourceBuildingId": 66853,
+        "typeIds": [
+          "14650"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66853"
+      },
+      {
+        "dong": "106",
+        "sourceBuildingId": 53954,
+        "typeIds": [
+          "14650"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=53954"
+      },
+      {
+        "dong": "107",
+        "sourceBuildingId": 66854,
+        "typeIds": [
+          "14650"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66854"
+      },
+      {
+        "dong": "108",
+        "sourceBuildingId": 66855,
+        "typeIds": [
+          "14650"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66855"
+      },
+      {
+        "dong": "109",
+        "sourceBuildingId": 66856,
+        "typeIds": [
+          "14650"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66856"
+      },
+      {
+        "dong": "110",
+        "sourceBuildingId": 66857,
+        "typeIds": [
+          "14650"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66857"
+      },
+      {
+        "dong": "111",
+        "sourceBuildingId": 66858,
+        "typeIds": [
+          "62499"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66858"
+      },
+      {
+        "dong": "112",
+        "sourceBuildingId": 66859,
+        "typeIds": [
+          "62499"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66859"
+      },
+      {
+        "dong": "113",
+        "sourceBuildingId": 66860,
+        "typeIds": [
+          "102935"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66860"
+      },
+      {
+        "dong": "114",
+        "sourceBuildingId": 66861,
+        "typeIds": [
+          "62499",
+          "14650"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66861"
+      },
+      {
+        "dong": "115",
+        "sourceBuildingId": 66862,
+        "typeIds": [
+          "62499"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66862"
+      },
+      {
+        "dong": "116",
+        "sourceBuildingId": 66863,
+        "typeIds": [
+          "14650"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66863"
+      },
+      {
+        "dong": "117",
+        "sourceBuildingId": 66864,
+        "typeIds": [
+          "14650"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66864"
+      },
+      {
+        "dong": "118",
+        "sourceBuildingId": 88403,
+        "typeIds": [
+          "134099"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88403"
+      },
+      {
+        "dong": "119",
+        "sourceBuildingId": 66865,
+        "typeIds": [
+          "102935",
+          "134099"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14890&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66865"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "동아",
+    "sourceUrl": "https://kbland.kr/se/c/7611",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 58693,
+        "typeIds": [
+          "56210"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58693"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 58694,
+        "typeIds": [
+          "7452"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58694"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 58695,
+        "typeIds": [
+          "7452"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58695"
+      },
+      {
+        "dong": "104",
+        "sourceBuildingId": 58696,
+        "typeIds": [
+          "56210"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58696"
+      },
+      {
+        "dong": "105",
+        "sourceBuildingId": 58697,
+        "typeIds": [
+          "7452"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58697"
+      },
+      {
+        "dong": "106",
+        "sourceBuildingId": 58698,
+        "typeIds": [
+          "56210"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58698"
+      },
+      {
+        "dong": "107",
+        "sourceBuildingId": 58699,
+        "typeIds": [
+          "7452"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58699"
+      },
+      {
+        "dong": "108",
+        "sourceBuildingId": 58700,
+        "typeIds": [
+          "7452"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58700"
+      },
+      {
+        "dong": "109",
+        "sourceBuildingId": 58701,
+        "typeIds": [
+          "98431"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58701"
+      },
+      {
+        "dong": "110",
+        "sourceBuildingId": 58702,
+        "typeIds": [
+          "7452"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58702"
+      },
+      {
+        "dong": "111",
+        "sourceBuildingId": 58703,
+        "typeIds": [
+          "98431"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58703"
+      },
+      {
+        "dong": "112",
+        "sourceBuildingId": 58704,
+        "typeIds": [
+          "56210"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58704"
+      },
+      {
+        "dong": "113",
+        "sourceBuildingId": 58705,
+        "typeIds": [
+          "98431"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58705"
+      },
+      {
+        "dong": "114",
+        "sourceBuildingId": 58706,
+        "typeIds": [
+          "56210"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58706"
+      },
+      {
+        "dong": "115",
+        "sourceBuildingId": 58707,
+        "typeIds": [
+          "56210"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58707"
+      },
+      {
+        "dong": "116",
+        "sourceBuildingId": 58708,
+        "typeIds": [
+          "56210"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58708"
+      },
+      {
+        "dong": "117",
+        "sourceBuildingId": 58709,
+        "typeIds": [
+          "7452"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7611&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=58709"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "드림파크어울림1단지",
+    "sourceUrl": "https://kbland.kr/se/c/22059",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 71979,
+        "typeIds": [
+          "138232",
+          "108069"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22059&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=71979"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 88110,
+        "typeIds": [
+          "21322",
+          "68578"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22059&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88110"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 88111,
+        "typeIds": [
+          "21322",
+          "68578"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22059&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88111"
+      },
+      {
+        "dong": "104",
+        "sourceBuildingId": 88112,
+        "typeIds": [
+          "21322",
+          "68578"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22059&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88112"
+      },
+      {
+        "dong": "105",
+        "sourceBuildingId": 88113,
+        "typeIds": [
+          "21322",
+          "68578"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22059&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88113"
+      },
+      {
+        "dong": "106",
+        "sourceBuildingId": 88114,
+        "typeIds": [
+          "21322",
+          "68578"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22059&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88114"
+      },
+      {
+        "dong": "107",
+        "sourceBuildingId": 88115,
+        "typeIds": [
+          "138232",
+          "108069"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22059&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88115"
+      },
+      {
+        "dong": "108",
+        "sourceBuildingId": 88116,
+        "typeIds": [
+          "108069"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22059&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88116"
+      },
+      {
+        "dong": "109",
+        "sourceBuildingId": 88117,
+        "typeIds": [
+          "160351"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22059&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88117"
+      },
+      {
+        "dong": "110",
+        "sourceBuildingId": 88118,
+        "typeIds": [
+          "160351"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22059&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88118"
+      },
+      {
+        "dong": "111",
+        "sourceBuildingId": 88119,
+        "typeIds": [
+          "176347",
+          "160351"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22059&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88119"
+      },
+      {
+        "dong": "112",
+        "sourceBuildingId": 88120,
+        "typeIds": [
+          "138232",
+          "108069"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22059&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88120"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "마전동남",
+    "sourceUrl": "https://kbland.kr/se/c/7613",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 37241,
+        "typeIds": [
+          "98433"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7613&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37241"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 37242,
+        "typeIds": [
+          "7454",
+          "56212",
+          "131162"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7613&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37242"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "마전풍림3차",
+    "sourceUrl": "https://kbland.kr/se/c/13579",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "301",
+        "sourceBuildingId": 50935,
+        "typeIds": [
+          "13360"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13579&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=50935"
+      },
+      {
+        "dong": "302",
+        "sourceBuildingId": 50936,
+        "typeIds": [
+          "13360"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13579&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=50936"
+      },
+      {
+        "dong": "303",
+        "sourceBuildingId": 88694,
+        "typeIds": [
+          "13360"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13579&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88694"
+      },
+      {
+        "dong": "304",
+        "sourceBuildingId": 88695,
+        "typeIds": [
+          "13360"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13579&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88695"
+      },
+      {
+        "dong": "305",
+        "sourceBuildingId": 88696,
+        "typeIds": [
+          "13360"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=13579&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=88696"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "마전하나",
+    "sourceUrl": "https://kbland.kr/se/c/7612",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 11700,
+        "typeIds": [
+          "7453"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7612&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=11700"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 11702,
+        "typeIds": [
+          "98432"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7612&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=11702"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 11704,
+        "typeIds": [
+          "56211",
+          "7453"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7612&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=11704"
+      },
+      {
+        "dong": "104",
+        "sourceBuildingId": 11706,
+        "typeIds": [
+          "155268",
+          "98432"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7612&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=11706"
+      },
+      {
+        "dong": "105",
+        "sourceBuildingId": 11710,
+        "typeIds": [
+          "131161",
+          "98432"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7612&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=11710"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "모아미래도엘리트파크",
+    "sourceUrl": "https://kbland.kr/se/c/47273",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "801",
+        "sourceBuildingId": 163188,
+        "typeIds": [
+          "45996",
+          "90408"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=47273&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=163188"
+      },
+      {
+        "dong": "802",
+        "sourceBuildingId": 163189,
+        "typeIds": [
+          "45996",
+          "90408"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=47273&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=163189"
+      },
+      {
+        "dong": "803",
+        "sourceBuildingId": 163190,
+        "typeIds": [
+          "45996",
+          "90408"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=47273&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=163190"
+      },
+      {
+        "dong": "804",
+        "sourceBuildingId": 163191,
+        "typeIds": [
+          "45996",
+          "90408"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=47273&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=163191"
+      },
+      {
+        "dong": "805",
+        "sourceBuildingId": 163192,
+        "typeIds": [
+          "45996",
+          "90408"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=47273&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=163192"
+      },
+      {
+        "dong": "806",
+        "sourceBuildingId": 163193,
+        "typeIds": [
+          "45996",
+          "90408"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=47273&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=163193"
+      },
+      {
+        "dong": "807",
+        "sourceBuildingId": 163194,
+        "typeIds": [
+          "45996",
+          "90408"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=47273&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=163194"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "삼라마이다스",
+    "sourceUrl": "https://kbland.kr/se/c/14979",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 105423,
+        "typeIds": [
+          "14739",
+          "62579",
+          "102999"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14979&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=105423"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "아이파크1차",
+    "sourceUrl": "https://kbland.kr/se/c/14728",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 66720,
+        "typeIds": [
+          "62354"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14728&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66720"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 66721,
+        "typeIds": [
+          "62354"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14728&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66721"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 66722,
+        "typeIds": [
+          "102819"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14728&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66722"
+      },
+      {
+        "dong": "104",
+        "sourceBuildingId": 20124,
+        "typeIds": [
+          "62354"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14728&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=20124"
+      },
+      {
+        "dong": "105",
+        "sourceBuildingId": 66723,
+        "typeIds": [
+          "62354"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14728&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66723"
+      },
+      {
+        "dong": "106",
+        "sourceBuildingId": 66724,
+        "typeIds": [
+          "62354"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14728&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66724"
+      },
+      {
+        "dong": "107",
+        "sourceBuildingId": 66725,
+        "typeIds": [
+          "14491"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14728&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66725"
+      },
+      {
+        "dong": "108",
+        "sourceBuildingId": 66726,
+        "typeIds": [
+          "62354"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14728&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66726"
+      },
+      {
+        "dong": "109",
+        "sourceBuildingId": 66727,
+        "typeIds": [
+          "62354"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14728&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66727"
+      },
+      {
+        "dong": "110",
+        "sourceBuildingId": 20126,
+        "typeIds": [
+          "62354"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14728&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=20126"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "아이파크2차",
+    "sourceUrl": "https://kbland.kr/se/c/21980",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "201",
+        "sourceBuildingId": 83253,
+        "typeIds": [
+          "196521",
+          "188022"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=21980&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83253"
+      },
+      {
+        "dong": "202",
+        "sourceBuildingId": 83254,
+        "typeIds": [
+          "176317",
+          "108012"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=21980&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83254"
+      },
+      {
+        "dong": "203",
+        "sourceBuildingId": 83255,
+        "typeIds": [
+          "21250",
+          "1431903"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=21980&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83255"
+      },
+      {
+        "dong": "204",
+        "sourceBuildingId": 83256,
+        "typeIds": [
+          "196521",
+          "188022"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=21980&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83256"
+      },
+      {
+        "dong": "205",
+        "sourceBuildingId": 83257,
+        "typeIds": [
+          "176317",
+          "108012"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=21980&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83257"
+      },
+      {
+        "dong": "206",
+        "sourceBuildingId": 83258,
+        "typeIds": [
+          "176317",
+          "108012"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=21980&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83258"
+      },
+      {
+        "dong": "207",
+        "sourceBuildingId": 83259,
+        "typeIds": [
+          "68508",
+          "108012",
+          "138186"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=21980&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83259"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "양우내안에",
+    "sourceUrl": "https://kbland.kr/se/c/383097",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 603168,
+        "typeIds": [
+          "1249442",
+          "1249444",
+          "1249445"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=383097&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=603168"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 603169,
+        "typeIds": [
+          "1249442",
+          "1249443",
+          "1249445"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=383097&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=603169"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 603170,
+        "typeIds": [
+          "1249442",
+          "1249444",
+          "1249445"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=383097&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=603170"
+      },
+      {
+        "dong": "104",
+        "sourceBuildingId": 603171,
+        "typeIds": [
+          "1249442",
+          "1249444",
+          "1249445"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=383097&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=603171"
+      },
+      {
+        "dong": "105",
+        "sourceBuildingId": 603172,
+        "typeIds": [
+          "1249441",
+          "1249442",
+          "1249445"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=383097&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=603172"
+      },
+      {
+        "dong": "106",
+        "sourceBuildingId": 603173,
+        "typeIds": [
+          "1249441",
+          "1249442",
+          "1249445"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=383097&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=603173"
+      },
+      {
+        "dong": "107",
+        "sourceBuildingId": 603174,
+        "typeIds": [
+          "1249441"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=383097&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=603174"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "영남탑스빌",
+    "sourceUrl": "https://kbland.kr/se/c/7614",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 37243,
+        "typeIds": [
+          "56213"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37243"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 37244,
+        "typeIds": [
+          "98434"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37244"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 37245,
+        "typeIds": [
+          "7455"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37245"
+      },
+      {
+        "dong": "104",
+        "sourceBuildingId": 37246,
+        "typeIds": [
+          "98434"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37246"
+      },
+      {
+        "dong": "105",
+        "sourceBuildingId": 37247,
+        "typeIds": [
+          "7455"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37247"
+      },
+      {
+        "dong": "106",
+        "sourceBuildingId": 37248,
+        "typeIds": [
+          "7455"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37248"
+      },
+      {
+        "dong": "107",
+        "sourceBuildingId": 37249,
+        "typeIds": [
+          "7455"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37249"
+      },
+      {
+        "dong": "108",
+        "sourceBuildingId": 37250,
+        "typeIds": [
+          "7455"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37250"
+      },
+      {
+        "dong": "109",
+        "sourceBuildingId": 37251,
+        "typeIds": [
+          "131163"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37251"
+      },
+      {
+        "dong": "110",
+        "sourceBuildingId": 37252,
+        "typeIds": [
+          "56213"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37252"
+      },
+      {
+        "dong": "111",
+        "sourceBuildingId": 37253,
+        "typeIds": [
+          "131163"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37253"
+      },
+      {
+        "dong": "112",
+        "sourceBuildingId": 37254,
+        "typeIds": [
+          "131163"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37254"
+      },
+      {
+        "dong": "113",
+        "sourceBuildingId": 37255,
+        "typeIds": [
+          "98434"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37255"
+      },
+      {
+        "dong": "114",
+        "sourceBuildingId": 37256,
+        "typeIds": [
+          "155269"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37256"
+      },
+      {
+        "dong": "115",
+        "sourceBuildingId": 37257,
+        "typeIds": [
+          "155269"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37257"
+      },
+      {
+        "dong": "116",
+        "sourceBuildingId": 37258,
+        "typeIds": [
+          "98434"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37258"
+      },
+      {
+        "dong": "117",
+        "sourceBuildingId": 37259,
+        "typeIds": [
+          "98434"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37259"
+      },
+      {
+        "dong": "118",
+        "sourceBuildingId": 37260,
+        "typeIds": [
+          "98434"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37260"
+      },
+      {
+        "dong": "119",
+        "sourceBuildingId": 37261,
+        "typeIds": [
+          "98434"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7614&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37261"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "영진",
+    "sourceUrl": "https://kbland.kr/se/c/7606",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 11000,
+        "typeIds": [
+          "7447",
+          "56205",
+          "98428"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7606&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=11000"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 11002,
+        "typeIds": [
+          "131160",
+          "155267",
+          "7447"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7606&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=11002"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 69243,
+        "typeIds": [
+          "56205"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7606&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=69243"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "오류힐스테이트2차",
+    "sourceUrl": "https://kbland.kr/se/c/22292",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "306",
+        "sourceBuildingId": 71995,
+        "typeIds": [
+          "68781",
+          "216764"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22292&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=71995"
+      },
+      {
+        "dong": "307",
+        "sourceBuildingId": 71996,
+        "typeIds": [
+          "211535",
+          "202966"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22292&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=71996"
+      },
+      {
+        "dong": "308",
+        "sourceBuildingId": 71997,
+        "typeIds": [
+          "138381",
+          "188113",
+          "108243"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22292&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=71997"
+      },
+      {
+        "dong": "309",
+        "sourceBuildingId": 71998,
+        "typeIds": [
+          "211535",
+          "202966"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22292&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=71998"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "우림필유",
+    "sourceUrl": "https://kbland.kr/se/c/14730",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 67491,
+        "typeIds": [
+          "14493"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14730&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67491"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 67492,
+        "typeIds": [
+          "14493",
+          "62356"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14730&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67492"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 67493,
+        "typeIds": [
+          "62356"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14730&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67493"
+      },
+      {
+        "dong": "104",
+        "sourceBuildingId": 67494,
+        "typeIds": [
+          "62356"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14730&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67494"
+      },
+      {
+        "dong": "105",
+        "sourceBuildingId": 67495,
+        "typeIds": [
+          "102821"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14730&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67495"
+      },
+      {
+        "dong": "106",
+        "sourceBuildingId": 67496,
+        "typeIds": [
+          "102821"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14730&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67496"
+      },
+      {
+        "dong": "107",
+        "sourceBuildingId": 67497,
+        "typeIds": [
+          "62356"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14730&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67497"
+      },
+      {
+        "dong": "108",
+        "sourceBuildingId": 67498,
+        "typeIds": [
+          "62356"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14730&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67498"
+      },
+      {
+        "dong": "109",
+        "sourceBuildingId": 67499,
+        "typeIds": [
+          "62356"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14730&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=67499"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "우방1차",
+    "sourceUrl": "https://kbland.kr/se/c/31187",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 120592,
+        "typeIds": [
+          "114397",
+          "143200",
+          "76373"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=31187&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=120592"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 120593,
+        "typeIds": [
+          "30059",
+          "76373"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=31187&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=120593"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 120594,
+        "typeIds": [
+          "76373"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=31187&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=120594"
+      },
+      {
+        "dong": "104",
+        "sourceBuildingId": 120595,
+        "typeIds": [
+          "114397",
+          "143200"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=31187&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=120595"
+      },
+      {
+        "dong": "105",
+        "sourceBuildingId": 120596,
+        "typeIds": [
+          "114397",
+          "143200",
+          "76373"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=31187&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=120596"
+      },
+      {
+        "dong": "106",
+        "sourceBuildingId": 120597,
+        "typeIds": [
+          "30059",
+          "114397",
+          "76373"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=31187&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=120597"
+      },
+      {
+        "dong": "107",
+        "sourceBuildingId": 120598,
+        "typeIds": [
+          "30059",
+          "114397",
+          "76373"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=31187&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=120598"
+      },
+      {
+        "dong": "108",
+        "sourceBuildingId": 120599,
+        "typeIds": [
+          "30059",
+          "114397",
+          "76373"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=31187&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=120599"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "우방2차",
+    "sourceUrl": "https://kbland.kr/se/c/32856",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 132665,
+        "typeIds": [
+          "31720",
+          "144090"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=32856&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=132665"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 132666,
+        "typeIds": [
+          "31720",
+          "144090",
+          "115584"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=32856&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=132666"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 132667,
+        "typeIds": [
+          "31720",
+          "144090"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=32856&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=132667"
+      },
+      {
+        "dong": "104",
+        "sourceBuildingId": 132668,
+        "typeIds": [
+          "31720",
+          "144090",
+          "115584"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=32856&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=132668"
+      },
+      {
+        "dong": "105",
+        "sourceBuildingId": 132669,
+        "typeIds": [
+          "31720",
+          "77855"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=32856&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=132669"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "우방3차(검단오류)",
+    "sourceUrl": "https://kbland.kr/se/c/43424",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 157588,
+        "typeIds": [
+          "42185",
+          "149381",
+          "168544"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=43424&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=157588"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 157589,
+        "typeIds": [
+          "168544"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=43424&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=157589"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 157590,
+        "typeIds": [
+          "122797",
+          "168544"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=43424&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=157590"
+      },
+      {
+        "dong": "104",
+        "sourceBuildingId": 157591,
+        "typeIds": [
+          "87059",
+          "168544"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=43424&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=157591"
+      },
+      {
+        "dong": "105",
+        "sourceBuildingId": 157592,
+        "typeIds": [
+          "42185",
+          "149381",
+          "182389",
+          "168544"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=43424&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=157592"
+      },
+      {
+        "dong": "106",
+        "sourceBuildingId": 157593,
+        "typeIds": [
+          "149381",
+          "182389",
+          "168544"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=43424&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=157593"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "유호",
+    "sourceUrl": "https://kbland.kr/se/c/7605",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "A1",
+        "sourceBuildingId": 37219,
+        "typeIds": [
+          "7446"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7605&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37219"
+      },
+      {
+        "dong": "A2",
+        "sourceBuildingId": 37220,
+        "typeIds": [
+          "194365"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7605&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37220"
+      },
+      {
+        "dong": "B1",
+        "sourceBuildingId": 37221,
+        "typeIds": [
+          "155266"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7605&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37221"
+      },
+      {
+        "dong": "B2",
+        "sourceBuildingId": 37222,
+        "typeIds": [
+          "185212",
+          "131159"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7605&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37222"
+      },
+      {
+        "dong": "C",
+        "sourceBuildingId": 37223,
+        "typeIds": [
+          "7446",
+          "56204",
+          "172573"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7605&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37223"
+      },
+      {
+        "dong": "D1",
+        "sourceBuildingId": 37224,
+        "typeIds": [
+          "98427"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7605&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37224"
+      },
+      {
+        "dong": "D2",
+        "sourceBuildingId": 37225,
+        "typeIds": [
+          "131159"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7605&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37225"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "현대",
+    "sourceUrl": "https://kbland.kr/se/c/7607",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 37226,
+        "typeIds": [
+          "56206"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7607&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37226"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 37227,
+        "typeIds": [
+          "7448",
+          "56206"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7607&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37227"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 37228,
+        "typeIds": [
+          "56206"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=7607&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=37228"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "힐스테이트1차",
+    "sourceUrl": "https://kbland.kr/se/c/14727",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "101",
+        "sourceBuildingId": 53587,
+        "typeIds": [
+          "62353"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14727&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=53587"
+      },
+      {
+        "dong": "102",
+        "sourceBuildingId": 66728,
+        "typeIds": [
+          "14490"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14727&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66728"
+      },
+      {
+        "dong": "103",
+        "sourceBuildingId": 66729,
+        "typeIds": [
+          "102818"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14727&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66729"
+      },
+      {
+        "dong": "104",
+        "sourceBuildingId": 66730,
+        "typeIds": [
+          "14490"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14727&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66730"
+      },
+      {
+        "dong": "105",
+        "sourceBuildingId": 66731,
+        "typeIds": [
+          "62353"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14727&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66731"
+      },
+      {
+        "dong": "106",
+        "sourceBuildingId": 53588,
+        "typeIds": [
+          "14490"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14727&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=53588"
+      },
+      {
+        "dong": "107",
+        "sourceBuildingId": 66732,
+        "typeIds": [
+          "62353"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14727&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66732"
+      },
+      {
+        "dong": "108",
+        "sourceBuildingId": 53589,
+        "typeIds": [
+          "14490"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14727&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=53589"
+      },
+      {
+        "dong": "109",
+        "sourceBuildingId": 66733,
+        "typeIds": [
+          "62353"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=14727&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=66733"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "힐스테이트2차",
+    "sourceUrl": "https://kbland.kr/se/c/22161",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "201",
+        "sourceBuildingId": 83244,
+        "typeIds": [
+          "138293",
+          "160404"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22161&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83244"
+      },
+      {
+        "dong": "202",
+        "sourceBuildingId": 83245,
+        "typeIds": [
+          "21414"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22161&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83245"
+      },
+      {
+        "dong": "203",
+        "sourceBuildingId": 83246,
+        "typeIds": [
+          "160404"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22161&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83246"
+      },
+      {
+        "dong": "204",
+        "sourceBuildingId": 83247,
+        "typeIds": [
+          "68670",
+          "108147",
+          "176391",
+          "196560",
+          "188071"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22161&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83247"
+      },
+      {
+        "dong": "205",
+        "sourceBuildingId": 83248,
+        "typeIds": [
+          "21414"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22161&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83248"
+      },
+      {
+        "dong": "206",
+        "sourceBuildingId": 83249,
+        "typeIds": [
+          "21414"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22161&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83249"
+      },
+      {
+        "dong": "207",
+        "sourceBuildingId": 83250,
+        "typeIds": [
+          "21414"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22161&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83250"
+      },
+      {
+        "dong": "208",
+        "sourceBuildingId": 83251,
+        "typeIds": [
+          "21414"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22161&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83251"
+      },
+      {
+        "dong": "209",
+        "sourceBuildingId": 83252,
+        "typeIds": [
+          "21414"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=22161&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=83252"
+      }
+    ],
+    "scope": "building-types-only"
+  },
+  {
+    "alias": "힐스테이트4차",
+    "sourceUrl": "https://kbland.kr/se/c/23229",
+    "checkedAt": "2026-10-30",
+    "buildings": [
+      {
+        "dong": "401",
+        "sourceBuildingId": 84687,
+        "typeIds": [
+          "22393",
+          "69540"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=23229&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=84687"
+      },
+      {
+        "dong": "402",
+        "sourceBuildingId": 84688,
+        "typeIds": [
+          "22393",
+          "69540"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=23229&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=84688"
+      },
+      {
+        "dong": "403",
+        "sourceBuildingId": 84689,
+        "typeIds": [
+          "22393",
+          "69540"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=23229&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=84689"
+      },
+      {
+        "dong": "404",
+        "sourceBuildingId": 84690,
+        "typeIds": [
+          "22393",
+          "69540"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=23229&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=84690"
+      },
+      {
+        "dong": "405",
+        "sourceBuildingId": 84691,
+        "typeIds": [
+          "22393",
+          "69540"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=23229&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=84691"
+      },
+      {
+        "dong": "406",
+        "sourceBuildingId": 84692,
+        "typeIds": [
+          "22393",
+          "69540"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=23229&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=84692"
+      },
+      {
+        "dong": "407",
+        "sourceBuildingId": 84693,
+        "typeIds": [
+          "22393",
+          "69540"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=23229&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=84693"
+      },
+      {
+        "dong": "408",
+        "sourceBuildingId": 84694,
+        "typeIds": [
+          "22393",
+          "108825"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=23229&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=84694"
+      },
+      {
+        "dong": "409",
+        "sourceBuildingId": 84695,
+        "typeIds": [
+          "22393",
+          "108825"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=23229&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=84695"
+      },
+      {
+        "dong": "410",
+        "sourceBuildingId": 84696,
+        "typeIds": [
+          "22393",
+          "108825"
+        ],
+        "sourceUrl": "https://api.kbland.kr/land-complex/complexComm/dongTypeList?%EB%8B%A8%EC%A7%80%EA%B8%B0%EB%B3%B8%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=23229&%EB%8F%99%EC%9D%BC%EB%A0%A8%EB%B2%88%ED%98%B8=84696"
+      }
+    ],
+    "scope": "building-types-only"
+  }
+]
