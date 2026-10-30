@@ -188,26 +188,28 @@ export function StructureManager({
           setBusy(true);
           setError("");
           try {
-            let linked = 0,
+            let linked = 0, modelled = 0,
               first = "";
             for (;;) {
               const result = await clientJsonFetch<{
                 linked: number;
+                modelled: number;
                 remaining: number;
                 skipped: number;
                 firstIdentityKey: string;
                 errors: unknown[];
               }>("/api/structures/import", { method: "POST" });
               linked += result.linked;
+              modelled += result.modelled;
               first ||= result.firstIdentityKey;
               if (result.errors.length) {
                 setError(
-                  `${linked}건 연결. ${result.errors.length}건은 원본·연결 상태를 확인해 주세요. 다시 실행하면 이어서 연결합니다.`,
+                  `${linked}건 연결 · ${modelled}개 타입 3D 적용. ${result.errors.length}건은 확인 후 다시 실행해 주세요.`,
                 );
                 break;
               }
-              if (!result.remaining || !result.linked) {
-                if (linked) onSaved(first);
+              if (!result.remaining || !(result.linked + result.modelled)) {
+                if (linked || modelled) onSaved(first);
                 else
                   setError(
                     "추가로 연결할 도면이 없습니다. 평형 충돌·타입 구분·원본 누락 자료를 확인해 주세요.",

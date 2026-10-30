@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { Plan, Room } from "./plan";
+import { bedPlacement } from "./furniture-layout";
 
 function SoftBox({
   size,
@@ -40,12 +41,9 @@ function bounds(room: Room) {
   };
 }
 function Bed({ room, master }: { room: Room; master: boolean }) {
-  const b = bounds(room),
-    width = Math.min(master ? 1.6 : 1.05, b.r - b.x - 0.6),
-    depth = Math.min(2.05, b.b - b.y - 0.55);
-  const x = master ? (b.x + b.r) / 2 : b.r - width / 2 - 0.22,
-    y = b.b - depth / 2 - 0.18;
-  if (width < 0.7 || depth < 1.3) return null;
+  const placement = bedPlacement(room, master);
+  if (!placement) return null;
+  const {x, y, width, depth} = placement;
   return (
     <group position={[x, 0, -y]}>
       <SoftBox

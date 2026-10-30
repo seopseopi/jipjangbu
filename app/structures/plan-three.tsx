@@ -306,6 +306,12 @@ function Scene({
               <meshStandardMaterial color="#dfd9cd" roughness={0.9} />
             </mesh>
           )}
+          {interior && (
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.004, 0]} receiveShadow>
+              <shapeGeometry args={[footprint]} />
+              <meshStandardMaterial map={textures.wood} color="#ffffff" roughness={0.78} side={DoubleSide} />
+            </mesh>
+          )}
           {plan.rooms.map((room, i) => (
             <mesh
               key={room.id}

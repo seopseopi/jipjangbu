@@ -1,7 +1,9 @@
 import prepared from "../app/structures/prepared-plans.json" with { type: "json" };
+import extraPrepared from "../app/structures/prepared-extra-plans.json" with { type: "json" };
 import originals from "../app/structures/source-image-plans.json" with { type: "json" };
 import {
   APARTMENT_BUILDING_TYPES,
+  APARTMENT_SOURCES,
   apartmentSources,
   sourceTypeCandidates,
   type ApartmentSource,
@@ -25,7 +27,61 @@ type PreparedPlan = {
   crop: Crop;
   plan: unknown;
 };
-const availablePlans: readonly PreparedPlan[] = [...prepared, ...originals];
+const availablePlans: readonly PreparedPlan[] = [...prepared, ...extraPrepared, ...originals];
+
+/** Add reviewed geometry to the exact pinned source already linked to a unit.
+ * Never replace an existing model, change a revision/assignment, or reset edits.
+ * The compare-and-swap protects concurrent processing changes. */
+export async function upgradePreparedPlans(
+  db: D1Database,
+  models: readonly PreparedPlan[] = availablePlans,
+  batchSize = 6,
+) {
+  const rows = await db.prepare(`SELECT p.revision_id,p.processing_json,p.row_version,
+    r.source,r.variant,t.name,f.sha256,c.name AS complex_name,c.address
+    FROM structure_plan_processing p
+    JOIN structure_plan_revisions r ON r.id=p.revision_id
+    JOIN structure_plan_types t ON t.id=r.type_id
+    JOIN structure_complexes c ON c.id=t.complex_id
+    JOIN structure_plan_files f ON f.revision_id=r.id
+    WHERE json_extract(p.processing_json,'$.plan') IS NULL
+    ORDER BY p.revision_id`).all<{
+      revision_id: string; processing_json: string; row_version: number;
+      source: string; variant: string; name: string; sha256: string;
+      complex_name: string; address: string;
+    }>();
+  const eligible = rows.results.flatMap(row => {
+    const source = APARTMENT_SOURCES.find(s => s.sourceUrl === row.source &&
+      s.name === row.complex_name && s.address === row.address);
+    const type = source?.types.find(t => t.label === row.name);
+    const model = type && models.find(m => m.plan != null && m.typeId === type.id &&
+      m.sha256 === row.sha256 && (m.variant ?? 'base') === row.variant &&
+      m.sourceImage === (row.variant === 'expanded' ? type.expandedImage : type.basicImage));
+    return model ? [{row, model}] : [];
+  });
+  const limit = Math.min(6, Math.max(1, Math.trunc(batchSize) || 6));
+  let modelled = 0, firstIdentityKey = '';
+  const errors: {property: string; message: string}[] = [];
+  for (const {row, model} of eligible.slice(0, limit)) {
+    try {
+      const processing = validateProcessing({...JSON.parse(row.processing_json), plan: model.plan});
+      const [updated] = await db.batch([db.prepare(`UPDATE structure_plan_processing
+        SET processing_json=?,row_version=row_version+1,updated_at=CURRENT_TIMESTAMP
+        WHERE revision_id=? AND row_version=? AND processing_json=?
+        AND json_extract(processing_json,'$.plan') IS NULL
+        RETURNING revision_id`).bind(JSON.stringify(processing),row.revision_id,row.row_version,row.processing_json)]);
+      if (!updated.results.length) throw new Error('도면이 변경되어 다시 확인해야 합니다.');
+      modelled++;
+      if (!firstIdentityKey) firstIdentityKey = (await db.prepare(`SELECT k.identity_key
+        FROM structure_listing_links k JOIN structure_assignments a ON a.unit_id=k.unit_id
+        WHERE a.revision_id=? ORDER BY k.identity_key LIMIT 1`).bind(row.revision_id)
+        .first<{identity_key: string}>())?.identity_key ?? '';
+    } catch (error) {
+      errors.push({property: row.name, message: error instanceof Error ? error.message : '3D 가공 실패'});
+    }
+  }
+  return {modelled, remaining: Math.max(0, eligible.length - limit), firstIdentityKey, errors};
+}
 export function publicPlanCandidate(
   row: Listing,
   models: readonly PreparedPlan[] = availablePlans,

@@ -12,6 +12,7 @@ const models = JSON.parse(
     new URL("../app/structures/prepared-plans.json", import.meta.url),
   ),
 );
+models.push(...JSON.parse(readFileSync(new URL("../app/structures/prepared-extra-plans.json", import.meta.url))));
 test("수직 2D는 회전·반전과 세로 화면에서도 외곽 전체를 자르지 않는다", () => {
   for (const { plan } of models)
     for (const [width, height] of [

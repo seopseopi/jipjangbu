@@ -337,7 +337,7 @@ test('세대 연결은 추가 근거 입력 없이 저장하고 첫 연결부터
  assert.equal(db.prepare('SELECT evidence FROM structure_assignments').get().evidence,'');
 });
 
-const {importPublicPlans,publicPlanCandidate}=await import('../worker/structure-public-import.ts');
+const {importPublicPlans,publicPlanCandidate,upgradePreparedPlans}=await import('../worker/structure-public-import.ts');
 function importListing(db,{key='아파트|아이파크1차|101|9001',dong='101',size='33',closed=null,demo=0,unit='9001'}={}) {
  db.prepare(`INSERT INTO listings(id,identity_key,status,property_type,building_name,building_dong,unit_number,size_type,closed_at,is_demo)
  VALUES(?,?,'매물등록','아파트','아이파크1차',?,?,?,?,?)`).run(crypto.randomUUID(),key,dong,unit,size,closed,demo);
@@ -363,7 +363,7 @@ test('공개 도면 일괄 연결은 종료 매물도 포함하고 방향·확�
  assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM structure_plan_processing').get().n,1);assert.equal(objects.size,1);
  const again=await importPublicPlans(globalThis[symbol],bucket,f.image,[f.model]);
  assert.equal(again.linked,0);assert.equal(again.registered,0);assert.equal(objects.size,1);
- assert.equal(publicPlanCandidate({building_name:'아이파크2차',building_dong:'207',unit_number:'804',size_type:'48A',identity_key:'x'}).model.plan,null);
+ assert.equal(publicPlanCandidate({building_name:'아이파크2차',building_dong:'207',unit_number:'804',size_type:'48A',identity_key:'x'}).model.plan != null,true);
  assert.equal(publicPlanCandidate({building_name:'아이파크2차',building_dong:'207',unit_number:'804',size_type:'48A,48B',identity_key:'x'}),null);
  assert.equal(publicPlanCandidate({building_name:'아이파크1차',building_dong:'101',unit_number:'804',size_type:'33,45',identity_key:'x'}),null);
 });
@@ -404,4 +404,37 @@ test('기본형이 없는 타입은 확장형 원본 구분을 유지하고 미�
  assert.equal(JSON.parse(sqlite.prepare('SELECT processing_json FROM structure_plan_processing').get().processing_json).plan,null);
  assert.match(sqlite.prepare('SELECT evidence FROM structure_units').get().evidence,/장부 평형 기준/);
  assert.equal(sqlite.prepare('SELECT actual_condition FROM structure_assignments').get().actual_condition,'unknown');
+});
+
+test('원본만 있던 도면에 3D를 보강해도 동호수·배정·파일·편집된 크롭을 유지하고 재실행은 무변경이다',async t=>{
+ const sqlite=database(t),{bucket}=fileBucket(t),f=await importFixture();
+ importListing(sqlite);
+ await importPublicPlans(globalThis[symbol],bucket,f.image,[{...f.model,plan:null}]);
+ const links=sqlite.prepare('SELECT * FROM structure_listing_links').all();
+ const assignments=sqlite.prepare('SELECT * FROM structure_assignments').all();
+ const files=sqlite.prepare('SELECT * FROM structure_plan_files').all();
+ const row=sqlite.prepare('SELECT * FROM structure_plan_processing').get();
+ const custom={...JSON.parse(row.processing_json),crop:{x:.1,y:.1,width:.8,height:.8},note:'사용자 영역 편집'};
+ sqlite.prepare('UPDATE structure_plan_processing SET processing_json=?,row_version=3').run(JSON.stringify(custom));
+ const result=await upgradePreparedPlans(globalThis[symbol],[f.model]);
+ assert.equal(result.modelled,1);assert.equal(result.remaining,0);assert.deepEqual(result.errors,[]);
+ const updated=sqlite.prepare('SELECT * FROM structure_plan_processing').get(),processing=JSON.parse(updated.processing_json);
+ assert.equal(updated.row_version,4);assert.deepEqual(processing.crop,custom.crop);assert.equal(processing.note,custom.note);assert.ok(processing.plan);
+ assert.deepEqual(sqlite.prepare('SELECT * FROM structure_listing_links').all(),links);
+ assert.deepEqual(sqlite.prepare('SELECT * FROM structure_assignments').all(),assignments);
+ assert.deepEqual(sqlite.prepare('SELECT * FROM structure_plan_files').all(),files);
+ assert.equal((await upgradePreparedPlans(globalThis[symbol],[f.model])).modelled,0);
+ assert.deepEqual(sqlite.prepare('SELECT * FROM structure_plan_processing').get(),updated);
+});
+test('3D 보강은 원본 SHA·타입·variant가 정확히 일치해야 하며 동시 편집을 덮어쓰지 않는다',async t=>{
+ const sqlite=database(t),{bucket}=fileBucket(t),f=await importFixture();importListing(sqlite);
+ await importPublicPlans(globalThis[symbol],bucket,f.image,[{...f.model,plan:null}]);
+ for(const model of [{...f.model,sha256:'wrong'},{...f.model,typeId:'wrong'},{...f.model,variant:'expanded'}])
+  assert.equal((await upgradePreparedPlans(globalThis[symbol],[model])).modelled,0);
+ const db=globalThis[symbol],batch=db.batch.bind(db);
+ db.batch=async statements=>{
+  sqlite.prepare('UPDATE structure_plan_processing SET row_version=row_version+1').run();return batch(statements);
+ };
+ const result=await upgradePreparedPlans(db,[f.model]);assert.equal(result.modelled,0);assert.equal(result.errors.length,1);
+ assert.equal(JSON.parse(sqlite.prepare('SELECT processing_json FROM structure_plan_processing').get().processing_json).plan,null);
 });
