@@ -338,9 +338,9 @@ test('세대 연결은 추가 근거 입력 없이 저장하고 첫 연결부터
 });
 
 const {importPublicPlans,publicPlanCandidate}=await import('../worker/structure-public-import.ts');
-function importListing(db,{key='아파트|아이파크1차|101|9001',dong='101',size='33',closed=null,demo=0}={}) {
+function importListing(db,{key='아파트|아이파크1차|101|9001',dong='101',size='33',closed=null,demo=0,unit='9001'}={}) {
  db.prepare(`INSERT INTO listings(id,identity_key,status,property_type,building_name,building_dong,unit_number,size_type,closed_at,is_demo)
- VALUES(?,?,'매물등록','아파트','아이파크1차',?,'9001',?,?,?)`).run(crypto.randomUUID(),key,dong,size,closed,demo);
+ VALUES(?,?,'매물등록','아파트','아이파크1차',?,?,?,?,?)`).run(crypto.randomUUID(),key,dong,unit,size,closed,demo);
  return key;
 }
 async function importFixture() {
@@ -351,19 +351,21 @@ async function importFixture() {
  const model={typeId:type.id,sourceImage:type.basicImage,sha256,crop:{x:0,y:0,width:1,height:1},plan:{...DEMO_PLAN,isDemo:false}};
  return {bytes,model,image:async()=>new Response(bytes,{headers:{'Content-Type':'image/jpeg'}})};
 }
-test('공개 도면 일괄 연결은 현재 단일 타입만 등록하고 방향·확장을 미확인으로 보존하며 재실행해도 중복하지 않는다',async t=>{
+test('공개 도면 일괄 연결은 종료 매물도 포함하고 방향·확장을 미확인으로 보존하며 재실행해도 중복하지 않는다',async t=>{
  const sqlite=database(t),{bucket,objects}=fileBucket(t),f=await importFixture();
  importListing(sqlite);importListing(sqlite,{key:'아파트|아이파크1차|107|9001',dong:'107',size:'33'});
  importListing(sqlite,{key:'아파트|아이파크1차|102|9001',dong:'102',closed:'2026-01-01'});
  importListing(sqlite,{key:'아파트|아이파크1차|104|9001',dong:'104',demo:1});
  const result=await importPublicPlans(globalThis[symbol],bucket,f.image,[f.model]);
- assert.equal(result.linked,1);assert.equal(result.registered,1);assert.equal(result.skipped,1);assert.deepEqual(result.errors,[]);
+ assert.equal(result.linked,2);assert.equal(result.registered,1);assert.equal(result.skipped,1);assert.deepEqual(result.errors,[]);
  const assignment=sqlite.prepare('SELECT * FROM structure_assignments').get();
  assert.equal(assignment.mirror,null);assert.equal(assignment.rotation,null);assert.equal(assignment.actual_condition,'unknown');
  assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM structure_plan_processing').get().n,1);assert.equal(objects.size,1);
  const again=await importPublicPlans(globalThis[symbol],bucket,f.image,[f.model]);
  assert.equal(again.linked,0);assert.equal(again.registered,0);assert.equal(objects.size,1);
- assert.equal(publicPlanCandidate({building_name:'아이파크2차',building_dong:'207',unit_number:'804',size_type:'48A',identity_key:'x'}),null);
+ assert.equal(publicPlanCandidate({building_name:'아이파크2차',building_dong:'207',unit_number:'804',size_type:'48A',identity_key:'x'}).model.plan,null);
+ assert.equal(publicPlanCandidate({building_name:'아이파크2차',building_dong:'207',unit_number:'804',size_type:'48A,48B',identity_key:'x'}),null);
+ assert.equal(publicPlanCandidate({building_name:'아이파크1차',building_dong:'101',unit_number:'804',size_type:'33,45',identity_key:'x'}),null);
 });
 test('가공 원본 SHA 변경과 동호수 장부 변경을 감지하면 연결하지 않는다',async t=>{
  const sqlite=database(t),{bucket,objects}=fileBucket(t),f=await importFixture();
@@ -376,4 +378,30 @@ test('가공 원본 SHA 변경과 동호수 장부 변경을 감지하면 연결
  assert.equal(raced.linked,0);assert.equal(raced.errors.length,1);
  assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM structure_units').get().n,0);
  assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM structure_listing_links').get().n,0);
+});
+
+test('전체 매물 연결은 배치 제한을 지키고 재실행할 때 다음 세대부터 중복 없이 이어진다',async t=>{
+ const sqlite=database(t),{bucket,objects}=fileBucket(t),f=await importFixture();
+ for(let i=1;i<=5;i++)importListing(sqlite,{key:`아파트|아이파크1차|101|${i}`,unit:String(i)});
+ const first=await importPublicPlans(globalThis[symbol],bucket,f.image,[f.model],2);
+ assert.equal(first.linked,2);assert.equal(first.remaining,3);
+ const second=await importPublicPlans(globalThis[symbol],bucket,f.image,[f.model],2);
+ assert.equal(second.linked,2);assert.equal(second.remaining,1);
+ const last=await importPublicPlans(globalThis[symbol],bucket,f.image,[f.model],2);
+ assert.equal(last.linked,1);assert.equal(last.remaining,0);
+ assert.equal(sqlite.prepare('SELECT COUNT(*) n FROM structure_listing_links').get().n,5);assert.equal(objects.size,1);
+});
+test('기본형이 없는 타입은 확장형 원본 구분을 유지하고 미검토 3D를 만들지 않는다',async t=>{
+ const sqlite=database(t),{bucket}=fileBucket(t),f=await importFixture();
+ const {APARTMENT_SOURCES}=await import('../app/structures/source-contract.ts');
+ const source=APARTMENT_SOURCES.find(s=>s.alias==='양우내안에'),type=source.types.find(t=>t.id==='1249443');
+ sqlite.prepare(`INSERT INTO listings(id,identity_key,status,property_type,building_name,building_dong,unit_number,size_type,is_demo)
+ VALUES('expanded-only','아파트|양우내안에|102|9001','매물등록','아파트','양우내안에','102','9001','28',0)`).run();
+ const model={...f.model,typeId:type.id,variant:'expanded',sourceImage:type.expandedImage,plan:null};
+ let requestedVariant='';const result=await importPublicPlans(globalThis[symbol],bucket,async(_s,_t,variant)=>{requestedVariant=variant;return f.image();},[model]);
+ assert.equal(result.linked,1);assert.equal(requestedVariant,'expanded');
+ assert.equal(sqlite.prepare('SELECT variant FROM structure_plan_revisions').get().variant,'expanded');
+ assert.equal(JSON.parse(sqlite.prepare('SELECT processing_json FROM structure_plan_processing').get().processing_json).plan,null);
+ assert.match(sqlite.prepare('SELECT evidence FROM structure_units').get().evidence,/장부 평형 기준/);
+ assert.equal(sqlite.prepare('SELECT actual_condition FROM structure_assignments').get().actual_condition,'unknown');
 });

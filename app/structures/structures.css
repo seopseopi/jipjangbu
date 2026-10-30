@@ -852,3 +852,6 @@
   color: #fff;
   font-size: 11px;
 }
+
+.structure-fit-screen .structure-clean-image { position:relative; }
+.structure-clean-image figcaption { position:absolute; bottom:8px; left:8px; padding:3px 6px; border-radius:4px; background:#ffffffde; color:#53645d; font-size:11px; }

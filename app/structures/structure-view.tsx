@@ -389,6 +389,7 @@ function UnitContent({
                 </span>
               </div>
               <p className="structure-notice">
+                {unit?.evidence.startsWith("장부 평형 기준") && "장부 평형 기준 · 세대별 타입 미확인 · "}
                 {unit?.actual_condition === "unknown"
                   ? "실제 확장·리모델링 여부 미확인"
                   : `실제 상태: ${unit?.actual_condition === "base" ? "기본형" : unit?.actual_condition === "expanded" ? "확장" : "리모델링"}`}{" "}
