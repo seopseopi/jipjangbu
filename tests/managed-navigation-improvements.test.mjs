@@ -120,7 +120,10 @@ test("a pending local page cannot move a replacement query after its old request
 test("deleting the final page clamps it permanently and navigation scrolls the list without disturbing refreshes",async()=>{
   const h=resultPaginationHarness(),scrolls=[];
   let loaded=32,total=32;
-  const render=()=>h.render(()=>h.useResultPage(loaded,total,"same-query",10));
+  const render=()=>h.render(()=>{
+    const paging=h.useResultPage(loaded,total,"same-query",10);
+    return {...paging,listRef:h.useResultListRef(paging.page,"same-query")};
+  });
   let paging=render();
   paging.listRef.current={scrollTo:value=>scrolls.push(value)};
   for(let page=1;page<=3;page++){await paging.next();paging=render();}

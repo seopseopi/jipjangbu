@@ -8,7 +8,7 @@ import { fetchCustomerDirectory } from "../app/customer-directory.ts";
 import { collectOffsetPages } from "../app/client-paging.ts";
 import { calendarWorkPresentation } from "./helpers/calendar-presentation.mjs";
 import { CalendarSubjects } from "./helpers/calendar-subjects.mjs";
-import { initialResultPage, ResultPagination } from "./helpers/result-pagination.mjs";
+import { initialResultPage, initialResultListRef, ResultPagination } from "./helpers/result-pagination.mjs";
 
 // Execute production UI callbacks and markup with synthetic data and controlled
 // network responses, including cross-screen transitions rather than text checks.
@@ -59,7 +59,7 @@ function button(tree, label) {
   assert.ok(element, `${label} exists`);
   return element;
 }
-const environment = { React, useResultPage: initialResultPage, ResultPagination, useContext: () => null, PageToolsSlot: null, createPortal: (node) => node, LISTING_WORK_TYPES: new Set(["매물등록", "매물수정", "가계약", "잔금"]), Icon: () => null, useMemo: (callback) => callback(), seoulDate: () => "2026-09-13", calendarWorkPresentation, CalendarSubjects };
+const environment = { React, useResultPage: initialResultPage, useResultListRef: initialResultListRef, ResultPagination, useContext: () => null, PageToolsSlot: null, createPortal: (node) => node, LISTING_WORK_TYPES: new Set(["매물등록", "매물수정", "가계약", "잔금"]), Icon: () => null, useMemo: (callback) => callback(), seoulDate: () => "2026-09-13", calendarWorkPresentation, CalendarSubjects };
 const common = ["displayDate", "targetText", "statusTone", "EmptyState", "Toolbar", "ListReadFeedback"];
 const Feedback = compile(["ListReadFeedback"], environment);
 const Listings = compile([...common, "Price", "ListingsView"], environment);

@@ -31,7 +31,7 @@ export function resultPaginationHarness() {
       }
     },
   };
-  const actual = new Function(...Object.keys(hooks), `${hookJs}; return { useResultPage, resultPageBounds };`)(...Object.values(hooks));
+  const actual = new Function(...Object.keys(hooks), `${hookJs}; return { useResultPage, useResultListRef, resultPageBounds };`)(...Object.values(hooks));
   return {
     ...actual,
     render(callback) {
@@ -56,4 +56,9 @@ export const ResultPagination = new Function("React", "Icon", `${componentJs}; r
 export const initialResultPage = (...args) => {
   const harness = resultPaginationHarness();
   return harness.render(() => harness.useResultPage(...args));
+};
+
+export const initialResultListRef = (...args) => {
+  const harness = resultPaginationHarness();
+  return harness.render(() => harness.useResultListRef(...args));
 };

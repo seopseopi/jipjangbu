@@ -7,7 +7,7 @@ import ts from "typescript";
 import { canAppendPage } from "../app/client-paging.ts";
 import { getWorkProperties, workPropertyLabel } from "../app/work-property-summary.ts";
 import { getPropertyDisplayGroups } from "../app/property-display.ts";
-import { initialResultPage, ResultPagination } from "./helpers/result-pagination.mjs";
+import { initialResultPage, initialResultListRef, ResultPagination } from "./helpers/result-pagination.mjs";
 
 // Execute the production handlers and markup with synthetic records and controlled I/O.
 const source = readFileSync(new URL("../app/work-manager.tsx", import.meta.url), "utf8");
@@ -32,7 +32,7 @@ const status = compile(["journalSearchStatus"]);
 const JournalView = compile(["displayDate", "targetText", "statusTone", "EmptyState", "Toolbar", "WorkTable", "ListReadFeedback", "JournalView"], {
   React,
   useContext: () => null, PageToolsSlot: null, createPortal: (node) => node,
-  Icon: () => null, useResultPage: initialResultPage, ResultPagination,
+  Icon: () => null, useResultPage: initialResultPage, useResultListRef: initialResultListRef, ResultPagination,
   getWorkProperties,
   workPropertyLabel,
   getPropertyDisplayGroups,

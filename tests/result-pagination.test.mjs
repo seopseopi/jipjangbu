@@ -63,3 +63,12 @@ test("deleting the last records clamps the page and zero results never create an
   h.loaded = 0; h.total = 0;
   assert.deepEqual([h.render().page, h.render().pages, h.render().start, h.render().end], [0, 1, 0, 0]);
 });
+
+test("returning to an earlier query does not revive its pending next-page request", async () => {
+  const h = harness(10, 20); let finish;
+  const pending = h.render().next(() => new Promise(resolve => { finish = resolve; }));
+  h.query = "another search"; h.render();
+  h.query = "all"; h.render();
+  finish(20); await pending;
+  assert.equal(h.render().page, 0);
+});

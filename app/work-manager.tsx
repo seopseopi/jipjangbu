@@ -44,7 +44,7 @@ import type { RelatedHistoryTarget } from "./history-query";
 import { canCloseCustomerDraft, customerDraftChanged } from "./customer-draft";
 import { Icon } from "./icons";
 import { canAppendPage } from "./client-paging";
-import { useResultPage } from "./result-pagination";
+import { useResultListRef, useResultPage } from "./result-pagination";
 import { BrandMark } from "./brand-mark";
 import { SettingsView, type Lookups } from "./settings-view";
 import { createPropertyHistoryTarget } from "./history-query";
@@ -399,20 +399,6 @@ function shiftDate(value: string, days: number) {
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
 }
-function periodBounds(period: string) {
-  const today = seoulDate();
-  if (period === "today") return [today, today];
-  if (period === "7d") return [shiftDate(today, -6), today];
-  if (period === "month") {
-    const [year, month] = today.split("-").map(Number);
-    return [
-      `${year}-${String(month).padStart(2, "0")}-01`,
-      new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10),
-    ];
-  }
-  return ["", ""];
-}
-
 export function WorkManager() {
   const [view, setView] = useState<View>("today");
   const [structureKey, setStructureKey] = useState("");
@@ -1975,8 +1961,9 @@ function JournalView({
   const filtered = Boolean(query || workType);
   const resultsVisible = status === "ready" || status === "refreshing";
   const paging = useResultPage(items.length, total, JSON.stringify([query, workType]), 5);
+  const listRef = useResultListRef(paging.page, JSON.stringify([query, workType]));
   return <>
-    <div className="renewal-paginated-list" ref={paging.listRef}>
+    <div className="renewal-paginated-list" ref={listRef}>
       <Toolbar query={query} setQuery={setQuery} placeholder="고객명, 연락처, 건물명, 동·호수, 내용 검색">
         <select aria-label="업무구분 필터" value={workType} onChange={(event) => setWorkType(event.target.value)}>
           <option value="">모든 업무구분</option>
@@ -2065,7 +2052,7 @@ function ListReadFeedback({ status, error = "", onRetry, label = "목록" }: {
 }
 function ListingsView({
   items,
-  total = items.length, hasMore = false, loadingMore = false, moreError = "", onLoadMore, canLoadMore = false,
+  total = items.length, loadingMore = false, moreError = "", onLoadMore, canLoadMore = false,
   lookups,
   query,
   setQuery,
@@ -2100,6 +2087,7 @@ function ListingsView({
 }) {
   const resultsVisible = status === "ready" || status === "refreshing";
   const paging = useResultPage(items.length, total, JSON.stringify([query, statuses, prices, propertyType, sort]), 10);
+  const listRef = useResultListRef(paging.page, JSON.stringify([query, statuses, prices, propertyType, sort]));
   const filtered = Boolean(
     query || statuses.length || propertyType || sort !== "type" || prices.length,
   );
@@ -2130,7 +2118,7 @@ function ListingsView({
   };
   return (
     <>
-      <div className="renewal-paginated-list" ref={paging.listRef}>
+      <div className="renewal-paginated-list" ref={listRef}>
       <div className="listing-controls">
       <Toolbar
         query={query}
@@ -2413,7 +2401,6 @@ function CalendarView({
   items,
   lookups,
   onOpen,
-  onShowDay,
   status = "ready", error = "", onRetry,
 }: {
   month: string;
