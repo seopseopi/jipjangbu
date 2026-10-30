@@ -479,11 +479,7 @@ function Scene({
           })}
           {plan.doors.map((o) => {
             const w = plan.walls.find((w) => w.id === o.wallId)!,
-              p = wallPoint(
-                w,
-                o.offset + (o.hinge === "end" ? o.width : 0),
-                ((o.opensTo === "left" ? 1 : -1) * o.width) / 2,
-              );
+              p = wallPoint(w, o.offset + o.width / 2);
             return (
               <group
                 key={o.id}
@@ -494,8 +490,7 @@ function Scene({
                 ]}
                 rotation={[
                   0,
-                  Math.atan2(w.end[1] - w.start[1], w.end[0] - w.start[0]) +
-                    Math.PI / 2,
+                  Math.atan2(w.end[1] - w.start[1], w.end[0] - w.start[0]),
                   0,
                 ]}
               >
