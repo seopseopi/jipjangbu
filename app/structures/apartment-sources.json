@@ -1,0 +1,1479 @@
+[
+  {
+    "alias": "힐스테이트2차",
+    "name": "인천검단힐스테이트2차",
+    "address": "인천광역시 검단구 완정로92번길 41",
+    "sourceUrl": "https://kbland.kr/se/c/22161",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "68670",
+        "label": "150.42B㎡",
+        "supplyArea": "150.42",
+        "exclusiveArea": "123.21",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 15,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026646/26646_2_202009215711064.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22161"
+      },
+      {
+        "id": "21414",
+        "label": "151.09A㎡",
+        "supplyArea": "151.09",
+        "exclusiveArea": "123.15",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 179,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026646/26646_1_202009215710275.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22161"
+      },
+      {
+        "id": "108147",
+        "label": "152.85C㎡",
+        "supplyArea": "152.85",
+        "exclusiveArea": "125.52",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 11,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026646/26646_3_202009215711905.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22161"
+      },
+      {
+        "id": "138293",
+        "label": "156.13㎡",
+        "supplyArea": "156.13",
+        "exclusiveArea": "129.41",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 1,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026646/26646_4_202009215712523.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22161"
+      },
+      {
+        "id": "160404",
+        "label": "169.07A㎡",
+        "supplyArea": "169.07",
+        "exclusiveArea": "140.39",
+        "rooms": 4,
+        "bathrooms": 3,
+        "households": 89,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026646/26646_5_20200921571322.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22161"
+      },
+      {
+        "id": "176391",
+        "label": "170.13B㎡",
+        "supplyArea": "170.13",
+        "exclusiveArea": "139.41",
+        "rooms": 4,
+        "bathrooms": 3,
+        "households": 12,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026646/26646_6_202009215715442.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22161"
+      },
+      {
+        "id": "188071",
+        "label": "269.60A㎡",
+        "supplyArea": "269.60",
+        "exclusiveArea": "220.21",
+        "rooms": 5,
+        "bathrooms": 4,
+        "households": 1,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026646/26646_7_202009215716299.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22161"
+      },
+      {
+        "id": "196560",
+        "label": "271.08B㎡",
+        "supplyArea": "271.08",
+        "exclusiveArea": "219.40",
+        "rooms": 5,
+        "bathrooms": 4,
+        "households": 1,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026646/26646_8_202009215716905.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22161"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "힐스테이트4차",
+    "name": "검단힐스테이트4차",
+    "address": "인천광역시 검단구 청마로 92",
+    "sourceUrl": "https://kbland.kr/se/c/23229",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "22393",
+        "label": "132.04㎡",
+        "supplyArea": "132.04",
+        "exclusiveArea": "107.44",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 288,
+        "basicImage": null,
+        "expandedImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/extend/objctidnfr/KBM028037/28037_1_202011235328289.jpg",
+        "sourceUrl": "https://kbland.kr/se/c/23229"
+      },
+      {
+        "id": "69540",
+        "label": "142.01㎡",
+        "supplyArea": "142.01",
+        "exclusiveArea": "115.71",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 210,
+        "basicImage": null,
+        "expandedImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/extend/objctidnfr/KBM028037/28037_2_202011235329439.jpg",
+        "sourceUrl": "https://kbland.kr/se/c/23229"
+      },
+      {
+        "id": "108825",
+        "label": "155.23㎡",
+        "supplyArea": "155.23",
+        "exclusiveArea": "127.41",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 90,
+        "basicImage": null,
+        "expandedImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/extend/objctidnfr/KBM028037/28037_3_202011235330137.jpg",
+        "sourceUrl": "https://kbland.kr/se/c/23229"
+      }
+    ],
+    "status": "candidate",
+    "note": "출처에 기재된 원본 3개가 현재 404로 확인되어 재수집 중입니다. 타입·면적 정보만 확보."
+  },
+  {
+    "alias": "미래지향",
+    "name": "이지미래지향",
+    "address": "인천광역시 검단구 검단로501번안길 5",
+    "sourceUrl": "https://kbland.kr/se/c/22547",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "108399",
+        "label": "109.40C㎡",
+        "supplyArea": "109.40",
+        "exclusiveArea": "84.65",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 1,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM027215/27215_3_202009215649331.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22547"
+      },
+      {
+        "id": "68976",
+        "label": "109.40B㎡",
+        "supplyArea": "109.40",
+        "exclusiveArea": "84.65",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 97,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM027215/27215_2_202009215650595.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22547"
+      },
+      {
+        "id": "21742",
+        "label": "112.36A㎡",
+        "supplyArea": "112.36",
+        "exclusiveArea": "84.96",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 30,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM027215/27215_1_202009215651312.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22547"
+      }
+    ],
+    "status": "candidate",
+    "note": "장부의 201동은 공식 현황상 이지2차미래지향1단지(검단로511번길24) 후보입니다. 이 자료는 101~103동 이지미래지향이며 201동에 연결하면 안 됩니다."
+  },
+  {
+    "alias": "아이파크1차",
+    "name": "검단아이파크",
+    "address": "인천광역시 검단구 완정로92번길 28",
+    "sourceUrl": "https://kbland.kr/se/c/14728",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "14491",
+        "label": "94.26㎡",
+        "supplyArea": "94.26",
+        "exclusiveArea": "69.82",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 30,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016419/16419_1_20230127163357.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14728"
+      },
+      {
+        "id": "62354",
+        "label": "111.61㎡",
+        "supplyArea": "111.61",
+        "exclusiveArea": "84.28",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 492,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016419/16419_2_20230127163338.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14728"
+      },
+      {
+        "id": "102819",
+        "label": "149.21㎡",
+        "supplyArea": "149.21",
+        "exclusiveArea": "117.19",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 51,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016419/16419_3_20230127163348.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14728"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "힐스테이트1차",
+    "name": "검단힐스테이트",
+    "address": "인천광역시 검단구 완정로92번길 11",
+    "sourceUrl": "https://kbland.kr/se/c/14727",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "14490",
+        "label": "94.28㎡",
+        "supplyArea": "94.28",
+        "exclusiveArea": "69.82",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 110,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016418/16418_1_20210113194503.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14727"
+      },
+      {
+        "id": "62353",
+        "label": "109.93㎡",
+        "supplyArea": "109.93",
+        "exclusiveArea": "84.28",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 297,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016418/16418_2_20210113194503.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14727"
+      },
+      {
+        "id": "102818",
+        "label": "148.88㎡",
+        "supplyArea": "148.88",
+        "exclusiveArea": "117.19",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 58,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016418/16418_3_20210113194503.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14727"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "아이파크2차",
+    "name": "검단2차아이파크",
+    "address": "인천광역시 검단구 검단로540번길 59",
+    "sourceUrl": "https://kbland.kr/se/c/21980",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "21250",
+        "label": "141.83A㎡",
+        "supplyArea": "141.83",
+        "exclusiveArea": "114.24",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 25,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026411/26411_1_20200921568844.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/21980"
+      },
+      {
+        "id": "1431903",
+        "label": "141.83B㎡",
+        "supplyArea": "141.83",
+        "exclusiveArea": "114.24",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 15,
+        "basicImage": null,
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/21980"
+      },
+      {
+        "id": "68508",
+        "label": "161.25C㎡",
+        "supplyArea": "161.25",
+        "exclusiveArea": "131.25",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 15,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026411/26411_2_202009215690766.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/21980"
+      },
+      {
+        "id": "108012",
+        "label": "161.31A㎡",
+        "supplyArea": "161.31",
+        "exclusiveArea": "131.86",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 163,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026411/26411_3_202009215689836.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/21980"
+      },
+      {
+        "id": "176317",
+        "label": "161.31D㎡",
+        "supplyArea": "161.31",
+        "exclusiveArea": "131.86",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 45,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026411/26411_6_20200921569253.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/21980"
+      },
+      {
+        "id": "138186",
+        "label": "161.35B㎡",
+        "supplyArea": "161.35",
+        "exclusiveArea": "132.37",
+        "rooms": 3,
+        "bathrooms": 3,
+        "households": 30,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026411/26411_4_20210113200612.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/21980"
+      },
+      {
+        "id": "196521",
+        "label": "172.37B㎡",
+        "supplyArea": "172.37",
+        "exclusiveArea": "145.12",
+        "rooms": 3,
+        "bathrooms": 3,
+        "households": 60,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026411/26411_8_202009215694667.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/21980"
+      },
+      {
+        "id": "188022",
+        "label": "172.44A㎡",
+        "supplyArea": "172.44",
+        "exclusiveArea": "145.20",
+        "rooms": 4,
+        "bathrooms": 3,
+        "households": 56,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026411/26411_7_20200921569398.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/21980"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "모아미래도엘리트파크",
+    "name": "검단신도시모아미래도엘리트파크",
+    "address": "인천광역시 검단구 서로3로 50",
+    "sourceUrl": "https://kbland.kr/se/c/47273",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "45996",
+        "label": "109.22A㎡",
+        "supplyArea": "109.22",
+        "exclusiveArea": "84.65",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 524,
+        "basicImage": null,
+        "expandedImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/extend/objctidnfr/KBM055618/55618_1_201910295943132.jpg",
+        "sourceUrl": "https://kbland.kr/se/c/47273"
+      },
+      {
+        "id": "90408",
+        "label": "110.25B㎡",
+        "supplyArea": "110.25",
+        "exclusiveArea": "84.93",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 134,
+        "basicImage": null,
+        "expandedImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/extend/objctidnfr/KBM055618/55618_2_201910295944711.jpg",
+        "sourceUrl": "https://kbland.kr/se/c/47273"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "대림e편한",
+    "name": "검단이편한세상",
+    "address": "인천광역시 검단구 검단로 446",
+    "sourceUrl": "https://kbland.kr/se/c/14890",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "14650",
+        "label": "109.56㎡",
+        "supplyArea": "109.56",
+        "exclusiveArea": "84.91",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 716,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016593/16593_1_202606014778974.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14890"
+      },
+      {
+        "id": "62499",
+        "label": "142.64㎡",
+        "supplyArea": "142.64",
+        "exclusiveArea": "120.06",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 146,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016593/16593_2_202606014779838.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14890"
+      },
+      {
+        "id": "102935",
+        "label": "158.80㎡",
+        "supplyArea": "158.80",
+        "exclusiveArea": "132.66",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 83,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016593/16593_3_202606014780696.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14890"
+      },
+      {
+        "id": "134099",
+        "label": "180.83㎡",
+        "supplyArea": "180.83",
+        "exclusiveArea": "153.68",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 58,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016593/16593_4_202606014781557.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14890"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "현대",
+    "name": "현대",
+    "address": "인천광역시 검단구 완정로34번길 47",
+    "sourceUrl": "https://kbland.kr/se/c/7607",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "7448",
+        "label": "75.22㎡",
+        "supplyArea": "75.22",
+        "exclusiveArea": "59.84",
+        "rooms": 3,
+        "bathrooms": 1,
+        "households": 135,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008672/8672_1_202310273779193.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7607"
+      },
+      {
+        "id": "56206",
+        "label": "106.50㎡",
+        "supplyArea": "106.50",
+        "exclusiveArea": "84.72",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 282,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008672/8672_2_202310273781884.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7607"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "우방1차",
+    "name": "검단우방아이유쉘",
+    "address": "인천광역시 검단구 완정로 208",
+    "sourceUrl": "https://kbland.kr/se/c/31187",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "30059",
+        "label": "79.98㎡",
+        "supplyArea": "79.98",
+        "exclusiveArea": "59.81",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 117,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM038550/38550_1_20230127152749.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/31187"
+      },
+      {
+        "id": "76373",
+        "label": "114.92A㎡",
+        "supplyArea": "114.92",
+        "exclusiveArea": "84.96",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 219,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM038550/38550_2_20230127152741.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/31187"
+      },
+      {
+        "id": "114397",
+        "label": "115.21B㎡",
+        "supplyArea": "115.21",
+        "exclusiveArea": "84.34",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 164,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM038550/38550_3_20230127152744.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/31187"
+      },
+      {
+        "id": "143200",
+        "label": "115.81C㎡",
+        "supplyArea": "115.81",
+        "exclusiveArea": "84.91",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 55,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM038550/38550_4_20230127152747.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/31187"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "검단피오레",
+    "name": "검단1차피오레",
+    "address": "인천광역시 검단구 완정로65번안길 10",
+    "sourceUrl": "https://kbland.kr/se/c/14729",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "14492",
+        "label": "99.90A㎡",
+        "supplyArea": "99.90",
+        "exclusiveArea": "77.36",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 45,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016420/16420_1_20210113201359.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14729"
+      },
+      {
+        "id": "134013",
+        "label": "99.90B㎡",
+        "supplyArea": "99.90",
+        "exclusiveArea": "77.36",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 15,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016420/16420_4_202609116228475.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14729"
+      },
+      {
+        "id": "62355",
+        "label": "113.29㎡",
+        "supplyArea": "113.29",
+        "exclusiveArea": "84.97",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 681,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016420/16420_2_202609116226923.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14729"
+      },
+      {
+        "id": "102820",
+        "label": "156.30㎡",
+        "supplyArea": "156.30",
+        "exclusiveArea": "123.36",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 176,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016420/16420_3_202609116227687.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14729"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "동아",
+    "name": "동아",
+    "address": "인천광역시 검단구 완정로34번길 20",
+    "sourceUrl": "https://kbland.kr/se/c/7611",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "7452",
+        "label": "80.30㎡",
+        "supplyArea": "80.30",
+        "exclusiveArea": "59.98",
+        "rooms": 3,
+        "bathrooms": 1,
+        "households": 478,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008676/8676_1_20230127163503.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7611"
+      },
+      {
+        "id": "56210",
+        "label": "107.15㎡",
+        "supplyArea": "107.15",
+        "exclusiveArea": "84.90",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 633,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008676/8676_2_20230127163444.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7611"
+      },
+      {
+        "id": "98431",
+        "label": "161.70㎡",
+        "supplyArea": "161.70",
+        "exclusiveArea": "134.97",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 240,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008676/8676_3_20230127163453.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7611"
+      }
+    ],
+    "status": "candidate",
+    "note": "현업 중개사가 공개 평면도 오류를 지적한 자료가 있습니다. 실제 구조 대조 전 세대 연결 주의. https://m.blog.naver.com/gabju74/222315652950"
+  },
+  {
+    "alias": "당하풍림3차",
+    "name": "당하3차풍림아이원",
+    "address": "인천광역시 검단구 원당대로685번길 23",
+    "sourceUrl": "https://kbland.kr/se/c/12996",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "12787",
+        "label": "83.81㎡",
+        "supplyArea": "83.81",
+        "exclusiveArea": "59.90",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 237,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM014533/14533_1_20230127163435.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/12996"
+      },
+      {
+        "id": "60835",
+        "label": "110.56A㎡",
+        "supplyArea": "110.56",
+        "exclusiveArea": "84.98",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 30,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM014533/14533_2_20230127163407.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/12996"
+      },
+      {
+        "id": "101642",
+        "label": "110.56B㎡",
+        "supplyArea": "110.56",
+        "exclusiveArea": "84.98",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 29,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM014533/14533_3_20230127163416.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/12996"
+      },
+      {
+        "id": "133138",
+        "label": "110.56C㎡",
+        "supplyArea": "110.56",
+        "exclusiveArea": "84.98",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 283,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM014533/14533_4_20230127163425.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/12996"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "마전풍림3차",
+    "name": "마전3차풍림아이원",
+    "address": "인천광역시 검단구 가현로42번길 49",
+    "sourceUrl": "https://kbland.kr/se/c/13579",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "13360",
+        "label": "109.21㎡",
+        "supplyArea": "109.21",
+        "exclusiveArea": "84.66",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 309,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM015174/15174_1_202606023129218.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/13579"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "검암풍림3차",
+    "name": "풍림아이원3차",
+    "address": "인천광역시 서해구 검암로10번길 39",
+    "sourceUrl": "https://kbland.kr/se/c/12755",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "12549",
+        "label": "82.31㎡",
+        "supplyArea": "82.31",
+        "exclusiveArea": "59.80",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 154,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM014278/14278_1_202312075734514.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/12755"
+      },
+      {
+        "id": "60629",
+        "label": "111.34㎡",
+        "supplyArea": "111.34",
+        "exclusiveArea": "84.93",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 187,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM014278/14278_2_202312075736079.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/12755"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "영남탑스빌",
+    "name": "영남탑스빌",
+    "address": "인천광역시 검단구 완정로64번길 7",
+    "sourceUrl": "https://kbland.kr/se/c/7614",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "7455",
+        "label": "111.65㎡",
+        "supplyArea": "111.65",
+        "exclusiveArea": "84.97",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 394,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008679/8679_1_202606013595024.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7614"
+      },
+      {
+        "id": "56213",
+        "label": "152.03㎡",
+        "supplyArea": "152.03",
+        "exclusiveArea": "119.94",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 124,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008679/8679_2_202606013595913.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7614"
+      },
+      {
+        "id": "98434",
+        "label": "187.16㎡",
+        "supplyArea": "187.16",
+        "exclusiveArea": "153.03",
+        "rooms": 5,
+        "bathrooms": 2,
+        "households": 304,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008679/8679_3_202606013596777.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7614"
+      },
+      {
+        "id": "131163",
+        "label": "216.01㎡",
+        "supplyArea": "216.01",
+        "exclusiveArea": "179.73",
+        "rooms": 5,
+        "bathrooms": 2,
+        "households": 134,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008679/8679_4_202606013597643.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7614"
+      },
+      {
+        "id": "155269",
+        "label": "238.94㎡",
+        "supplyArea": "238.94",
+        "exclusiveArea": "200.18",
+        "rooms": 5,
+        "bathrooms": 2,
+        "households": 86,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008679/8679_5_202606013598511.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7614"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "마전하나",
+    "name": "하나",
+    "address": "인천광역시 검단구 검단로 622",
+    "sourceUrl": "https://kbland.kr/se/c/7612",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "7453",
+        "label": "77.83A㎡",
+        "supplyArea": "77.83",
+        "exclusiveArea": "59.94",
+        "rooms": 3,
+        "bathrooms": 1,
+        "households": 48,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008677/8677_1_202310273785444.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7612"
+      },
+      {
+        "id": "56211",
+        "label": "80.91B㎡",
+        "supplyArea": "80.91",
+        "exclusiveArea": "59.94",
+        "rooms": 3,
+        "bathrooms": 1,
+        "households": 108,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008677/8677_2_202310273800907.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7612"
+      },
+      {
+        "id": "98432",
+        "label": "107.79㎡",
+        "supplyArea": "107.79",
+        "exclusiveArea": "84.40",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 231,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008677/8677_3_202310273803467.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7612"
+      },
+      {
+        "id": "131161",
+        "label": "135.44㎡",
+        "supplyArea": "135.44",
+        "exclusiveArea": "109.56",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 54,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008677/8677_4_202310273815686.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7612"
+      },
+      {
+        "id": "155268",
+        "label": "145.83㎡",
+        "supplyArea": "145.83",
+        "exclusiveArea": "119.01",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 36,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008677/8677_5_202310273818236.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7612"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "삼라마이다스",
+    "name": "삼라마이다스",
+    "address": "인천광역시 검단구 검단로 653",
+    "sourceUrl": "https://kbland.kr/se/c/14979",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "14739",
+        "label": "97.73㎡",
+        "supplyArea": "97.73",
+        "exclusiveArea": "72.43",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 2,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016685/16685_1_202009215534493.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14979"
+      },
+      {
+        "id": "62579",
+        "label": "113.54A㎡",
+        "supplyArea": "113.54",
+        "exclusiveArea": "84.96",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 85,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016685/16685_2_20200921553508.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14979"
+      },
+      {
+        "id": "102999",
+        "label": "115.94B㎡",
+        "supplyArea": "115.94",
+        "exclusiveArea": "84.97",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 30,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM016685/16685_3_202009215535721.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/14979"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "마전동남",
+    "name": "동남",
+    "address": "인천광역시 검단구 검단로487번안길 11-14",
+    "sourceUrl": "https://kbland.kr/se/c/7613",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "7454",
+        "label": "75.86㎡",
+        "supplyArea": "75.86",
+        "exclusiveArea": "59.96",
+        "rooms": 3,
+        "bathrooms": 1,
+        "households": 56,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008678/8678_1_20200921555003.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7613"
+      },
+      {
+        "id": "56212",
+        "label": "107.36A㎡",
+        "supplyArea": "107.36",
+        "exclusiveArea": "84.86",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 14,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008678/8678_2_202009215555693.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7613"
+      },
+      {
+        "id": "131162",
+        "label": "107.41B㎡",
+        "supplyArea": "107.41",
+        "exclusiveArea": "84.91",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 14,
+        "basicImage": null,
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7613"
+      },
+      {
+        "id": "98433",
+        "label": "148.20㎡",
+        "supplyArea": "148.20",
+        "exclusiveArea": "117.21",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 27,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM008678/8678_3_202009215556309.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7613"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "영진",
+    "name": "영진",
+    "address": "인천광역시 검단구 가현로 (마전동, 영진아파트) 168",
+    "sourceUrl": "https://kbland.kr/se/c/7606",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "7447",
+        "label": "80.74㎡",
+        "supplyArea": "80.74",
+        "exclusiveArea": "59.97",
+        "rooms": 3,
+        "bathrooms": 1,
+        "households": 113,
+        "basicImage": null,
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7606"
+      },
+      {
+        "id": "56205",
+        "label": "107.50㎡",
+        "supplyArea": "107.50",
+        "exclusiveArea": "84.87",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 96,
+        "basicImage": null,
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7606"
+      },
+      {
+        "id": "98428",
+        "label": "111.73㎡",
+        "supplyArea": "111.73",
+        "exclusiveArea": "84.91",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 18,
+        "basicImage": null,
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7606"
+      },
+      {
+        "id": "131160",
+        "label": "129.10㎡",
+        "supplyArea": "129.10",
+        "exclusiveArea": "109.97",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 19,
+        "basicImage": null,
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7606"
+      },
+      {
+        "id": "155267",
+        "label": "144.07㎡",
+        "supplyArea": "144.07",
+        "exclusiveArea": "113.82",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 53,
+        "basicImage": null,
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/7606"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "양우내안에",
+    "name": "검단양우내안애퍼스트힐",
+    "address": "인천광역시 검단구 검단로609번길 23",
+    "sourceUrl": "https://kbland.kr/se/c/383097",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "1249441",
+        "label": "78.71B㎡",
+        "supplyArea": "78.71",
+        "exclusiveArea": "59.69",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 111,
+        "basicImage": null,
+        "expandedImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/extend/objctidnfr/KBM223689/223689_1_202108184682831.jpg",
+        "sourceUrl": "https://kbland.kr/se/c/383097"
+      },
+      {
+        "id": "1249442",
+        "label": "79.57A㎡",
+        "supplyArea": "79.57",
+        "exclusiveArea": "59.95",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 162,
+        "basicImage": null,
+        "expandedImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/extend/objctidnfr/KBM223689/223689_2_202108184684686.jpg",
+        "sourceUrl": "https://kbland.kr/se/c/383097"
+      },
+      {
+        "id": "1249443",
+        "label": "93.86㎡",
+        "supplyArea": "93.86",
+        "exclusiveArea": "71.95",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 32,
+        "basicImage": null,
+        "expandedImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/extend/objctidnfr/KBM223689/223689_3_202108184686524.jpg",
+        "sourceUrl": "https://kbland.kr/se/c/383097"
+      },
+      {
+        "id": "1249444",
+        "label": "110.48B㎡",
+        "supplyArea": "110.48",
+        "exclusiveArea": "84.81",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 49,
+        "basicImage": null,
+        "expandedImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/extend/objctidnfr/KBM223689/223689_4_202108184687718.jpg",
+        "sourceUrl": "https://kbland.kr/se/c/383097"
+      },
+      {
+        "id": "1249445",
+        "label": "111.19A㎡",
+        "supplyArea": "111.19",
+        "exclusiveArea": "84.93",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 191,
+        "basicImage": null,
+        "expandedImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/extend/objctidnfr/KBM223689/223689_5_202108184689398.jpg",
+        "sourceUrl": "https://kbland.kr/se/c/383097"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "검단풍림2차",
+    "name": "검단2차풍림아이원",
+    "address": "인천광역시 검단구 완정로64번길 23",
+    "sourceUrl": "https://kbland.kr/se/c/13184",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "12974",
+        "label": "105.55㎡",
+        "supplyArea": "105.55",
+        "exclusiveArea": "84.84",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 174,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM014738/14738_1_202011245868183.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/13184"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "오류힐스테이트2차",
+    "name": "인천검단힐스테이트3차2단지",
+    "address": "인천광역시 검단구 버들로 46",
+    "sourceUrl": "https://kbland.kr/se/c/22292",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "216764",
+        "label": "110.34B㎡",
+        "supplyArea": "110.34",
+        "exclusiveArea": "84.98",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 36,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026834/26834_13_20210113201401.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22292"
+      },
+      {
+        "id": "68781",
+        "label": "111.38A㎡",
+        "supplyArea": "111.38",
+        "exclusiveArea": "84.90",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 40,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026834/26834_2_20210113201400.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22292"
+      },
+      {
+        "id": "211535",
+        "label": "130.23A㎡",
+        "supplyArea": "130.23",
+        "exclusiveArea": "104.72",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 78,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026834/26834_11_20210113201401.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22292"
+      },
+      {
+        "id": "202966",
+        "label": "130.49B㎡",
+        "supplyArea": "130.49",
+        "exclusiveArea": "105.47",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 72,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026834/26834_9_20210113201401.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22292"
+      },
+      {
+        "id": "188113",
+        "label": "163.76B㎡",
+        "supplyArea": "163.76",
+        "exclusiveArea": "136.11",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 38,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026834/26834_7_20210113201401.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22292"
+      },
+      {
+        "id": "138381",
+        "label": "164.47A㎡",
+        "supplyArea": "164.47",
+        "exclusiveArea": "135.63",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 38,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026834/26834_4_20210113201400.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22292"
+      },
+      {
+        "id": "108243",
+        "label": "247.61㎡",
+        "supplyArea": "247.61",
+        "exclusiveArea": "203.07",
+        "rooms": 6,
+        "bathrooms": 3,
+        "households": 1,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM026834/26834_3_20210113201400.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/22292"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "당하KCC",
+    "name": "당하KCC스위첸",
+    "address": "인천광역시 검단구 청마로 124",
+    "sourceUrl": "https://kbland.kr/se/c/13341",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "13127",
+        "label": "91.99㎡",
+        "supplyArea": "91.99",
+        "exclusiveArea": "73.34",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 201,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM014909/14909_1_202606014334376.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/13341"
+      },
+      {
+        "id": "61135",
+        "label": "107.80㎡",
+        "supplyArea": "107.80",
+        "exclusiveArea": "84.99",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 736,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM014909/14909_2_202606014335235.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/13341"
+      },
+      {
+        "id": "101874",
+        "label": "133.88㎡",
+        "supplyArea": "133.88",
+        "exclusiveArea": "105.54",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 78,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM014909/14909_3_202606014336089.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/13341"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "우방2차",
+    "name": "검단2차우방아이유쉘",
+    "address": "인천광역시 검단구 완정로 126",
+    "sourceUrl": "https://kbland.kr/se/c/32856",
+    "checkedAt": "2026-10-30",
+    "types": [
+      {
+        "id": "31720",
+        "label": "84.25A㎡",
+        "supplyArea": "84.25",
+        "exclusiveArea": "59.93",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 209,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM040336/40336_1_201903275826401.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/32856"
+      },
+      {
+        "id": "77855",
+        "label": "85.19B㎡",
+        "supplyArea": "85.19",
+        "exclusiveArea": "59.93",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 22,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM040336/40336_2_201903275828486.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/32856"
+      },
+      {
+        "id": "115584",
+        "label": "115.12A㎡",
+        "supplyArea": "115.12",
+        "exclusiveArea": "84.89",
+        "rooms": 4,
+        "bathrooms": 2,
+        "households": 30,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM040336/40336_3_201903275839742.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/32856"
+      },
+      {
+        "id": "144090",
+        "label": "116.29B㎡",
+        "supplyArea": "116.29",
+        "exclusiveArea": "84.76",
+        "rooms": 3,
+        "bathrooms": 2,
+        "households": 119,
+        "basicImage": "https://file.kbland.kr/image/kbstar/land/img/alian/kms/complex/plane/basic/objctidnfr/KBM040336/40336_4_2019032758418.jpg",
+        "expandedImage": null,
+        "sourceUrl": "https://kbland.kr/se/c/32856"
+      }
+    ],
+    "status": "candidate",
+    "note": "공개 단지·타입 자료. 세대별 타입·확장 여부는 미확인."
+  },
+  {
+    "alias": "금호어울림",
+    "name": "검단금호어울림",
+    "address": "인천광역시 검단구 완정로65번안길 17",
+    "sourceUrl": "https://hogangnono.com/apt/46r54",
+    "checkedAt": "2026-10-30",
+    "types": [],
+    "status": "candidate",
+    "note": "장부 101~106동·32평과 대조한 후보. 마전금호(901동~)·원당금호·검단금호센트럴과 구분 필요."
+  },
+  {
+    "alias": "우림필유",
+    "name": "검단우림필유",
+    "address": "인천광역시 검단구 완정로34번길 31",
+    "sourceUrl": "https://hogangnono.com/apt/46te3",
+    "checkedAt": "2026-10-30",
+    "types": [],
+    "status": "candidate",
+    "note": "원본 평면도 수집 대기. 단지 주소·타입 정보 출처 확보."
+  },
+  {
+    "alias": "드림파크어울림1단지",
+    "name": "드림파크어울림1단지",
+    "address": "인천광역시 검단구 봉화로 18",
+    "sourceUrl": "https://aptgin.com/home/popup/pp_danji/apt/am5107em0",
+    "checkedAt": "2026-10-30",
+    "types": [],
+    "status": "candidate",
+    "note": "타입별 면적 정보 확인. 원본 평면도 수집 대기."
+  },
+  {
+    "alias": "유호",
+    "name": "유호 A·B·C·D단지",
+    "address": "인천광역시 검단구 검단로518번길·검단로502번길 일대",
+    "sourceUrl": "https://www.geomdan.go.kr/dong/geomdan/sub/present_apt.jsp",
+    "checkedAt": "2026-10-30",
+    "types": [],
+    "status": "candidate",
+    "note": "장부명이 여러 단지를 포함. A/B/C/D 동 표시별 주소 확인 후 분리해야 함."
+  },
+  {
+    "alias": "우방3차(검단오류)",
+    "name": "검단오류역우방아이유쉘",
+    "address": "인천광역시 검단구 대촌로 26",
+    "sourceUrl": "http://oryu.iusell.co.kr/sub4/66a.php",
+    "checkedAt": "2026-10-30",
+    "types": [],
+    "status": "candidate",
+    "note": "시공사 66A~F 평면도와 동호수배치도 페이지 발견. 현재 직접 연결 실패로 원본 가용성 확인 필요."
+  }
+]

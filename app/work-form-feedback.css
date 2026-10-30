@@ -13,9 +13,6 @@
 .work-form-section p { margin: 0; color: var(--muted); font-size: var(--text-caption); }
 .work-form .detail-head p { line-height: 1.7; }
 .work-form .full-label > .form-help { display: inline; margin: 0 0 0 6px; }
-.work-form .field-with-action > .editor-history-button { border: 0; background: transparent; padding: 4px 10px 4px 0; margin-top: 4px; min-height: 40px; color: var(--green-dark); }
-.work-form .detail-history-tools .editor-history-button { border: 0; background: transparent; padding-inline: 0; margin-top: 0; }
-.work-form .detail-history-tools { gap: 6px 20px; margin: -6px 0 10px; }
 .work-form .listing-rule-notice { margin: 0 0 14px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 6px; background: var(--wash); color: var(--ink-2); font-size: var(--text-small); line-height: 1.7; }
 .work-form .detail-fields [aria-invalid="true"], .work-form .form-grid [aria-invalid="true"] { border-color: var(--seal); box-shadow: 0 0 0 2px var(--seal-soft); }
 .work-form .modal-actions { position: sticky; z-index: 4; bottom: -25px; margin-inline: -26px; padding: 15px 26px; background: var(--paper); border-top: 1px solid var(--line-strong); box-shadow: none; }

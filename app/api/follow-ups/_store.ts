@@ -10,6 +10,7 @@ export type FollowUpItem = {
   updated_at: string;
   customer_name: string | null;
   listing_label: string | null;
+  revision: string;
 };
 
 type FollowUpInput = {
@@ -19,6 +20,7 @@ type FollowUpInput = {
   customerId?: string | null;
   listingKey?: string | null;
   completed?: boolean;
+  revision?: string;
 };
 
 export class FollowUpError extends Error {
@@ -36,13 +38,20 @@ export function parseFollowUpInput(body: unknown, patch = false): FollowUpInput 
     throw new FollowUpError("할 일 정보를 올바르게 입력해 주세요.");
   }
   const record = body as Record<string, unknown>;
-  const allowed = ["title", "notes", "dueDate", "customerId", "listingKey", ...(patch ? ["completed"] : [])];
+  const allowed = ["title", "notes", "dueDate", "customerId", "listingKey", ...(patch ? ["completed", "revision"] : [])];
   if (Object.keys(record).some((key) => !allowed.includes(key))) {
     throw new FollowUpError("지원하지 않는 할 일 항목이 있습니다.");
   }
   if (patch && Object.keys(record).length === 0) throw new FollowUpError("변경할 내용을 입력해 주세요.");
 
   const input: FollowUpInput = {};
+  if (patch) {
+    if (typeof record.revision !== "string" || !/^[a-f0-9]{64}$/.test(record.revision)) {
+      throw new FollowUpError("작성 내용을 복사한 뒤 새로고침하고 할 일을 다시 열어 최신 내용을 확인해 주세요.");
+    }
+    if (!Object.keys(record).some((key) => key !== "revision")) throw new FollowUpError("변경할 내용을 입력해 주세요.");
+    input.revision = record.revision;
+  }
   if (!patch || "title" in record) {
     if (typeof record.title !== "string" || !record.title.trim() || record.title.trim().length > 200) {
       throw new FollowUpError("할 일 제목은 1~200자로 입력해 주세요.");
@@ -99,6 +108,17 @@ const ITEM_SQL = `SELECT f.*, c.name AS customer_name,
   LEFT JOIN customers c ON c.id = f.customer_id
   LEFT JOIN listings l ON l.identity_key = f.listing_key`;
 
+type FollowUpRow = Omit<FollowUpItem, "revision">;
+async function withRevision(item: FollowUpRow): Promise<FollowUpItem> {
+  // Include every persisted value, so same-second edits and completed toggles
+  // are covered without depending on timestamp precision or joined labels.
+  const values = [item.id, item.title, item.notes, item.due_date, item.customer_id,
+    item.listing_key, item.completed_at, item.created_at, item.updated_at];
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify(values)));
+  const revision = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return { ...item, revision };
+}
+
 // With an equal deadline, older open tasks retain their place. Completed
 // tasks use completion time instead, with the ID breaking any remaining tie.
 export const FOLLOW_UP_ORDER = `f.completed_at IS NOT NULL,
@@ -144,15 +164,15 @@ export async function getFollowUps(db: D1Database, params: URLSearchParams, now 
       COALESCE(SUM(completed_at IS NOT NULL), 0) AS completed FROM follow_ups`).bind(today, today),
   ]);
   return {
-    items: items.results as FollowUpItem[],
+    items: await Promise.all((items.results as FollowUpRow[]).map(withRevision)),
     summary: summary.results[0] as { open: number; overdue: number; today: number; completed: number },
   };
 }
 
 export async function getFollowUp(db: D1Database, id: string): Promise<FollowUpItem> {
-  const item = await db.prepare(`${ITEM_SQL} WHERE f.id = ?`).bind(id).first<FollowUpItem>();
+  const item = await db.prepare(`${ITEM_SQL} WHERE f.id = ?`).bind(id).first<FollowUpRow>();
   if (!item) throw new FollowUpError("할 일을 찾을 수 없습니다.", 404);
-  return item;
+  return withRevision(item);
 }
 
 async function validateLinks(db: D1Database, input: FollowUpInput): Promise<void> {
@@ -177,6 +197,8 @@ export async function createFollowUp(db: D1Database, body: unknown): Promise<Fol
 export async function updateFollowUp(db: D1Database, id: string, body: unknown): Promise<FollowUpItem> {
   const input = parseFollowUpInput(body, true);
   const existing = await getFollowUp(db, id);
+  const conflict = "다른 기기에서 할 일이 변경되었거나 삭제되었습니다. 작성 내용은 유지됩니다. 최신 할 일을 다시 열어 확인해 주세요.";
+  if (input.revision !== existing.revision) throw new FollowUpError(conflict, 409);
   await validateLinks(db, {
     customerId: input.customerId === existing.customer_id ? undefined : input.customerId,
     listingKey: input.listingKey === existing.listing_key ? undefined : input.listingKey,
@@ -193,8 +215,12 @@ export async function updateFollowUp(db: D1Database, id: string, body: unknown):
   if (input.completed !== undefined) assignments.push(input.completed
     ? "completed_at = COALESCE(completed_at, CURRENT_TIMESTAMP)" : "completed_at = NULL");
   assignments.push("updated_at = CURRENT_TIMESTAMP");
-  const result = await db.prepare(`UPDATE follow_ups SET ${assignments.join(", ")} WHERE id = ?`).bind(...bindings, id).run();
-  if (!result.meta.changes) throw new FollowUpError("할 일을 찾을 수 없습니다.", 404);
+  const result = await db.prepare(`UPDATE follow_ups SET ${assignments.join(", ")}
+    WHERE id = ? AND title = ? AND notes = ? AND due_date IS ? AND customer_id IS ?
+      AND listing_key IS ? AND completed_at IS ? AND created_at = ? AND updated_at = ?`)
+    .bind(...bindings, id, existing.title, existing.notes, existing.due_date, existing.customer_id,
+      existing.listing_key, existing.completed_at, existing.created_at, existing.updated_at).run();
+  if (!result.meta.changes) throw new FollowUpError(conflict, 409);
   return getFollowUp(db, id);
 }
 

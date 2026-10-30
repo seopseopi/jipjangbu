@@ -176,28 +176,16 @@ test("매물관리 초기화는 상태·가격을 전체로 되돌리고 상태 
   assert.ok(descendants(other).some(item => item.props.className === "table-row is-other-status"));
 });
 
-test("매물 목록은 진행 중을 기본으로 보여 주고 전체 전환을 명시적으로 전달한다", () => {
-  assert.match(source, /\[listingState, setListingState\].*useState<"active" \| "all">\("active"\)/);
-  const changes = [];
-  const view = Listings({ ...listingProps, listingState: "active", setListingState: (value) => changes.push(value) });
-  const toggle = descendants(view).find((item) => item.props["aria-label"] === "매물 진행 상태");
-  const buttons = descendants(toggle).filter((item) => item.type === "button");
-  assert.equal(buttons[0].props["aria-pressed"], true);
-  assert.equal(buttons[1].props["aria-pressed"], false);
-  buttons[1].props.onClick();
-  assert.deepEqual(changes, ["all"]);
-});
-
-test("정렬 변경 뒤 CSV는 화면에 받은 순서를 보존하며 이름·종류·상태 셀이 올바르게 대응한다", () => {
+test("관리 CSV 버튼은 전체 조회 내보내기로 연결하며 이름·종류·상태 셀이 올바르게 대응한다", () => {
   const exported = [];
   const View = compile([...common, "Price", "ListingsView"], { ...environment, downloadCsv: (...args) => exported.push(args) });
   const items = [
     { ...listing, id: "villa", property_type: "빌라", building_name: "가람", building_dong: "2", unit_number: "10" },
     { ...listing, id: "apartment", property_type: "아파트", building_name: "나래", building_dong: "10", unit_number: "2" },
   ];
-  const tree = View({ ...listingProps, items, sort: "type" });
+  const tree = View({ ...listingProps, items, sort: "type", onExport: () => exported.push("all") });
   button(tree, "CSV 저장").props.onClick();
-  assert.deepEqual(exported[0][2].map((row) => [row[1], row[2]]), [["빌라", "가람"], ["아파트", "나래"]]);
+  assert.deepEqual(exported, ["all"]);
   const rows = descendants(tree).filter((item) => item.props.className === "table-row");
   assert.deepEqual(React.Children.toArray(rows[0].props.children).map((item) => item.props["data-label"]), ["매물종류", "이름", "상태", "가격", "등록·말소"]);
 });
@@ -223,13 +211,13 @@ function navigationHarness(allow = true) {
   const props = {
     navigate: (next) => { changes.push(next); return allow; }, setQueries: queries.set,
     seoulDate: () => "2026-09-13",
-    ...Object.fromEntries(["ListingStatuses", "ListingState", "ListingPrices", "PropertyTypeFilter", "ListingSort", "CustomerSort", "WorkTypeFilter", "WorkPeriod", "CalendarMonth", "CalendarWorkType"].map((name) => [`set${name}`, (value) => { values[name] = value; }])),
+    ...Object.fromEntries(["ListingStatuses", "ListingPrices", "PropertyTypeFilter", "ListingSort", "CustomerSort", "WorkTypeFilter", "WorkPeriod", "CalendarMonth", "CalendarWorkType"].map((name) => [`set${name}`, (value) => { values[name] = value; }])),
   };
   return { queries, values, changes, navigate: compile(["navigateFromDashboard"], props) };
 }
 test("홈의 의미형 바로가기는 해당 화면 필터만 초기화하고 사용자가 이동을 취소하면 그대로 둔다", () => {
   const expected = {
-    listings: { ListingStatuses: [], ListingPrices: [], PropertyTypeFilter: "", ListingSort: "type", ListingState: "active" },
+    listings: { ListingStatuses: [], ListingPrices: [], PropertyTypeFilter: "", ListingSort: "type" },
     customers: { CustomerSort: "recent" },
     journal: { WorkTypeFilter: "", WorkPeriod: "" },
     calendar: { CalendarMonth: "2026-09", CalendarWorkType: "" },
@@ -244,6 +232,18 @@ test("홈의 의미형 바로가기는 해당 화면 필터만 초기화하고 �
     blocked.navigate(destination);
     assert.deepEqual(blocked.values, {});
     assert.deepEqual(blocked.queries.current, { listings: "매물검색", customers: "고객검색", journal: "업무검색" });
+  }
+});
+
+test("전체 검색 결과 이동은 검색어와 해당 유형 기본 필터를 적용하고 초안 이동 취소를 보존한다", () => {
+  for (const allow of [true,false]) {
+    const queries=state({listings:"old-listing",customers:"old-customer",journal:"old-work"}),changes=[];
+    const env={navigate:()=>allow,setQueries:queries.set,...Object.fromEntries(["ListingStatuses","ListingPrices","PropertyTypeFilter","ListingSort","CustomerSort","WorkTypeFilter","WorkPeriod"].map(key=>["set"+key,value=>changes.push([key,value])]))};
+    const show=compile(["showAllSearchResults"],env);
+    assert.equal(show("journal","같은검색"),allow);
+    assert.equal(queries.current.journal,allow?"같은검색":"old-work");
+    assert.equal(queries.current.listings,"old-listing");
+    assert.deepEqual(changes,allow?[["WorkTypeFilter",""],["WorkPeriod",""]]:[]);
   }
 });
 
@@ -350,14 +350,19 @@ function managedLoadHarness(key) {
   const node = find((candidate) => ts.isVariableDeclaration(candidate) && candidate.name.getText(ast) === names[key]);
   const expression = node.initializer.arguments[0].getText(ast);
   const loader = (pending, query = "current") => evaluate(`const result = ${expression};`, {
+    MANAGEMENT_PAGE_SIZE: 100,
+    managedFirstPending: { current: { listings: null, customers: null } },
+    managedMoreControllers: { current: {} },
+    setManagedPages: () => {},
+    readManagedWindow: compile(["appendManagedRows", "readManagedWindow"], { MANAGEMENT_PAGE_SIZE: 100 }),
     requestVersion: version, setManagedReads: managed.set,
-    listingsSearch: query, listingStatuses: [], listingPrices: [], propertyTypeFilter: "", listingSort: "building", listingState: "active",
+    listingsSearch: query, listingStatuses: [], listingPrices: [], propertyTypeFilter: "", listingSort: "building",
     customersSearch: query, customerSort: "recent", calendarMonth: "2026-09", calendarWorkType: query,
     jsonFetch: () => pending.promise, fetchAllWorkLogs: () => pending.promise, collectOffsetPages,
     setListings: rows.set, setCustomerResults: rows.set, setCalendarLogs: rows.set,
     isAborted: (error) => error?.name === "AbortError",
   });
-  const response = (id) => key === "calendar" ? [{ id, work_date: "2026-09-13" }] : { [key]: [{ id }] };
+  const response = (id) => key === "calendar" ? [{ id, work_date: "2026-09-13" }] : { [key]: [{ id }], total: 1, hasMore: false };
   return { managed, rows, loader, response };
 }
 

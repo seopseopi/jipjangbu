@@ -92,6 +92,9 @@ export function CustomerPicker({
           if (value) onChange("");
         }}
         onKeyDown={(event) => {
+          // Enter/Escape can finish or cancel Korean IME composition; they do
+          // not express a customer choice until a later non-composing key.
+          if (event.nativeEvent?.isComposing || event.nativeEvent?.keyCode === 229) return;
           if (event.key === "ArrowDown" || event.key === "ArrowUp") {
             event.preventDefault();
             setOpen(true);

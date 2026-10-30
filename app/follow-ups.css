@@ -165,3 +165,6 @@
   .followup-view button { transition: none; }
   .followup-loading-dot { animation: none; }
 }
+.followup-conflict { padding: 18px; margin: 14px 0; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--wash); color: var(--ink); overflow-wrap: anywhere; }
+.followup-conflict h3 { margin: 0 0 10px; font-size: var(--text-base); }
+.followup-conflict p { white-space: pre-wrap; line-height: 1.65; }

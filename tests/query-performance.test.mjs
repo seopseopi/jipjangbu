@@ -4,6 +4,7 @@ import { registerHooks } from "node:module";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 import { WORK_SUMMARY_SQL } from "../app/api/_queries.ts";
+import { collectOffsetPages } from "../app/client-paging.ts";
 
 const dbKey = "jipjangbu-query-performance-db";
 const apiRoot = new URL("../app/api/", import.meta.url).href;
@@ -332,7 +333,7 @@ test("매물 종류를 지정하면 기존 종류 인덱스로 탐색하며 전�
   const read = async (query) => (await listingRoute.GET(new Request(`https://test.invalid/api/listings?${query}`))).json();
   assert.deepEqual(ids((await read("state=all&type=빌라")).listings), ["villa", "closed"]);
   const query = statements.at(-1);
-  assert.deepEqual(query.values, ["빌라", 0]);
+  assert.deepEqual(query.values, ["빌라", 1000, 0]);
   assert.ok(plan(query.sql, query.values).some((detail) => /SEARCH listings USING INDEX idx_listings_building \(property_type=\?\)/.test(detail)));
   assert.deepEqual(ids((await read("state=all")).listings), ["villa", "closed", "apartment"]);
   assert.deepEqual(ids((await read("type=빌라")).listings), ["villa", "closed"]);
@@ -483,4 +484,108 @@ test("확장 fixture 12,000건에서 이전 요약과 결과가 같고 조회 �
     ),
     false,
   );
+});
+
+test("물건지 포함 고객 이력은 중복·검색·정렬을 보존하며 관련 ID와 source 인덱스만 탐색한다", async (t) => {
+  const { sqlite, customer, work, property, statements, plan } = database(t);
+  const owner = "합성_업소%';--";
+  customer(owner, "검증 고객");
+  customer("other", "다른 고객");
+  for (const [id, customerId, date, type, updated] of [
+    ["direct", owner, "2026-09-10", "전화", "2026-09-15"],
+    ["both", owner, "2026-09-11", "매물등록", "2026-09-14"],
+    ["source", "other", "2026-09-12", "전화", "2026-09-13"],
+    ["partial", "other", "2026-09-12", "전화", "2026-09-16"],
+  ]) {
+    work(id, date, customerId, type, updated);
+    property(`${id}-first`, id, 1, "공통 검증단지");
+  }
+  const updateSource = sqlite.prepare("UPDATE work_log_properties SET source = ? WHERE id = ?");
+  updateSource.run(` ${owner} `, "both-first");
+  updateSource.run(owner, "source-first");
+  updateSource.run(`${owner} 다른업소`, "partial-first");
+  property("source-second", "source", 2, "두번째 검증단지");
+  updateSource.run(` ${owner} `, "source-second");
+  // The journal is much larger than this customer's three related records.
+  sqlite.exec("BEGIN");
+  for (let index = 0; index < 6000; index++) {
+    work(`unrelated-${index}`, "2026-09-20", "other");
+    property(`unrelated-property-${index}`, `unrelated-${index}`, 1, "무관한 단지");
+  }
+  sqlite.exec("COMMIT; ANALYZE");
+
+  const candidate = "w.id IN (SELECT id FROM work_logs WHERE customer_id = ? UNION SELECT work_log_id FROM work_log_properties WHERE trim(source) = ?)";
+  const previous = "(w.customer_id = ? OR EXISTS (SELECT 1 FROM work_log_properties sp WHERE sp.work_log_id = w.id AND trim(sp.source) = ?))";
+  for (const filters of [{}, { limit: "2", offset: "1" }, { workType: "전화" }, { month: "2026-09", q: "검증단지" }, { from: "2026-09-11", to: "2026-09-12", sort: "updated" }]) {
+    statements.length = 0;
+    const body = await (await workRoute.GET(request({ customerId: owner, includeSource: "1", ...filters }))).json();
+    const [count, page] = statements;
+    assert.ok(count.sql.includes(candidate));
+    assert.ok(page.sql.includes(candidate));
+    assert.equal(body.total, sqlite.prepare(count.sql.replace(candidate, previous)).get(...count.values).total);
+    assert.deepEqual(body.workLogs, sqlite.prepare(page.sql.replace(candidate, previous)).all(...page.values).map((row) => ({ ...row })));
+    for (const query of [count, page]) {
+      const details = plan(query.sql, query.values).join("\n");
+      assert.match(details, /idx_work_logs_customer_date_updated_id/);
+      assert.match(details, /SEARCH work_log_properties USING (?:COVERING )?INDEX idx_work_log_properties_source_log/);
+      assert.doesNotMatch(details, /\bSCAN w\b/);
+    }
+  }
+});
+
+test("관리 목록은 100건 페이지의 전체 건수·더보기를 제공하고 CSV는 1,001번째 이후도 전부 읽는다", async (t) => {
+  const { sqlite, statements, calls } = database(t);
+  const addCustomer = sqlite.prepare("INSERT INTO customers(id,name,notes) VALUES (?,?,?)");
+  const addListing = sqlite.prepare("INSERT INTO listings(id,identity_key,status,property_type,building_name,sale_price) VALUES (?,?,?,?,?,?)");
+  sqlite.exec("BEGIN");
+  for (let index = 0; index < 1005; index++) {
+    const id = `synthetic-${String(index).padStart(4, "0")}`;
+    addCustomer.run(id, `고객 ${String(index).padStart(4, "0")}`, "합성 메모");
+    addListing.run(id, id, index % 3 === 0 ? "매물등록" : "매물수정", index % 2 === 0 ? "아파트" : "빌라", `검증단지 ${String(index).padStart(4, "0")}`, index % 4 === 0 ? "3억" : "");
+  }
+  sqlite.exec("COMMIT");
+  const load = async (route, path, params) => {
+    const response = await route.GET(new Request(`https://test.invalid/api/${path}?${new URLSearchParams(params)}`));
+    assert.equal(response.status, 200);
+    return response.json();
+  };
+  for (const [route, path, key] of [[customerRoute, "customers", "customers"], [listingRoute, "listings", "listings"]]) {
+    const first = await load(route, path, { limit: "100", sort: "name" });
+    assert.equal(first[key].length, 100);
+    assert.equal(first.total, 1005);
+    assert.equal(first.hasMore, true);
+    const last = await load(route, path, { limit: "100", offset: "1000", sort: "name" });
+    assert.equal(last[key].length, 5);
+    assert.equal(last.total, 1005);
+    assert.equal(last.hasMore, false);
+    const beyond = await load(route, path, { limit: "100", offset: "2000" });
+    assert.deepEqual(beyond[key], []);
+    assert.equal(beyond.total, 1005);
+    assert.equal(beyond.hasMore, false);
+    const offsets = [];
+    const exported = await collectOffsetPages(async (offset) => {
+      offsets.push(offset);
+      return (await load(route, path, { limit: "1000", offset: String(offset), sort: "name" }))[key];
+    });
+    assert.equal(exported.length, 1005);
+    assert.equal(new Set(exported.map((row) => row.id)).size, 1005);
+    assert.deepEqual(offsets, [0, 1000]);
+    assert.equal((await load(route, path, { limit: "0" }))[key].length, 1);
+    assert.equal((await load(route, path, { limit: "1001" }))[key].length, 1000);
+  }
+  const filtered = await load(listingRoute, "listings", { limit: "17", offset: "17", type: "아파트", status: "매물등록", price: "sale", q: "검증단지", sort: "building" });
+  assert.equal(filtered.total, 84);
+  assert.equal(filtered.hasMore, true);
+  assert.deepEqual(filtered.listings.map((row) => row.id), Array.from({ length: 17 }, (_, index) => `synthetic-${String((index + 17) * 12).padStart(4, "0")}`));
+  const customers = await load(customerRoute, "customers", { q: "고객 100", limit: "2" });
+  assert.equal(customers.total, 5);
+  assert.equal(customers.customers.length, 2);
+  assert.equal(customers.hasMore, true);
+  const directory = await load(customerRoute, "customers", { directory: "1", limit: "1" });
+  assert.equal(directory.customers.length, 1000, "work-form directory keeps its immutable-ID 1,000-row pages");
+  assert.deepEqual(Object.keys(directory), ["customers"]);
+  assert.ok(calls.batch > 0);
+  const customerCount = statements.find((query) => /^SELECT COUNT\(\*\) AS total FROM customers/.test(query.sql));
+  assert.ok(customerCount);
+  assert.doesNotMatch(customerCount.sql, /JOIN work_logs/);
 });

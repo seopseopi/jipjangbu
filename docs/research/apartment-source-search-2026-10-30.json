@@ -1,0 +1,806 @@
+[
+  {
+    "seed": "검단 힐스테이트2차",
+    "results": [
+      {
+        "title": "검단힐스테이트2차 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am7974em0",
+        "address": "검단구 마전동 997-1(인천 검단구 완정로92번길 41)",
+        "types": []
+      },
+      {
+        "title": "검단구 마전동 인천검단힐스테이트2차 실거래가·시세·매물·살아본후기 11개 | 당근부동산",
+        "url": "https://realty.daangn.com/complexes/13504118",
+        "address": "검단구 마전동 인천검단힐스테이트2차 실거래가·시세·매물·살아본후기 11개 | 당근부동산",
+        "types": [
+          "123"
+        ]
+      },
+      {
+        "title": "검단힐스테이트2차 (2026 실거래가) - 마전동 - 매매 전세 월세 시세 - 아파트랭킹",
+        "url": "https://www.aptrank.com/apt_detail.php?aptnameuid=45483",
+        "address": "검단구 완정로92번길 41 ",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "검단 아이파크2차",
+    "results": [
+      {
+        "title": "'마전동 검단2차아이파크'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/21980",
+        "address": "서구 검단로540번길 59",
+        "types": [
+          "141B",
+          "161C",
+          "161A",
+          "172A",
+          "141A",
+          "161D",
+          "161B",
+          "172B"
+        ]
+      },
+      {
+        "title": "검단2차아이파크 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am7980em0",
+        "address": "검단구 마전동 999-1(인천 검단구 검단로540번길 59)",
+        "types": []
+      },
+      {
+        "title": "마전동 검단아이파크2차",
+        "url": "https://zippoom.com/%EB%B6%80%EB%8F%99%EC%82%B0/%EC%9D%B8%EC%B2%9C-%EC%84%9C%EA%B5%AC-%EB%A7%88%EC%A0%84%EB%8F%99-%EA%B2%80%EB%8B%A8%EC%95%84%EC%9D%B4%ED%8C%8C%ED%81%AC2%EC%B0%A8/ch2xbr",
+        "address": "서구 검단로540번길 59인천 서구 마전동 999-1 복사우편번호 22640 59 Geomdan-ro 540beo",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "마전 아이파크1차",
+    "results": [
+      {
+        "title": "'마전동 검단아이파크'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/14728",
+        "address": "검단구 완정로92번길 28",
+        "types": [
+          "94",
+          "149",
+          "111"
+        ]
+      },
+      {
+        "title": "'마전동 검단1차아이파크' 실거래가, 시세, 주변정보 | Beyond Home, Zigbang",
+        "url": "https://m.zigbang.com/home/apt/danjis/13836",
+        "address": "서구 수질오염사태따도 정수기 관리하시는 분들이 관리 잘 되고 있다고 하심 경비원아저씨들 모두 친절하고 단지관리 잘",
+        "types": []
+      },
+      {
+        "title": "'마전동 검단1차아이파크'의 실거래가, 시세, 매물, 주변정보 | 아파트는 호갱노노",
+        "url": "https://hogangnono.com/apt/46se2",
+        "address": "검단구 마전동 998-1",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "마전 검단힐스테이트1차",
+    "results": [
+      {
+        "title": "'마전동 검단힐스테이트'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/14727",
+        "address": "검단구 완정로92번길 11",
+        "types": [
+          "94",
+          "109",
+          "148"
+        ]
+      },
+      {
+        "title": "검단구 마전동 검단힐스테이트1차 실거래가·시세·매물·살아본후기 11개 | 당근부동산",
+        "url": "https://realty.daangn.com/complexes/13504131",
+        "address": "검단구 마전동 검단힐스테이트1차 실거래가·시세·매물·살아본후기 11개 | 당근부동산",
+        "types": [
+          "84"
+        ]
+      },
+      {
+        "title": "검단힐스테이트1차 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am9322em0",
+        "address": "검단구 마전동 997-3(인천 검단구 완정로92번길 11)",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "마전 우방2차",
+    "results": [
+      {
+        "title": "검단2차우방아이유쉘(마전동) 시세·실거래가 — 전용 59㎡ 최근 3억 4,500만원 - 끼지트",
+        "url": "https://kkigit.com/realty/price/28260-4610",
+        "address": "서구 마전동 2018년 준공(9년차) 380세대 5개 동최고 15층",
+        "types": []
+      },
+      {
+        "title": "마전동 검단2차우방아이유쉘 시세·실거래가·대출한도 | 뱅크몰",
+        "url": "https://www.bank-mall.co.kr/inquiry/details/apt/32856",
+        "address": "검단구 완정로 126 (마전동, 검단2차우방아이유쉘)",
+        "types": []
+      },
+      {
+        "title": "마전동 '검단2차우방아이유쉘'의 아파트단지 정보(실거래,시세,교통,학군) | BigValue",
+        "url": "https://bigvalue.ai/dashboard/apartment/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C/%EC%84%9C%EA%B5%AC/%EB%A7%88%EC%A0%84%EB%8F%99/c01183965",
+        "address": "서구 완정로 126 지번인천광역시 서구 마전동 1123-1번지",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "마전 우방1차",
+    "results": [
+      {
+        "title": "검단2차우방아이유쉘 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am16581em824",
+        "address": "검단구 마전동 1123-1(인천 검단구 완정로 126)",
+        "types": []
+      },
+      {
+        "title": "검단구 마전동 검단힐스테이트1차 실거래가·시세·매물·살아본후기 11개 | 당근부동산",
+        "url": "https://realty.daangn.com/complexes/13504131",
+        "address": "검단구 마전동 검단힐스테이트1차 실거래가·시세·매물·살아본후기 11개 | 당근부동산",
+        "types": [
+          "84"
+        ]
+      },
+      {
+        "title": "검단힐스테이트 (2026 실거래가) - 마전동 - 매매 전세 월세 시세 - 아파트랭킹",
+        "url": "https://www.aptrank.com/apt_detail.php?aptnameuid=45462",
+        "address": "검단구 완정로92번길 11 ",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "마전 현대",
+    "results": [
+      {
+        "title": "'마전동 현대'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/7607",
+        "address": "검단구 완정로34번길 47",
+        "types": [
+          "75",
+          "106"
+        ]
+      },
+      {
+        "title": "마전동 현대 전용 18평·26평 실거래가·시세 2026 | 자리톡 아파트",
+        "url": "https://apt.zaritalk.com/complex/%EB%A7%88%EC%A0%84%EB%8F%99-%ED%98%84%EB%8C%80-27027",
+        "address": "검단구 마전동 1004 · 1998년 준공 · 417세대 3개 동 · 전용 59.8~84.7㎡",
+        "types": []
+      },
+      {
+        "title": "마전현대(인천 검단구 마전동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "url": "https://dokdokinfo.kr/housingspecific/a40472809/",
+        "address": "검단구 마전동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "모아미래도엘리트파크",
+    "results": [
+      {
+        "title": "'당하동 검단신도시모아미래도엘리트파크'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/47273",
+        "address": "서구 서로3로 50",
+        "types": [
+          "109A",
+          "110B"
+        ]
+      },
+      {
+        "title": "검단구 당하동 검단신도시모아미래도엘리트파크 실거래가·시세·매물·살아본후기 1개 | 당근부동산",
+        "url": "https://realty.daangn.com/complexes/13503629",
+        "address": "검단구 당하동 검단신도시모아미래도엘리트파크 실거래가·시세·매물·살아본후기 1개 | 당근부동산",
+        "types": [
+          "84"
+        ]
+      },
+      {
+        "title": "검단신도시 모아미래도엘리트파크아파트 실거래가 — 인천 검단구 당하동 | 내집로그",
+        "url": "https://myhomelog.vercel.app/apt/28260-4798",
+        "address": "검단구 당하동 | 내집로그",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "검단 대림e편한",
+    "results": [
+      {
+        "title": "'왕길동 검단이편한세상'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/14890",
+        "address": "검단구 검단로 446",
+        "types": [
+          "142",
+          "158",
+          "180",
+          "109"
+        ]
+      },
+      {
+        "title": "검단대림e-편한세상(인천 검단구 왕길동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "url": "https://dokdokinfo.kr/housingspecific/a40429005/",
+        "address": "검단구 왕길동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "types": []
+      },
+      {
+        "title": "검단e-편한세상 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am1589em0",
+        "address": "검단구 왕길동 661-1(인천 검단구 검단로 446)",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "검단피오레",
+    "results": [
+      {
+        "title": "'마전동 검단1차피오레'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/14729",
+        "address": "검단구 완정로65번안길 10",
+        "types": [
+          "99A",
+          "99B",
+          "113",
+          "156"
+        ]
+      },
+      {
+        "title": "My House - 검단1차 피오레 - 아는자산",
+        "url": "https://www.knowingasset.com/app/my/house/2826011300110290002",
+        "types": []
+      },
+      {
+        "title": "[공동주택] 검단1차 피오레 - 2007.01 입주, 917 세대수, 16 개동 - 공시지가 총액 : 1,861.79 억 - 아는자산",
+        "url": "https://www.knowingasset.com/app/land/house/2826011300110290002",
+        "address": "서구 마전동 1029-2 (완정로65번안길 10) 거리 및 항공뷰 |",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "당하풍림3차",
+    "results": [
+      {
+        "title": "'마전동 당하3차풍림아이원'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/12996",
+        "address": "검단구 원당대로685번길 23",
+        "types": [
+          "83",
+          "110A",
+          "110B",
+          "110C"
+        ]
+      },
+      {
+        "title": "K-apt 공동주택관리정보시스템",
+        "url": "https://www.k-apt.go.kr/cmmn/introMmentPop.do?bjdCode=28&searchOccuDate=201606",
+        "address": "검단구 금곡동 722-2 |",
+        "types": []
+      },
+      {
+        "title": "마전동 당하3차풍림아이원 시세·실거래가·대출한도 | 뱅크몰",
+        "url": "https://www.bank-mall.co.kr/inquiry/details/apt/12996",
+        "address": "검단구 원당대로685번길 23 (마전동, 당하3차풍림아이원아파트)",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "드림파크어울림1단지",
+    "results": [
+      {
+        "title": "드림파크어울림1단지 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am5107em0",
+        "address": "검단구 왕길동 697-1(인천 검단구 봉화로 18)",
+        "types": []
+      },
+      {
+        "title": "검단구 왕길동 드림파크어울림1단지 실거래가·시세·매물·살아본후기 13개 | 당근부동산",
+        "url": "https://realty.daangn.com/complexes/13495450",
+        "address": "검단구 왕길동 드림파크어울림1단지 실거래가·시세·매물·살아본후기 13개 | 당근부동산",
+        "types": [
+          "84"
+        ]
+      },
+      {
+        "title": "드림파크어울림1단지(인천 검단구 왕길동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "url": "https://dokdokinfo.kr/housingspecific/a40473610/",
+        "address": "검단구 왕길동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "마전풍림3차",
+    "results": [
+      {
+        "title": "'마전동 마전3차풍림아이원'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/13579",
+        "address": "검단구 가현로42번길 49",
+        "types": [
+          "109"
+        ]
+      },
+      {
+        "title": "K-apt 공동주택관리정보시스템",
+        "url": "https://www.k-apt.go.kr/cmmn/introMmentPop.do?bjdCode=28&searchOccuDate=201606",
+        "address": "검단구 당하동 1113-1 |",
+        "types": []
+      },
+      {
+        "title": "검단구 마전동 마전풍림아이원3차 실거래가·시세·매물·살아본후기 6개 | 당근부동산",
+        "url": "https://realty.daangn.com/complexes/13505008",
+        "address": "검단구 마전동 마전풍림아이원3차 실거래가·시세·매물·살아본후기 6개 | 당근부동산",
+        "types": [
+          "84"
+        ]
+      }
+    ]
+  },
+  {
+    "seed": "검암풍림3차",
+    "results": [
+      {
+        "title": "K-apt 공동주택관리정보시스템",
+        "url": "https://www.k-apt.go.kr/cmmn/introMmentPop.do?bjdCode=28&searchOccuDate=201606",
+        "address": "검단구 왕길동 649-1 |",
+        "types": []
+      },
+      {
+        "title": "검암풍림3차(인천 서해구 검암동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "url": "https://dokdokinfo.kr/housingspecific/a40484708/",
+        "types": []
+      },
+      {
+        "title": "'검암동 검암풍림3차'의 실거래가, 시세, 매물, 주변정보 | 아파트는 호갱노노",
+        "url": "https://hogangnono.com/apt/43ie0",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "마전 동아",
+    "results": [
+      {
+        "title": "'마전동 동아'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/7611",
+        "address": "검단구 완정로34번길 20",
+        "types": [
+          "107",
+          "161",
+          "80"
+        ]
+      },
+      {
+        "title": "마전동 동아아파트 TYPE별 배치도 : 네이버 블로그",
+        "url": "https://m.blog.naver.com/gabju74/222315652950",
+        "address": "서구 완정로64번길 64",
+        "types": []
+      },
+      {
+        "title": "마전동아(인천 검단구 마전동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "url": "https://dokdokinfo.kr/housingspecific/a40472719/",
+        "address": "검단구 마전동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "우방3차 검단오류",
+    "results": [
+      {
+        "title": "'오류동 검단오류역우방아이유쉘' 실거래가, 시세, 주변정보 | Beyond Home, Zigbang",
+        "url": "https://m.zigbang.com/home/apt/danjis/50480",
+        "address": "검단구 오류동에 위치한 단지부동산공인중개사무소입니다.",
+        "types": []
+      },
+      {
+        "title": "검단오류역 우방아이유쉘",
+        "url": "https://bestapt.creatorlink.net/",
+        "types": []
+      },
+      {
+        "title": "'오류동 검단오류역우방아이유쉘'의 실거래가, 시세, 매물, 주변정보 | 아파트는 호갱노노",
+        "url": "https://hogangnono.com/apt/dz990",
+        "address": "검단구 오류동 1722-1",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "검단 영남탑스빌",
+    "results": [
+      {
+        "title": "'마전동 영남탑스빌'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/7614",
+        "address": "서구 완정로64번길 7",
+        "types": [
+          "152",
+          "187",
+          "238",
+          "111",
+          "216"
+        ]
+      },
+      {
+        "title": "마전동 영남탑스빌 실거래가·시세·매물·살아본후기 39개 | 당근부동산",
+        "url": "https://realty.daangn.com/complexes/13504206",
+        "address": "검단구 완정로64번길 7복사 인천광역시검단구마전동",
+        "types": [
+          "84"
+        ]
+      },
+      {
+        "title": "영남탑스빌 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am3909em0",
+        "address": "검단구 마전동 999-5(인천 검단구 완정로64번길 7)",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "마전하나",
+    "results": [
+      {
+        "title": "'마전동 하나'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/7612",
+        "address": "서구 검단로 622",
+        "types": [
+          "77A",
+          "135",
+          "145",
+          "80B",
+          "107"
+        ]
+      },
+      {
+        "title": "하나 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am13362em0",
+        "address": "검단구 마전동 892(인천 검단구 검단로 622)",
+        "types": []
+      },
+      {
+        "title": "마전동 마전하나 아파트 — 아파트위키",
+        "url": "https://apt.wiki/wiki/%EB%A7%88%EC%A0%84%ED%95%98%EB%82%98",
+        "address": "검단구 마전동 마전하나는 477세대·5개 동, 2001년 8월 입주, 23~44평(대표 32평).",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "검단 금호어울림",
+    "results": [
+      {
+        "title": "검단 금호어울림 센트럴 -",
+        "url": "https://www.kumhoenc.com/Grand/gdkhapt/web/index.asp",
+        "address": "서구 원당동 214번지 일원 (검단신도시 AB14BL)",
+        "types": []
+      },
+      {
+        "title": "원당동 검단금호어울림센트럴",
+        "url": "https://kbland.kr/se/c/44287",
+        "address": "서구 이음5로 65",
+        "types": [
+          "99A",
+          "100B",
+          "111A"
+        ]
+      },
+      {
+        "title": "검단금호어울림센트럴 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am53980em8467",
+        "address": "검단구 원당동 1024(인천 검단구 이음5로 65)",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "검단 유호",
+    "results": [
+      {
+        "title": "마전동 유호 실거래가·시세·매물·살아본후기 4개 | 당근부동산",
+        "url": "https://realty.daangn.com/complexes/13504803",
+        "address": "검단구 검단로518번길 12복사 인천광역시검단구마전동",
+        "types": [
+          "57"
+        ]
+      },
+      {
+        "title": "유호B단지(B1,B2동) 실거래가 · 검단구 | 임장ON",
+        "url": "https://imjangon.co.kr/apt/277840",
+        "address": "검단구 | 임장ON",
+        "types": []
+      },
+      {
+        "title": "마전동 '유호B단지'의 아파트단지 정보(실거래,시세,교통,학군) | BigValue",
+        "url": "https://bigvalue.ai/dashboard/apartment/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C/%EA%B2%80%EB%8B%A8%EA%B5%AC/%EB%A7%88%EC%A0%84%EB%8F%99/c01183286",
+        "address": "검단구 검단로502번길 21-5 (마전동)",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "마전 영진",
+    "results": [
+      {
+        "title": "'마전동 영진'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/7606",
+        "address": "검단구 가현로 (마전동, 영진아파트) 168",
+        "types": [
+          "129",
+          "144",
+          "80",
+          "107",
+          "111"
+        ]
+      },
+      {
+        "title": "마전동 영진 실거래가·시세·매물·살아본후기 9개 | 당근부동산",
+        "url": "https://realty.daangn.com/complexes/13504802",
+        "address": "검단구 가현로 (마전동, 영진아파트) 168복사",
+        "types": [
+          "59"
+        ]
+      },
+      {
+        "title": "영진 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am7987em0",
+        "address": "검단구 마전동 927-5(인천 검단구 검단로529번길 8)",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "마전동남",
+    "results": [
+      {
+        "title": "'마전동 동남'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/7613",
+        "address": "검단구 검단로487번안길 11-14",
+        "types": [
+          "107A",
+          "107B",
+          "148",
+          "75"
+        ]
+      },
+      {
+        "title": "동남 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am7975em0",
+        "address": "검단구 마전동 922-2(인천 검단구 검단로487번안길 11-14)",
+        "types": []
+      },
+      {
+        "title": "동남 (2026 실거래가) - 마전동 - 매매 전세 월세 시세 - 아파트랭킹",
+        "url": "https://www.aptrank.com/apt_detail.php?aptnameuid=11977",
+        "address": "검단구 검단로487번안길 11-14 ",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "검단 우림필유",
+    "results": [
+      {
+        "title": "검단우림필유 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am9272em0",
+        "address": "검단구 마전동 999-8(인천 검단구 완정로34번길 31)",
+        "types": []
+      },
+      {
+        "title": "검단우림필유(인천 검단구 마전동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "url": "https://dokdokinfo.kr/housingspecific/a40426011/",
+        "address": "검단구 마전동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "types": []
+      },
+      {
+        "title": "인천광역시 검단구 마전동 84.95㎡ 아파트 매매 3억 4,000만원 | 당근부동산",
+        "url": "https://realty.daangn.com/articles/3248006",
+        "address": "검단구 마전동 84.95㎡ 아파트 매매 3억 4,000만원 | 당근부동산",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "검단힐스테이트4차",
+    "results": [
+      {
+        "title": "검단힐스테이트4차 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am15424em0",
+        "address": "검단구 당하동 1090-1(인천 검단구 청마로 92)",
+        "types": []
+      },
+      {
+        "title": "검단힐스테이트4차 - 당하동 - 실거래가 매매 전세 월세 시세 - 아파트랭킹",
+        "url": "https://www.aptrank.com/apt_detail.php?aptnameuid=45408",
+        "address": "검단구 청마로 92 ",
+        "types": []
+      },
+      {
+        "title": "당하동 '검단힐스테이트4차'의 아파트단지 정보(실거래,시세,교통,학군) | BigValue",
+        "url": "https://bigvalue.ai/dashboard/apartment/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C/%EC%84%9C%EA%B5%AC/%EB%8B%B9%ED%95%98%EB%8F%99/c01185100",
+        "address": "서구 청마로 92 지번인천광역시 서구 당하동 1090-1번지",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "검단 삼라마이다스",
+    "results": [
+      {
+        "title": "'대곡동 삼라마이다스'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/14979",
+        "address": "검단구 검단로 653",
+        "types": [
+          "113A",
+          "115B",
+          "97"
+        ]
+      },
+      {
+        "title": "삼라마이다스 실거래가 · 검단구 | 임장ON",
+        "url": "https://imjangon.co.kr/apt/277858",
+        "address": "검단구 | 임장ON",
+        "types": []
+      },
+      {
+        "title": "대곡동 '삼라마이다스'의 아파트단지 정보(실거래,시세,교통,학군) | BigValue",
+        "url": "https://bigvalue.ai/dashboard/apartment/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C/%EC%84%9C%EA%B5%AC/%EB%8C%80%EA%B3%A1%EB%8F%99/c01186369",
+        "address": "서구 검단로 653 지번인천광역시 서구 대곡동 720-3번지",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "검단풍림2차",
+    "results": [
+      {
+        "title": "'마전동 검단2차풍림아이원'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/13184",
+        "address": "검단구 완정로64번길 23",
+        "types": [
+          "105"
+        ]
+      },
+      {
+        "title": "검단2차풍림아이원(인천 검단구 마전동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "url": "https://dokdokinfo.kr/housingspecific/a40473121/",
+        "address": "검단구 마전동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "types": []
+      },
+      {
+        "title": "마전동 당하2차풍림아이원",
+        "url": "https://kbland.kr/se/c/12995",
+        "address": "검단구 원당대로685번길 30",
+        "types": [
+          "83",
+          "111"
+        ]
+      }
+    ]
+  },
+  {
+    "seed": "당하KCC",
+    "results": [
+      {
+        "title": "'당하동 당하KCC스위첸'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/13341",
+        "address": "검단구 청마로 124",
+        "types": [
+          "133",
+          "91",
+          "107"
+        ]
+      },
+      {
+        "title": "당하KCC스위첸 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am2829em0",
+        "address": "검단구 당하동 1113-1(인천 검단구 청마로 124)",
+        "types": []
+      },
+      {
+        "title": "당하동 '당하KCC스위첸'의 아파트단지 정보(실거래,시세,교통,학군) | BigValue",
+        "url": "https://bigvalue.ai/dashboard/apartment/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C/%EA%B2%80%EB%8B%A8%EA%B5%AC/%EB%8B%B9%ED%95%98%EB%8F%99/c01185239",
+        "address": "검단구 청마로 124 (당하동)",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "마전 미래지향",
+    "results": [
+      {
+        "title": "'마전동 EG미래지향' 실거래가, 시세, 주변정보 | Beyond Home, Zigbang",
+        "url": "https://m.zigbang.com/home/apt/danjis/20039",
+        "address": "검단구 왕길동",
+        "types": []
+      },
+      {
+        "title": "이지미래지향 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am15127em0",
+        "address": "검단구 마전동 928-17(인천 검단구 검단로501번안길 5)",
+        "types": []
+      },
+      {
+        "title": "마전동 '이지미래지향'의 아파트단지 정보(실거래,시세,교통,학군) | BigValue",
+        "url": "https://bigvalue.ai/dashboard/apartment/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C/%EC%84%9C%EA%B5%AC/%EB%A7%88%EC%A0%84%EB%8F%99/c01183564",
+        "address": "서구 검단로501번안길 5 지번인천광역시 서구 마전동 928-17번지",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "검단 양우내안에",
+    "results": [
+      {
+        "title": "'마전동 검단양우내안애퍼스트힐'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/383097",
+        "address": "서구 검단로609번길 23",
+        "types": [
+          "79A",
+          "93",
+          "111A",
+          "78B",
+          "110B"
+        ]
+      },
+      {
+        "title": "검단양우내안애퍼스트힐 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am74553em13125",
+        "address": "검단구 마전동 1131-1(인천 검단구 검단로609번길 23)",
+        "types": []
+      },
+      {
+        "title": "검단양우내안애퍼스트힐(인천 검단구 마전동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "url": "https://dokdokinfo.kr/housingspecific/a10023902/",
+        "address": "검단구 마전동)|아파트|공동주택 정보 - 똑똑정보찾기",
+        "types": []
+      }
+    ]
+  },
+  {
+    "seed": "오류힐스테이트2차",
+    "results": [
+      {
+        "title": "오류동 검단힐스테이트2단지 실거래가·시세·매물·살아본후기 15개 | 당근부동산",
+        "url": "https://realty.daangn.com/complexes/13498806",
+        "address": "검단구 버들로 46복사 인천광역시검단구오류동",
+        "types": [
+          "105"
+        ]
+      },
+      {
+        "title": "검단힐스테이트2차 아파트 단지정보·시세·실거래가 | 부동산지인",
+        "url": "https://aptgin.com/home/popup/pp_danji/apt/am7974em0",
+        "address": "검단구 마전동 997-1(인천 검단구 완정로92번길 41)",
+        "types": []
+      },
+      {
+        "title": "'오류동 인천검단힐스테이트3차2단지'의 KB시세, AI예측시세, 실거래가, 매물, 대출정보, 커뮤니티 | KB부동산",
+        "url": "https://kbland.kr/se/c/22292",
+        "address": "검단구 버들로 46",
+        "types": [
+          "111A",
+          "130A",
+          "163B",
+          "164A",
+          "247",
+          "110B",
+          "130B"
+        ]
+      }
+    ]
+  }
+]

@@ -182,7 +182,8 @@ test("다시 연락할 일 메뉴는 없애되 홈의 할 일 전체보기와 �
   const title = findAll((node) => ts.isVariableDeclaration(node) && node.name.getText(ast) === "titles")[0];
   const titles = evaluate(`const result = ${title.initializer.getText(ast)};`, { dateLabel: "합성 날짜" });
   assert.equal(titles.tasks, "챙겨야 할 일");
-  const all = findAll((node) => ts.isJsxAttribute(node) && node.name.getText(ast) === "onShowAll");
+  const all = findAll((node) => ts.isJsxAttribute(node) && node.name.getText(ast) === "onShowAll"
+    && node.parent.parent.tagName.getText(ast) === "FollowUpsView");
   assert.equal(all.length, 1, "the compact home panel retains its only full-list entry point");
   const selected = [];
   evaluate(`const result = ${all[0].initializer.expression.getText(ast)};`, { navigate: (view) => selected.push(view) })();
@@ -191,7 +192,7 @@ test("다시 연락할 일 메뉴는 없애되 홈의 할 일 전체보기와 �
   for (const [hash, expected] of [["#tasks", "tasks"], ["#calendar", "calendar"], ["#insights", "insights"], ["#not-a-view", "today"]]) {
     const views = [], currentView = { current: "today" };
     const sync = evaluate(`const result = ${syncNode.initializer.getText(ast)};`, {
-      navItems, currentView, followUpBusy: { current: false }, workBusy: { current: false }, customerBusy: { current: false }, followUpDirty: { current: false },
+      navItems, currentView, currentRecordKey: { current: null }, restoreRecord: { current: noop }, followUpBusy: { current: false }, workBusy: { current: false }, customerBusy: { current: false }, followUpDirty: { current: false },
       workOpenVersion: { current: 0 }, workReadVersion: { current: 0 }, setWorkReader: noop, setReaderReference: noop,
       setWorkOpening: noop, historyModal: null, historyOpenVersion: { current: 0 }, setHistoryModal: noop, isRecordHistory: () => false,
       setNotice: noop, setView: (view) => views.push(view),

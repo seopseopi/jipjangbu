@@ -86,6 +86,11 @@ function database(t) {
   return { db, sqlite };
 }
 
+async function patchFollowUp(db, id, body) {
+  const current = await getFollowUp(db, id);
+  return updateFollowUp(db, id, { revision: current.revision, ...body });
+}
+
 test("할 일은 빈 목록으로 시작하고 연결·완료·재개·삭제를 보존한다", async (t) => {
   const { db, sqlite } = database(t);
   assert.equal((await getFollowUps(db, new URLSearchParams())).items.length, 0);
@@ -98,12 +103,12 @@ test("할 일은 빈 목록으로 시작하고 연결·완료·재개·삭제를
   assert.equal(created.listing_label, "테스트 101동 202호");
   assert.equal(created.completed_at, null);
 
-  const complete = await updateFollowUp(db, created.id, { completed: true });
+  const complete = await patchFollowUp(db, created.id, { completed: true });
   assert.ok(complete.completed_at);
-  const edited = await updateFollowUp(db, created.id, { notes: "확인했음", completed: true });
+  const edited = await patchFollowUp(db, created.id, { notes: "확인했음", completed: true });
   assert.equal(edited.title, created.title);
   assert.equal(edited.completed_at, complete.completed_at);
-  assert.equal((await updateFollowUp(db, created.id, { completed: false })).completed_at, null);
+  assert.equal((await patchFollowUp(db, created.id, { completed: false })).completed_at, null);
 
   sqlite.prepare("DELETE FROM customers WHERE id = ?").run("customer-test");
   const detached = await getFollowUp(db, created.id);
@@ -111,7 +116,7 @@ test("할 일은 빈 목록으로 시작하고 연결·완료·재개·삭제를
   assert.equal(detached.title, created.title);
   assert.equal(detached.listing_key, created.listing_key);
 
-  const cleared = await updateFollowUp(db, created.id, { listingKey: "", dueDate: null, notes: "" });
+  const cleared = await patchFollowUp(db, created.id, { listingKey: "", dueDate: null, notes: "" });
   assert.equal(cleared.listing_key, null);
   assert.equal(cleared.due_date, null);
   assert.equal(cleared.notes, "");
@@ -119,7 +124,7 @@ test("할 일은 빈 목록으로 시작하고 연결·완료·재개·삭제를
   await deleteFollowUp(db, created.id, preview.revision);
   await assert.rejects(getFollowUp(db, created.id), (error) => error.status === 404);
   await assert.rejects(deleteFollowUp(db, created.id, preview.revision), (error) => error.status === 404);
-  await assert.rejects(updateFollowUp(db, created.id, { completed: true }), (error) => error.status === 404);
+  await assert.rejects(patchFollowUp(db, created.id, { completed: true }), (error) => error.status === 404);
 });
 
 test("홈에서 추가하는 연결 없는 할 일도 여러 줄 메모를 저장하고 다시 조회한다", async (t) => {
@@ -146,7 +151,7 @@ test("할 일의 서울 날짜·기한 필터·검색·전체 요약이 일관�
     ["주간 확인", "2026-09-19"], ["다음주 확인", "2026-09-20"], ["100% 확인", "2026-09-12"]]) {
     saved.push(await createFollowUp(db, { title, dueDate, customerId: "customer-test" }));
   }
-  await updateFollowUp(db, saved[5].id, { completed: true });
+  await patchFollowUp(db, saved[5].id, { completed: true });
   const all = await getFollowUps(db, new URLSearchParams("status=all"), now);
   assert.deepEqual({ ...all.summary }, { open: 5, overdue: 1, today: 1, completed: 1 });
   assert.equal(all.items[0].title, "밀린 확인");
@@ -169,7 +174,7 @@ test("연결된 매물이 사라져도 기존 연결을 유지한 할 일 수정
   });
   sqlite.prepare("DELETE FROM listings WHERE identity_key = ?").run(listingKey);
 
-  const updated = await updateFollowUp(db, item.id, {
+  const updated = await patchFollowUp(db, item.id, {
     title: "매물 다시 확인", notes: "주소 변경 확인 필요", dueDate: "2026-09-20",
     customerId: "customer-test", listingKey, completed: true,
   });
@@ -181,12 +186,12 @@ test("연결된 매물이 사라져도 기존 연결을 유지한 할 일 수정
   assert.equal(updated.listing_label, null);
   assert.equal(updated.customer_name, "연결 고객");
 
-  await assert.rejects(updateFollowUp(db, item.id, { listingKey: "another-missing-listing" }), FollowUpError);
-  await assert.rejects(updateFollowUp(db, item.id, { customerId: "missing-customer" }), FollowUpError);
-  const detached = await updateFollowUp(db, item.id, { listingKey: null, completed: false });
+  await assert.rejects(patchFollowUp(db, item.id, { listingKey: "another-missing-listing" }), FollowUpError);
+  await assert.rejects(patchFollowUp(db, item.id, { customerId: "missing-customer" }), FollowUpError);
+  const detached = await patchFollowUp(db, item.id, { listingKey: null, completed: false });
   assert.equal(detached.listing_key, null);
   assert.equal(detached.completed_at, null);
-  await assert.rejects(updateFollowUp(db, item.id, { listingKey }), FollowUpError);
+  await assert.rejects(patchFollowUp(db, item.id, { listingKey }), FollowUpError);
 });
 
 test("잘못된 할 일 입력·날짜·필터·존재하지 않는 연결을 거부한다", async (t) => {
@@ -231,7 +236,7 @@ test("할 일 변경 전후 암호화 백업에 실제 할 일 데이터가 포�
   });
   const ctx = { waitUntil(promise) { pending.push(promise); } };
   assert.equal(await handleSecurityRequest(request, env, ctx), null);
-  await updateFollowUp(db, item.id, { completed: true });
+  await patchFollowUp(db, item.id, { completed: true });
   schedulePostMutationBackup(request, new Response(null, { status: 200 }), env, ctx);
   await Promise.all(pending);
   assert.equal(writes.length, 2);
@@ -248,4 +253,45 @@ test("할 일 변경 전후 암호화 백업에 실제 할 일 데이터가 포�
     assert.equal(snapshot.counts.follow_ups, 1);
     assert.equal(snapshot.tables.follow_ups[0].title, item.title);
   }
+});
+
+test("같은 초의 다른 기기 수정도 오래된 초안·완료 처리로 덮어쓸 수 없다", async (t) => {
+  const { db } = database(t);
+  const original = await createFollowUp(db, { title: "다음 연락", notes: "처음 메모", dueDate: "2026-10-30" });
+  const changed = await updateFollowUp(db, original.id, { revision: original.revision, notes: "기기 A 새 메모" });
+  assert.notEqual(changed.revision, original.revision);
+  for (const body of [
+    { title: original.title, notes: original.notes, dueDate: "2026-11-02" },
+    { completed: true },
+  ]) await assert.rejects(updateFollowUp(db, original.id, { revision: original.revision, ...body }), (error) => error.status === 409);
+  const current = await getFollowUp(db, original.id);
+  assert.equal(current.notes, "기기 A 새 메모");
+  assert.equal(current.completed_at, null);
+  const saved = await updateFollowUp(db, original.id, { revision: current.revision, dueDate: "2026-11-02" });
+  assert.equal(saved.notes, current.notes);
+  assert.equal(saved.due_date, "2026-11-02");
+  await assert.rejects(updateFollowUp(db, original.id, { notes: "revision 없는 이전 클라이언트" }), (error) => error.status === 400);
+});
+
+test("할 일 읽기와 쓰기 사이의 변경·삭제도 조건부 UPDATE가 원자적으로 방어한다", async (t) => {
+  const { db, sqlite } = database(t);
+  const original = await createFollowUp(db, { title: "경합 검증", notes: "읽은 메모" });
+  for (const remove of [false, true]) {
+    const before = await getFollowUp(db, original.id);
+    const racing = { ...db, prepare(sql) {
+      const statement = db.prepare(sql);
+      if (/^UPDATE follow_ups SET/.test(sql)) {
+        const run = statement.run.bind(statement);
+        statement.run = async () => {
+          if (remove) sqlite.prepare("DELETE FROM follow_ups WHERE id = ?").run(original.id);
+          else sqlite.prepare("UPDATE follow_ups SET notes = ? WHERE id = ?").run("쓰기 직전 다른 기기 변경", original.id);
+          return run();
+        };
+      }
+      return statement;
+    } };
+    await assert.rejects(updateFollowUp(racing, original.id, { revision: before.revision, title: "오래된 저장" }), (error) => error.status === 409);
+    if (!remove) assert.equal((await getFollowUp(db, original.id)).notes, "쓰기 직전 다른 기기 변경");
+  }
+  assert.equal(sqlite.prepare("SELECT COUNT(*) AS count FROM follow_ups").get().count, 0);
 });

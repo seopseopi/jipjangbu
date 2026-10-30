@@ -1,5 +1,5 @@
 import { getD1 } from "../../../db";
-import { clean, isPropertyComplete, listingKey, LISTING_WORK_TYPES, listingRebuildStatements, type PropertyInput } from "../../../db/listing-sync";
+import { captureListingSourceStatements, clean, hasListingKeyDelimiter, isPropertyComplete, listingKey, LISTING_WORK_TYPES, listingRebuildStatements, type PropertyInput } from "../../../db/listing-sync";
 import { normalizeDate } from "../_shared";
 import { moveToTrash } from "../../../db/deletion-store";
 
@@ -76,6 +76,10 @@ export async function saveWorkLog(payload: WorkLogPayload, existingId?: string) 
     source: clean(detail.source),
   })).filter((detail) => Object.values(detail).some(Boolean));
 
+  if (details.some(hasListingKeyDelimiter)) {
+    throw new InputError("물건구분과 주소에는 | 문자를 사용할 수 없습니다. 다른 문자로 구분해 주세요.");
+  }
+
   if (!workDate || !customerId || !workType) {
     throw new InputError("일자, 고객, 업무구분은 필수입니다.");
   }
@@ -131,6 +135,7 @@ export async function saveWorkLog(payload: WorkLogPayload, existingId?: string) 
   const statements = [headerStatement];
   if (existingId) {
     statements.push(
+      ...captureListingSourceStatements(affectedKeys, db),
       db.prepare("DELETE FROM listing_events WHERE work_log_id = ?").bind(existingId),
       db.prepare("DELETE FROM work_log_properties WHERE work_log_id = ?").bind(existingId),
     );

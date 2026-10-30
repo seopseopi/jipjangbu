@@ -21,7 +21,7 @@ const compiled = ts.transpileModule(functions, {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, jsx: ts.JsxEmit.React },
 }).outputText;
 const synthetic = {
-  id: "synthetic-task", title: "예시 고객에게 확인 전화", notes: "원래 메모", due_date: "2026-09-13",
+  id: "synthetic-task", revision: "a".repeat(64), title: "예시 고객에게 확인 전화", notes: "원래 메모", due_date: "2026-09-13",
   customer_id: "synthetic-customer", listing_key: "synthetic-listing", completed_at: null,
   created_at: "2026-09-12 01:00:00", updated_at: "2026-09-12 01:00:00",
   customer_name: "예시 고객", listing_label: "예시단지 106동 1503호",
@@ -140,7 +140,7 @@ test("완료 글씨를 표시하며 확인 취소는 저장하지 않고 승인�
     await flush();
     const patches = h.calls.filter(([, options]) => options?.method === "PATCH");
     assert.equal(patches.length, 1);
-    assert.deepEqual(JSON.parse(patches[0][1].body), { completed: true });
+    assert.deepEqual(JSON.parse(patches[0][1].body), { completed: true, revision: synthetic.revision });
   }
 });
 
@@ -352,6 +352,49 @@ test("저장 실패는 초안을 보존하고 불러오기 버튼 대신 저장 
   assert.equal(h.calls.length, 1, "a failed write never starts a misleading read retry");
 });
 
+test("할 일 수정은 처음 읽은 revision을 보내고 충돌 뒤에도 작성 내용을 유지한다", async () => {
+  const h = harness({}, {}, async (_url, options) => {
+    if (options?.method === "PATCH") throw Object.assign(new Error("다른 기기에서 할 일이 변경되었습니다."), { status: 409 });
+    return response;
+  });
+  button(h.render(), "수정</button>").props.onClick();
+  const title = find(h.render(), (element) => element.type === "input" && element.props.id.endsWith("synthetic-task-title"));
+  title.props.onChange({ target: { value: "보존할 수정 제목" } });
+  const form = find(h.render(), (element) => element.type === "form" && element.props.className.includes("followup-form"));
+  form.props.onSubmit({ preventDefault() {} });
+  await flush();
+  const patch = h.calls.find(([, options]) => options?.method === "PATCH");
+  assert.equal(JSON.parse(patch[1].body).revision, synthetic.revision);
+  assert.equal(h.state.editingId, synthetic.id);
+  assert.equal(h.state.editDraft.title, "보존할 수정 제목");
+  assert.match(h.state.mutationError, /다른 기기/);
+});
+
+test("충돌 뒤 최신 내용을 별도로 확인하며 취소할 때까지 초안과 기준 revision을 보존한다", async () => {
+  const latest = { ...synthetic, title: "다른 기기 제목", notes: "다른 기기 메모", revision: "b".repeat(64) };
+  const h = harness({}, {}, async (url, options) => {
+    if (options?.method === "PATCH") throw Object.assign(new Error("동시 수정 충돌"), { status: 409 });
+    if (url === `/api/follow-ups/${synthetic.id}`) return { item: latest };
+    return { ...response, items: [latest] };
+  });
+  button(h.render(), "수정</button>").props.onClick();
+  find(h.render(), (element) => element.type === "input" && element.props.id.endsWith("synthetic-task-title")).props.onChange({ target: { value: "내 초안" } });
+  find(h.render(), (element) => element.type === "form").props.onSubmit({ preventDefault() {} });
+  await flush();
+  button(h.render(), "최신 내용 확인").props.onClick();
+  await flush();
+  assert.equal(h.state.editDraft.title, "내 초안");
+  assert.equal(h.state.editingRecord.revision, synthetic.revision);
+  assert.match(renderToStaticMarkup(h.render()), /다른 기기 제목|다른 기기 메모/);
+  h.window.confirm = () => false;
+  button(h.render(), "최신 내용으로 다시 열기").props.onClick();
+  assert.equal(h.state.editDraft.title, "내 초안");
+  h.window.confirm = () => true;
+  button(h.render(), "최신 내용으로 다시 열기").props.onClick();
+  assert.equal(h.state.editDraft.title, latest.title);
+  assert.equal(h.state.editingRecord.revision, latest.revision);
+});
+
 test("완료 처리 중 중복 입력을 막고 완료된 대상명과 다시 여는 위치를 안내한다", async () => {
   const pending = deferred();
   const h = harness({}, {}, (url, options) => options?.method ? pending.promise : Promise.resolve({ ...response, items: [] }));
@@ -362,7 +405,7 @@ test("완료 처리 중 중복 입력을 막고 완료된 대상명과 다시 �
   assert.equal(h.state.busyId, synthetic.id);
   const [url, options] = h.calls[0];
   assert.equal(url, `/api/follow-ups/${synthetic.id}`);
-  assert.deepEqual(JSON.parse(options.body), { completed: true });
+  assert.deepEqual(JSON.parse(options.body), { completed: true, revision: synthetic.revision });
   pending.resolve({ item: { ...synthetic, completed_at: "2026-09-13 03:00:00" } });
   await flush();
   assert.match(h.state.notice, /예시 고객에게 확인 전화.*완료 목록에서 다시 열 수 있습니다/);

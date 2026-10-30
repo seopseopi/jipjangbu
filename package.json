@@ -12,12 +12,15 @@
     "test": "npm run typecheck && npm run build && node --experimental-strip-types --test tests/*.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "typecheck": "tsc --noEmit --incremental false",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "predev": "node scripts/prepare-pdf-worker.mjs",
+    "prebuild": "node scripts/prepare-pdf-worker.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "9.7.0",
     "drizzle-orm": "0.45.2",
     "lucide-react": "1.44.0",
+    "pdfjs-dist": "6.4.299",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "three": "0.186.0"

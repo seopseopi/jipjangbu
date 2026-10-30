@@ -1,9 +1,11 @@
+import type { PlanFile } from "./file-contract";
 import type { Plan } from "./plan";
 export type PropertyRow = {
   identity_key: string;
   building_name: string;
   building_dong: string;
   unit_number: string;
+  size_types?: string;
   active_count: number;
   listing_count: number;
 };
@@ -34,13 +36,19 @@ export type StructureUnit = {
   row_version: number | null;
 };
 export type Catalog = {
+  managedBuildings?: { id: string; building_name: string }[];
   properties: PropertyRow[];
   complexes: { id: string; name: string; address: string }[];
   units: StructureUnit[];
   revisions: Revision[];
   links: { identity_key: string; unit_id: string }[];
 };
-export type RevisionData = { revision: Revision; plan: Plan };
+export type RevisionData = {
+  revision: Revision;
+  plan: Plan | null;
+  file: PlanFile | null;
+  processing: import("./processing").Processing | null;
+};
 export type History = {
   listing: null | {
     id: string;

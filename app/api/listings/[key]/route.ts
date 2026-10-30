@@ -7,7 +7,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ key: strin
   try {
     await ready();
     const { key } = await params;
-    const listingKey = decodeURIComponent(key);
+    const listingKey = key;
     const db = getD1();
     // Read the current value and its history in one snapshot, including when a
     // second signed-in device saves another event while this dialog is opening.

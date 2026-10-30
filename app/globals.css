@@ -246,7 +246,7 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px; backgr
 .customer-table .table-head, .customer-table .table-row { grid-template-columns: minmax(125px, .75fr) minmax(148px, .9fr) minmax(180px, 1.2fr) 112px 177px; }
 .responsive-table .table-head { min-height: 42px; border-bottom: 1px solid var(--rule); background: var(--wash); color: var(--muted); font-size: var(--text-caption); font-weight: 600; }
 .responsive-table .table-row { width: 100%; min-height: 64px; padding-block: 12px; border: 0; border-bottom: 1px solid var(--rule); background: var(--paper); color: var(--ink-2); text-align: left; font-size: var(--text-small); }
-.listing-table .table-row { min-height: 70px; padding-block: 10px; }
+.listing-table .table-row { min-height: 64px; padding-block: 10px; }
 .responsive-table .table-row:last-child { border-bottom: 0; }
 button.table-row:hover { background: var(--wash); }
 .table-row > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
@@ -858,7 +858,7 @@ button.table-row:hover { background: var(--wash); }
   .sidebar-top { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px; }
   .sidebar-actions { display: flex; justify-content: flex-end; gap: 6px; }
   .sidebar-actions .primary-button { width: auto; padding-inline: 12px; }
-  .sidebar-actions .global-search-trigger { width: 44px; padding: 0; justify-content: center; }
+  .sidebar-actions .global-search-trigger { flex: 0 0 44px; width: 44px; min-height: 44px; padding: 0; justify-content: center; }
   .sidebar-actions .global-search-trigger > span, .sidebar-actions .global-search-trigger kbd { display: none; }
   .sidebar-foot { grid-column: 2; grid-row: 1; align-self: center; margin: 0; padding: 0; }
   .sidebar-foot .logout-link { display: none; }
@@ -979,6 +979,8 @@ button.table-row:hover { background: var(--wash); }
   .login-card { padding: 26px 22px 22px; }
 }
 @media (max-width: 380px) {
+  .sidebar-new-work-extra { display: none; }
+  .sidebar-actions .sidebar-new-work { padding-inline: 10px; }
   .nav-item { min-width: 64px; padding-inline: 6px; }
   .workspace { --gutter: 12px; }
   .modal-body { padding-inline: 16px; }
@@ -997,15 +999,6 @@ button.table-row:hover { background: var(--wash); }
 .listing-price-filters button[aria-pressed="true"], .listing-price-filters button[aria-pressed="true"]:hover:not(:disabled) { background: var(--green); color: #fff; border-color: var(--green); }
 .listing-price-filters > span { color: var(--muted); font-size: 12px; }
 .listing-controls .toolbar { display: grid; grid-template-columns: minmax(240px, 1fr) auto minmax(150px, auto) auto auto; gap: 8px; align-items: stretch; margin-bottom: 12px; }
-.listing-state-toggle { display: inline-flex; gap: 3px; padding: 4px; margin: 0 0 14px; border-radius: 8px; background: var(--wash); }
-.listing-state-toggle button { min-width: 78px; min-height: 40px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: var(--text-small); font-weight: 600; }
-.listing-state-toggle button[aria-pressed="true"] { background: var(--paper); color: var(--green-dark); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
-.listing-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
-.listing-toolbar .search-box { flex: 1 1 240px; max-width: none; }
-.listing-advanced { position: relative; }
-.listing-advanced > summary { display: flex; align-items: center; min-height: 44px; padding: 8px 13px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--paper); color: var(--ink-2); cursor: pointer; font-size: var(--text-small); }
-.listing-advanced-options { position: absolute; right: 0; z-index: 10; display: grid; gap: 8px; width: min(280px, 85vw); margin-top: 5px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
-.listing-advanced-options > select { width: 100%; min-height: 44px; }
 .listing-controls .search-box { width: 100%; min-width: 0; max-width: none; }
 .listing-controls .toolbar > select { width: 100%; max-width: none; }
 .listing-price-menu, .listing-more-menu { position: relative; min-width: 0; }

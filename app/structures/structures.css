@@ -101,8 +101,6 @@
   border: 1px solid #d9e1e6;
   border-radius: 16px;
 }
-.structure-plan-select { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; }
-.structure-plan-select select { max-width: 100%; min-height: 42px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface, #fff); color: var(--ink); font: inherit; }
 .structure-real-heading {
   display: flex;
   justify-content: space-between;
@@ -748,3 +746,21 @@
 }
 .structure-svg [role="button"]:focus { outline: none; }
 .structure-svg [role="button"]:focus-visible { stroke: #243c62; stroke-width: .08; }
+
+.structure-file-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.structure-file-toolbar button, .structure-file-toolbar a { min-height: 44px; padding: 8px 12px; }
+.structure-file-toolbar label { display: flex; align-items: center; gap: 5px; }
+.structure-file-toolbar input { width: 64px; min-height: 44px; }
+.structure-file-frame { max-width: 100%; min-width: 0; overflow: auto; max-height: 75vh; background: #eef1f5; padding: 8px; border: 1px solid #d3dae4; }
+.structure-file-frame canvas, .structure-file-frame img { display: block; max-width: none; }
+.structure-file-viewer { min-width: 0; }
+
+.structure-editor { margin: 16px 0; padding: 16px; border: 1px solid #bdd7cf; border-radius: 12px; background: #f7fbf9; display: grid; gap: 12px; min-width:0; }
+.structure-editor label { display: grid; gap: 6px; }
+.structure-editor input, .structure-editor textarea { max-width:100%; min-width:0; padding:8px; border:1px solid #aabeb7; border-radius:6px; }
+.structure-trace { display: block; width:100%; border:1px solid #b5c7c0; background:white; cursor:crosshair; }
+.structure-editor .structure-check { display:flex; align-items:flex-start; }
+.structure-source-library { padding:18px; background:#fff; border:1px solid #dce5e0; border-radius:12px; margin-bottom:20px; display:grid; gap:12px; min-width:0; }
+.structure-source-library label { display:grid; gap:6px; }
+.structure-source-library select { width:100%; min-width:0; padding:8px; border:1px solid #bccbc5; border-radius:6px; }
+.structure-coverage { padding:12px 16px; color:#36594c; background:#e9f3ed; border-radius:10px; margin-bottom:16px; line-height:1.7; }

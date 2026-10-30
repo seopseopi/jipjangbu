@@ -14,6 +14,7 @@ export async function GET(request: Request) {
     const state = params.get("state") ?? "all";
     const type = params.get("type")?.trim() ?? "";
     const sort = params.get("sort") ?? "type";
+    const limit = integerQueryParam(params.get("limit"), 1000, 1, 1000);
     const offset = integerQueryParam(params.get("offset"), 0, 0, Number.MAX_SAFE_INTEGER);
     const statuses = [...new Set(params.getAll("status").map(value => value.trim()))];
     const prices = [...new Set(params.getAll("price"))];
@@ -43,11 +44,14 @@ export async function GET(request: Request) {
       where.push(search.sql);
       binds.push(...search.bindings);
     }
-    const rows = await getD1().prepare(`
-      SELECT * FROM listings ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
-      ORDER BY ${orderBy} LIMIT 1000 OFFSET ?
-    `).bind(...binds, offset).all();
-    return Response.json({ listings: rows.results });
+    const predicate = where.length ? `WHERE ${where.join(" AND ")}` : "";
+    const db = getD1();
+    const [count, rows] = await db.batch<Record<string, unknown>>([
+      db.prepare(`SELECT COUNT(*) AS total FROM listings ${predicate}`).bind(...binds),
+      db.prepare(`SELECT * FROM listings ${predicate} ORDER BY ${orderBy} LIMIT ? OFFSET ?`).bind(...binds, limit, offset),
+    ]);
+    const total = Number(count.results[0]?.total ?? 0);
+    return Response.json({ listings: rows.results, total, hasMore: offset + rows.results.length < total });
   } catch (error) {
     return apiError(error, "매물 목록을 불러오지 못했습니다.");
   }

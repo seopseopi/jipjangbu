@@ -1,5 +1,12 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Building2,
   Box,
@@ -12,10 +19,23 @@ import {
 import { clientJsonFetch, clearClientReadCache } from "../client-api";
 import { PlanViewer } from "./plan-viewer";
 import { DEMO_PLAN } from "./plan";
+import { apartmentSources, APARTMENT_SOURCES } from "./source-contract";
+import {
+  ApartmentSourcePanel,
+  type SourceSelection,
+} from "./apartment-source-panel";
 import { StructureManager } from "./structure-manager";
 import { RealPlanPreview } from "./real-plan-preview";
+import {
+  linkedStructureUnit,
+  structureGroups,
+  structurePropertyDong,
+} from "./catalog";
 import type { Catalog, History, PropertyRow, RevisionData } from "./contracts";
 import "./structures.css";
+const PlanWorkbench = lazy(() =>
+  import("./plan-workbench").then((m) => ({ default: m.PlanWorkbench })),
+);
 const natural = new Intl.Collator("ko", { numeric: true });
 const emptyCatalog: Catalog = {
   properties: [],
@@ -41,9 +61,12 @@ export function StructureView({
     [dong, setDong] = useState(""),
     [key, setKey] = useState(initialKey),
     [demo, setDemo] = useState(false),
-    [reference, setReference] = useState(!initialKey),
+    [reference, setReference] = useState(false),
     [demoUnit, setDemoUnit] = useState("체험 A"),
     [manager, setManager] = useState(false),
+    [sourceSelection, setSourceSelection] = useState<
+      SourceSelection | undefined
+    >(),
     [generation, setGeneration] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
@@ -52,12 +75,17 @@ export function StructureView({
         setCatalog(data);
         setLoading(false);
         setError("");
-        if (initialKey) {
-          const p = data.properties.find((p) => p.identity_key === initialKey);
-          if (p) {
-            setComplex(p.building_name);
-            setDong(p.building_dong);
-          }
+        const selected = key;
+        const p = data.properties.find((p) => p.identity_key === selected);
+        const u = selected.startsWith("unit:")
+          ? data.units.find((u) => u.id === selected.slice(5))
+          : linkedStructureUnit(data, selected);
+        if (u) {
+          setComplex(`complex:${u.complex_id}`);
+          setDong(u.building_name);
+        } else if (p) {
+          setComplex(`listing:${p.building_name}`);
+          setDong(p.building_dong);
         }
       })
       .catch((e) => {
@@ -67,7 +95,7 @@ export function StructureView({
         }
       });
     return () => controller.abort();
-  }, [initialKey, refreshKey, generation]);
+  }, [initialKey, refreshKey, generation, key]);
   useEffect(() => {
     const refresh = () => {
       clearClientReadCache();
@@ -81,29 +109,27 @@ export function StructureView({
   const unit = catalog.units.find(
     (u) => u.id === (key.startsWith("unit:") ? key.slice(5) : linkedUnit),
   );
-  const properties = catalog.properties.filter(
-    (p) => p.building_name === complex,
-  );
-  const registeredUnits = catalog.units.filter(
-    (u) => u.complex_name === complex,
-  );
-  const complexes = useMemo(
+  const groups = useMemo(
     () =>
-      [
-        ...new Set([
-          ...catalog.properties.map((p) => p.building_name),
-          ...catalog.complexes.map((c) => c.name),
-        ]),
-      ].sort(natural.compare),
+      structureGroups(catalog).sort(
+        (a, b) =>
+          natural.compare(a.name, b.name) ||
+          natural.compare(a.address, b.address),
+      ),
     [catalog],
   );
+  const selectedGroup = groups.find((g) => g.key === complex);
+  const properties = selectedGroup?.properties ?? [];
+  const registeredUnits = selectedGroup?.units ?? [];
   const dongs = [
     ...new Set([
-      ...properties.map((p) => p.building_dong),
+      ...properties.map((p) => structurePropertyDong(catalog, p)),
       ...registeredUnits.map((u) => u.building_name),
     ]),
   ].sort(natural.compare);
-  const selectedProperties = properties.filter((p) => p.building_dong === dong);
+  const selectedProperties = properties.filter(
+    (p) => structurePropertyDong(catalog, p) === dong,
+  );
   const selectedUnits = registeredUnits.filter(
     (u) =>
       u.building_name === dong &&
@@ -117,14 +143,13 @@ export function StructureView({
     clearClientReadCache();
     setGeneration((n) => n + 1);
     setManager(false);
+    setSourceSelection(undefined);
   };
   return (
     <div className="structures">
       <div className="structure-intro">
         <div>
-          <span className="structure-eyebrow">
-            <span className="structure-test-badge">TEST</span> 집 구조 미리보기
-          </span>
+          <span className="structure-eyebrow">관리 아파트 도면·구조</span>
           <h2>집의 구조와 기록을 한곳에서</h2>
           <p>
             도면을 살펴보거나 매물·세대 목록에서 기존 업무 기록을 확인하세요.
@@ -141,7 +166,7 @@ export function StructureView({
             }}
           >
             <FileCheck2 size={17} />
-            {reference ? "매물·세대 목록" : "실제 도면 보기"}
+            {reference ? "매물·세대 목록" : "참고 도면 예제"}
           </button>
           <button
             type="button"
@@ -177,9 +202,24 @@ export function StructureView({
           </button>
         </p>
       )}
+      <p className="structure-coverage">
+        관리 목록 {catalog.managedBuildings?.length ?? 0}곳 · 수집 타입{" "}
+        {APARTMENT_SOURCES.reduce((n, s) => n + s.types.length, 0)}개 · 평면도
+        원본{" "}
+        {APARTMENT_SOURCES.reduce(
+          (n, s) => n + s.types.filter((t) => t.basicImage).length,
+          0,
+        )}
+        개 · 장부 세대 연결 {catalog.links.length}/{catalog.properties.length}
+      </p>
       {manager ? (
         <StructureManager
-          key={key}
+          key={
+            sourceSelection
+              ? `${sourceSelection.source.alias}-${sourceSelection.type.id}-${sourceSelection.variant}`
+              : key
+          }
+          sourceSelection={sourceSelection}
           catalog={catalog}
           property={property}
           unit={unit}
@@ -238,12 +278,12 @@ export function StructureView({
               <p role="status">단지 목록을 불러오는 중…</p>
             ) : (
               <div className="structure-complex-list">
-                {complexes
-                  .filter((n) => n.includes(search.trim()))
-                  .map((name) => {
-                    const rows = catalog.properties.filter(
-                      (p) => p.building_name === name,
-                    );
+                {groups
+                  .filter((g) =>
+                    `${g.name} ${g.address}`.includes(search.trim()),
+                  )
+                  .map((group) => {
+                    const rows = group.properties;
                     const mapped = rows.some((p) =>
                       catalog.links.some(
                         (l) => l.identity_key === p.identity_key,
@@ -252,26 +292,38 @@ export function StructureView({
                     return (
                       <button
                         type="button"
-                        key={name}
-                        aria-pressed={complex === name}
+                        key={group.key}
+                        aria-pressed={complex === group.key}
                         onClick={() => {
-                          setComplex(name);
+                          setComplex(group.key);
                           setDong("");
                           setKey("");
                         }}
                       >
-                        <strong>{name}</strong>
+                        <strong>{group.name}</strong>
+                        <small>{group.address}</small>
                         <span>
                           진행 중 {rows.reduce((n, p) => n + p.active_count, 0)}{" "}
                           · 전체 {rows.reduce((n, p) => n + p.listing_count, 0)}
                         </span>
                         <small>
-                          {mapped ? "연결된 구조 있음" : "도면·세대 확인 필요"}
+                          {mapped || group.units.some((u) => u.revision_id)
+                            ? "연결된 구조 있음"
+                            : catalog.revisions.some(
+                                  (r) =>
+                                    group.key === `complex:${r.complex_id}`,
+                                )
+                              ? "도면 등록됨 · 세대 연결 필요"
+                              : apartmentSources(group.name).some(
+                                    (s) => s.types.length,
+                                  )
+                                ? `공개 타입 ${apartmentSources(group.name).reduce((n, s) => n + s.types.length, 0)}개 · 세대 연결 전`
+                                : "도면 원본 수집 대기"}
                         </small>
                       </button>
                     );
                   })}
-                {!complexes.length && (
+                {!groups.length && (
                   <p className="structure-help">
                     등록된 아파트 업무가 없습니다. 가상 구조를 체험하거나 확인된
                     도면을 등록할 수 있습니다.
@@ -300,9 +352,19 @@ export function StructureView({
               </div>
             ) : (
               <>
+                <ApartmentSourcePanel
+                  key={`${complex}-${key}`}
+                  name={selectedGroup?.name ?? ""}
+                  sizes={property?.size_types}
+                  dong={property?.building_dong}
+                  onRegister={(s) => {
+                    setSourceSelection(s);
+                    setManager(true);
+                  }}
+                />
                 <div className="structure-breadcrumb">
                   <Building2 size={17} />
-                  <strong>{complex}</strong>
+                  <strong>{selectedGroup?.name ?? "단지 확인 필요"}</strong>
                   {dong && (
                     <>
                       <ChevronRight size={16} />
@@ -355,6 +417,11 @@ export function StructureView({
                           onClick={() => setKey(p.identity_key)}
                         >
                           <strong>{p.unit_number || "호수 미기입"}</strong>
+                          <small>
+                            {p.size_types
+                              ? `장부 평형 ${p.size_types}`
+                              : "평형 미기입"}
+                          </small>
                           <span>
                             {catalog.links.some(
                               (l) => l.identity_key === p.identity_key,
@@ -388,7 +455,10 @@ export function StructureView({
                         unit={unit}
                         catalog={catalog}
                         generation={generation + refreshKey}
-                        onManage={() => setManager(true)}
+                        onManage={() => {
+                          setSourceSelection(undefined);
+                          setManager(true);
+                        }}
                         onOpenWork={onOpenWork}
                       />
                     ) : (
@@ -538,17 +608,37 @@ function UnitContent({
                   ? " · 실제 상태와 도면 구분이 다릅니다. 참고용으로만 확인하세요."
                   : ""}
               </p>
-              <PlanViewer
-                plan={revision.plan}
-                transform={{
-                  mirror: unit?.mirror === 1,
-                  rotation: unit?.rotation ?? 0,
-                }}
-              />
+              {revision.file ? (
+                <Suspense
+                  fallback={<p role="status">도면을 준비하고 있습니다…</p>}
+                >
+                  <PlanWorkbench
+                    key={revision.file.revision_id}
+                    data={revision}
+                    transform={{
+                      mirror: unit?.mirror === 1,
+                      rotation: unit?.rotation ?? 0,
+                    }}
+                  />
+                </Suspense>
+              ) : revision.plan ? (
+                <PlanViewer
+                  plan={revision.plan}
+                  transform={{
+                    mirror: unit?.mirror === 1,
+                    rotation: unit?.rotation ?? 0,
+                  }}
+                />
+              ) : (
+                <p role="alert">도면 자료를 불러올 수 없습니다.</p>
+              )}
               <details className="structure-source">
                 <summary>도면 출처·확인 정보</summary>
                 <p>{revision.revision.source}</p>
-                <p>{revision.plan.dimensionEvidence.note}</p>
+                <p>
+                  {revision.plan?.dimensionEvidence.note ??
+                    "원본 이미지·PDF · 실측 치수 및 3D 좌표는 등록되지 않았습니다."}
+                </p>
                 <p>검증 기록: {revision.revision.verified_at}</p>
               </details>
             </>

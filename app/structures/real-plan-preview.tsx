@@ -6,42 +6,11 @@ import {
 } from "./hillstate-reference";
 import { PlanViewer } from "./plan-viewer";
 
-const PLAN_SOURCES = [
-  { name: "힐스테이트1차", url: HILLSTATE_SOURCE.page },
-  { name: "아이파크1차", url: "https://kbland.kr/se/c/14728" },
-  { name: "아이파크2차", url: "https://kbland.kr/se/c/21980" },
-  { name: "힐스테이트2차", url: "https://kbland.kr/se/c/22161" },
-  { name: "우방2차", url: "https://kbland.kr/se/c/32856" },
-  { name: "우방1차(금곡동)", url: "https://kbland.kr/se/c/31187" },
-  { name: "검단피오레", url: "https://kbland.kr/se/c/14729" },
-  { name: "영남탑스빌", url: "https://kbland.kr/se/c/7614" },
-  { name: "우림필유", url: "https://kbland.kr/se/c/14730" },
-  { name: "검암풍림3차", url: "https://kbland.kr/se/c/12755" },
-  { name: "당하KCC", url: "https://kbland.kr/se/c/13341" },
-  { name: "당하풍림3차", url: "https://kbland.kr/se/c/12996" },
-  { name: "드림파크어울림1단지", url: "https://kbland.kr/se/c/22059" },
-  { name: "마전하나", url: "https://kbland.kr/se/c/7612" },
-];
-
 export function RealPlanPreview() {
   const [showOriginal, setShowOriginal] = useState(false),
-    [failed, setFailed] = useState(false),
-    [selected, setSelected] = useState(0);
+    [failed, setFailed] = useState(false);
   return (
     <section className="structure-real-preview">
-      <label className="structure-plan-select">
-        <strong>도면을 볼 단지</strong>
-        <select value={selected} onChange={(event) => setSelected(Number(event.target.value))}>
-          {PLAN_SOURCES.map((source, index) => <option key={source.name} value={index}>{source.name}</option>)}
-        </select>
-      </label>
-      {selected !== 0 ? (
-        <div className="structure-notice">
-          <strong>{PLAN_SOURCES[selected].name} 평면도</strong>
-          <p>원본 페이지에서 ‘타입’을 눌러 평형별 도면을 확인하세요. 주소와 평형·타입이 매물과 같은지 확인해 주세요.</p>
-          <a className="secondary-button" href={PLAN_SOURCES[selected].url} target="_blank" rel="noreferrer">평면도 보기 ↗</a>
-        </div>
-      ) : <>
       <div className="structure-real-heading">
         <div>
           <span className="structure-eyebrow">실제 공개 평면도 기반</span>
@@ -128,7 +97,6 @@ export function RealPlanPreview() {
           진행해야 합니다.
         </p>
       </details>
-      </>}
     </section>
   );
 }

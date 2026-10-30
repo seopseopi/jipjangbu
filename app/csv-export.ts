@@ -23,4 +23,3 @@ export function downloadCsv(
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
-
