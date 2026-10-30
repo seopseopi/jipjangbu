@@ -777,3 +777,63 @@
 .structure-editor-tools { display:flex; align-items:end; gap:12px; }
 .structure-editor select, .structure-manager > label select { padding:8px; border:1px solid #c3d2ca; border-radius:7px; }
 @media(max-width:700px) { .structure-clean-image { padding:10px; } .structure-unit-title { font-size:18px; } }
+
+/* The drawing fills the space left by the app header, at every viewport size. */
+.app-shell:has(.structure-fit-screen) { height:100dvh; min-height:0; overflow:hidden; }
+.app-shell:has(.structure-fit-screen) .workspace { display:flex; flex-direction:column; min-height:0; height:100%; padding-bottom:10px; }
+.app-shell:has(.structure-fit-screen) .topbar { display:none; }
+.app-shell:has(.structure-fit-screen) .demo-banner { flex-shrink:0; margin:8px 0; padding:5px 10px; font-size:11px; }
+.app-shell:has(.structure-fit-screen) .view-content { flex:1; display:flex; flex-direction:column; min-height:0; padding-top:8px; }
+.structure-fit-screen { flex:1; display:flex; flex-direction:column; min-height:0; gap:8px; }
+.structure-selectors { flex-shrink:0; display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) auto; align-items:end; gap:10px; }
+.structure-selectors label { display:grid; gap:3px; min-width:0; font-size:12px; color:#52655d; }
+.structure-selectors select { width:100%; min-width:0; height:42px; padding:6px 24px 6px 9px; border:1px solid #c8d6cf; border-radius:7px; background:#fff; color:#263e32; font-size:14px; text-overflow:ellipsis; }
+.structure-selectors > button { height:42px; }
+.structure-fit-screen > .structure-main { flex:1; display:flex; flex-direction:column; min-height:0; padding:12px; overflow:hidden; position:relative; }
+.structure-fit-screen .structure-welcome { flex:1; min-height:0; padding:10px; }
+.structure-fit-screen .structure-detail { flex:1; display:flex; flex-direction:column; min-height:0; gap:5px; margin:0; padding:0; border:0; }
+.structure-fit-screen .structure-plan-panel { flex:1; display:flex; flex-direction:column; min-height:0; position:relative; }
+.structure-fit-screen .structure-unit-title { flex-shrink:0; font-size:16px; margin:0 0 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.structure-fit-screen .structure-plan-heading { flex-shrink:0; padding:0; margin-bottom:4px; font-size:13px; }
+.structure-fit-screen .structure-notice { flex-shrink:0; padding:5px 8px; margin:0 0 5px; font-size:11px; line-height:1.4; }
+.structure-fit-screen .structure-clean-view { flex:1; display:flex; flex-direction:column; min-height:0; gap:4px; }
+.structure-fit-screen .structure-clean-image { flex:1; display:flex; align-items:center; justify-content:center; min-height:0; padding:8px; overflow:hidden; }
+.structure-fit-screen .structure-clean-image img { width:100%; height:100%; max-height:none; min-height:0; object-fit:contain; }
+.structure-fit-screen .structure-viewer { flex:1; display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+.structure-fit-screen .structure-viewer-bar { flex-shrink:0; padding:4px; }
+.structure-fit-screen .structure-canvas { flex:1; min-height:0; height:auto; }
+.structure-fit-screen .structure-viewer > .structure-help { flex-shrink:0; font-size:11px; margin:3px 6px; line-height:1.4; }
+.structure-fit-screen .structure-file-viewer { flex:1; display:flex; flex-direction:column; min-height:0; }
+.structure-fit-screen .structure-file-frame { flex:1; min-height:0; max-height:none; display:flex; align-items:center; justify-content:center; }
+.structure-fit-screen .structure-plan-options, .structure-fit-screen .structure-source { flex-shrink:0; margin:0; font-size:11px; }
+.structure-fit-screen .structure-plan-options summary, .structure-fit-screen .structure-source summary { margin:0; padding:3px 0; }
+.structure-fit-screen .structure-record-panel { flex-shrink:0; margin:0; padding:2px 0 0; border:0; font-size:11px; }
+.structure-fit-screen .structure-record-panel summary { font-size:11px; margin:0; }
+.structure-fit-screen details[open].structure-plan-options, .structure-fit-screen details[open].structure-source, .structure-fit-screen details[open].structure-record-panel { position:absolute; inset:auto 6px 6px; z-index:12; max-height:calc(100% - 16px); overflow:auto; background:#fff; border:1px solid #c7d6ce; border-radius:10px; box-shadow:0 8px 28px #152f3126; padding:10px; }
+.structure-fit-screen .structure-source-library { flex:1; display:flex; flex-direction:column; min-height:0; margin:0; padding:0; border:0; gap:5px; }
+.structure-fit-screen .structure-source-library > h3 { flex-shrink:0; font-size:16px; margin:0; }
+.structure-fit-screen .structure-source-library > .structure-eyebrow { display:none; }
+.structure-fit-screen .structure-source-library > p { flex-shrink:0; margin:0; font-size:11px; line-height:1.4; }
+.structure-fit-screen .structure-source-library > .structure-form-grid { flex-shrink:0; display:grid; grid-template-columns:2fr 1fr; gap:8px; }
+.structure-fit-screen .structure-source-library label { font-size:11px; gap:2px; }
+.structure-fit-screen .structure-source-library select { height:34px; font-size:12px; padding:4px 6px; }
+.structure-fit-screen .structure-source-library > button { flex-shrink:0; align-self:flex-start; min-height:30px; padding:4px 12px; font-size:12px; }
+.structure-management-scroll { flex:1; min-height:0; overflow:auto; }
+@media(max-width:720px) {
+ .app-shell:has(.structure-fit-screen) { display:flex; flex-direction:column; }
+ .app-shell:has(.structure-fit-screen) > .sidebar { flex-shrink:0; }
+ .app-shell:has(.structure-fit-screen) .workspace { flex:1; height:auto; padding-bottom:6px; }
+ .structure-selectors { gap:5px; }
+ .structure-selectors select { font-size:12px; padding-left:5px; height:40px; }
+ .structure-selectors > button { padding:6px 9px; height:40px; }
+ .structure-selectors > button span { display:none; }
+ .structure-fit-screen > .structure-main { padding:7px; border-radius:10px; }
+ .structure-fit-screen .structure-unit-title { font-size:14px; }
+}
+.structure-fit-screen .structure-source { padding:0; border:0; }
+.structure-fit-screen .structure-plan-heading span { padding:1px 6px; font-size:11px; line-height:1.3; }
+@media(max-width:720px) {
+ .app-shell:has(.structure-fit-screen) .demo-banner > span { display:none; }
+ .app-shell:has(.structure-fit-screen) .sidebar .nav-item { min-height:44px; padding:4px 6px; font-size:11px; gap:2px; }
+ .app-shell:has(.structure-fit-screen) .sidebar .nav-icon { width:17px; height:17px; }
+}

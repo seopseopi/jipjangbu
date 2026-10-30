@@ -81,6 +81,7 @@ export function PlanWorkbench({
       ) : (
         <FileViewer
           file={current.file}
+          fit
           minimal
           url={`/api/structures/files/${current.revision.id}`}
         />

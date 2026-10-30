@@ -7,17 +7,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import {
-  Building2,
-  ChevronRight,
-  FileCheck2,
-  Layers3,
-  Search,
-  Settings2,
-} from "lucide-react";
+import { FileCheck2, Layers3, Settings2 } from "lucide-react";
 import { clientJsonFetch, clearClientReadCache } from "../client-api";
 import { PlanViewer } from "./plan-viewer";
-import { apartmentSources } from "./source-contract";
 import {
   ApartmentSourcePanel,
   type SourceSelection,
@@ -53,7 +45,6 @@ export function StructureView({
   const [catalog, setCatalog] = useState<Catalog>(emptyCatalog),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
-    [search, setSearch] = useState(""),
     [complex, setComplex] = useState(""),
     [dong, setDong] = useState(""),
     [key, setKey] = useState(initialKey),
@@ -140,28 +131,91 @@ export function StructureView({
     setSourceSelection(undefined);
   };
   return (
-    <div className="structures">
-      <div className="structure-intro">
-        <div>
-          <span className="structure-eyebrow">관리 아파트 도면·구조</span>
-          <h2>집의 구조와 기록을 한곳에서</h2>
-          <p>
-            도면을 살펴보거나 매물·세대 목록에서 기존 업무 기록을 확인하세요.
-          </p>
-        </div>
-        <div className="structure-intro-actions">
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={() => {
+    <div className="structures structure-fit-screen">
+      <div className="structure-selectors">
+        <label>
+          단지
+          <select
+            aria-label="단지 선택"
+            value={complex}
+            disabled={loading}
+            onChange={(e) => {
+              setComplex(e.target.value);
+              setDong("");
+              setKey("");
+              setManager(false);
               setSourceSelection(undefined);
-              setManager(!manager);
             }}
           >
-            <Settings2 size={17} />
-            {manager ? "닫기" : "도면 관리"}
-          </button>
-        </div>
+            <option value="">단지 선택</option>
+            {groups.map((g) => (
+              <option key={g.key} value={g.key}>
+                {g.name}
+                {g.key.startsWith("complex:") ? ` · ${g.address}` : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          동
+          <select
+            aria-label="동 선택"
+            value={dong}
+            disabled={!complex || !dongs.length}
+            onChange={(e) => {
+              setDong(e.target.value);
+              setKey("");
+              setManager(false);
+            }}
+          >
+            <option value="">동 선택</option>
+            {dongs.map((d) => (
+              <option key={d} value={d}>
+                {d || "동 미기입"}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          호수
+          <select
+            aria-label="호수 선택"
+            value={key}
+            disabled={
+              !complex || (!selectedProperties.length && !selectedUnits.length)
+            }
+            onChange={(e) => {
+              setKey(e.target.value);
+              setManager(false);
+            }}
+          >
+            <option value="">호수 선택</option>
+            {selectedProperties.map((p) => (
+              <option key={p.identity_key} value={p.identity_key}>
+                {p.unit_number || "호수 미기입"}
+                {p.size_types ? ` · ${p.size_types}` : ""}
+              </option>
+            ))}
+            {selectedUnits.map((u) => (
+              <option key={u.id} value={`unit:${u.id}`}>
+                {u.number}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          className="secondary-button"
+          aria-label={manager ? "관리 닫기" : "도면 관리"}
+          aria-pressed={manager}
+          onClick={() => {
+            setSourceSelection(undefined);
+            setManager((v) => !v);
+          }}
+        >
+          <Settings2 size={17} />
+          <span>{manager ? "닫기" : "도면 관리"}</span>
+        </button>
       </div>
       {error && (
         <p className="form-error" role="alert">
@@ -172,230 +226,56 @@ export function StructureView({
         </p>
       )}
       {manager ? (
-        <StructureManager
-          key={
-            sourceSelection
-              ? `${sourceSelection.source.alias}-${sourceSelection.type.id}-${sourceSelection.variant}`
-              : key
-          }
-          sourceSelection={sourceSelection}
-          catalog={catalog}
-          property={property}
-          unit={unit}
-          onSaved={saved}
-        />
+        <div className="structure-management-scroll">
+          <StructureManager
+            key={
+              sourceSelection
+                ? `${sourceSelection.source.alias}-${sourceSelection.type.id}-${sourceSelection.variant}`
+                : key
+            }
+            sourceSelection={sourceSelection}
+            catalog={catalog}
+            property={property}
+            unit={unit}
+            onSaved={saved}
+          />
+        </div>
       ) : (
-        <div className="structure-layout">
-          <aside className="structure-picker">
-            <h3>
-              <Building2 size={18} /> 단지 선택
-            </h3>
-            <label className="structure-search">
-              <Search size={17} />
-              <input
-                aria-label="단지 검색"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="단지 이름 검색"
-              />
-            </label>
-            {loading ? (
-              <p role="status">단지 목록을 불러오는 중…</p>
-            ) : (
-              <div className="structure-complex-list">
-                {groups
-                  .filter((g) =>
-                    `${g.name} ${g.address}`.includes(search.trim()),
-                  )
-                  .map((group) => {
-                    const rows = group.properties;
-                    const mapped = rows.some((p) =>
-                      catalog.links.some(
-                        (l) => l.identity_key === p.identity_key,
-                      ),
-                    );
-                    return (
-                      <button
-                        type="button"
-                        key={group.key}
-                        aria-pressed={complex === group.key}
-                        onClick={() => {
-                          setComplex(group.key);
-                          setDong("");
-                          setKey("");
-                        }}
-                      >
-                        <strong>{group.name}</strong>
-                        <small>{group.address}</small>
-                        <span>
-                          진행 중 {rows.reduce((n, p) => n + p.active_count, 0)}{" "}
-                          · 전체 {rows.reduce((n, p) => n + p.listing_count, 0)}
-                        </span>
-                        <small>
-                          {mapped || group.units.some((u) => u.revision_id)
-                            ? "연결된 구조 있음"
-                            : catalog.revisions.some(
-                                  (r) =>
-                                    group.key === `complex:${r.complex_id}`,
-                                )
-                              ? "도면 등록됨 · 세대 연결 필요"
-                              : apartmentSources(group.name).some(
-                                    (s) => s.types.length,
-                                  )
-                                ? `공개 타입 ${apartmentSources(group.name).reduce((n, s) => n + s.types.length, 0)}개 · 세대 연결 전`
-                                : "도면 원본 수집 대기"}
-                        </small>
-                      </button>
-                    );
-                  })}
-                {!groups.length && (
-                  <p className="structure-help">
-                    등록된 아파트 업무가 없습니다. 가상 구조를 체험하거나 확인된
-                    도면을 등록할 수 있습니다.
-                  </p>
-                )}
-              </div>
-            )}
-          </aside>
-          <div className="structure-main">
-            {!complex ? (
-              <div className="structure-welcome">
-                <Layers3 size={42} />
-                <h3>어떤 집을 살펴볼까요?</h3>
-                <p>
-                  왼쪽에서 단지를 선택하세요.
-                  <br />
-                  도면이 없어도 기존 매물·업무 기록을 확인할 수 있습니다.
-                </p>
-              </div>
-            ) : (
-              <>
-                {!key && (
-                  <ApartmentSourcePanel
-                    key={`${complex}-${key}`}
-                    name={selectedGroup?.name ?? ""}
-                    sizes={property?.size_types}
-                    dong={property?.building_dong}
-                    onRegister={(s) => {
-                      setSourceSelection(s);
-                      setManager(true);
-                    }}
-                  />
-                )}
-                <div className="structure-breadcrumb">
-                  <Building2 size={17} />
-                  <strong>{selectedGroup?.name ?? "단지 확인 필요"}</strong>
-                  {dong && (
-                    <>
-                      <ChevronRight size={16} />
-                      <span>{dong}</span>
-                    </>
-                  )}
-                  {(property || unit) && (
-                    <>
-                      <ChevronRight size={16} />
-                      <span>{property?.unit_number ?? unit?.number}</span>
-                    </>
-                  )}
-                </div>
-                <div className="structure-dongs" aria-label="동 선택">
-                  {dongs.map((d) => (
-                    <button
-                      type="button"
-                      key={d}
-                      aria-pressed={dong === d}
-                      onClick={() => {
-                        setDong(d);
-                        setKey("");
-                      }}
-                    >
-                      {d || "동 미기입"}
-                      <small>
-                        {properties.filter((p) => p.building_dong === d).length}
-                        개 기록 물건
-                      </small>
-                    </button>
-                  ))}
-                </div>
-                {!dong && !dongs.includes("") ? (
-                  <p className="structure-empty">
-                    동을 선택해 주세요. 확인된 배치도가 없어 목록으로
-                    표시합니다.
-                  </p>
-                ) : (
-                  <>
-                    <p className="structure-help">
-                      장부에 기록된 물건과 확인된 세대만 표시합니다. 호수로 층을
-                      추정하지 않습니다.
-                    </p>
-                    <div className="structure-units" aria-label="세대 선택">
-                      {selectedProperties.map((p) => (
-                        <button
-                          type="button"
-                          key={p.identity_key}
-                          aria-pressed={key === p.identity_key}
-                          onClick={() => setKey(p.identity_key)}
-                        >
-                          <strong>{p.unit_number || "호수 미기입"}</strong>
-                          <small>
-                            {p.size_types
-                              ? `장부 평형 ${p.size_types}`
-                              : "평형 미기입"}
-                          </small>
-                          <span>
-                            {catalog.links.some(
-                              (l) => l.identity_key === p.identity_key,
-                            )
-                              ? "구조 연결됨"
-                              : p.listing_count
-                                ? "매물 기록"
-                                : "업무 기록"}
-                          </span>
-                        </button>
-                      ))}
-                      {selectedUnits.map((u) => (
-                        <button
-                          type="button"
-                          key={u.id}
-                          aria-pressed={key === `unit:${u.id}`}
-                          onClick={() => setKey(`unit:${u.id}`)}
-                        >
-                          <strong>{u.number}</strong>
-                          <span>
-                            {u.floor === null ? "층 미확인" : `${u.floor}층`} ·
-                            확인된 세대
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                    {key ? (
-                      <UnitContent
-                        key={key}
-                        property={property}
-                        unit={unit}
-                        catalog={catalog}
-                        generation={generation + refreshKey}
-                        onManage={() => {
-                          setSourceSelection(undefined);
-                          setManager(true);
-                        }}
-                        onOpenWork={onOpenWork}
-                      />
-                    ) : (
-                      <p className="structure-empty">
-                        호수를 선택하면 구조와 업무 기록이 이곳에 표시됩니다.
-                      </p>
-                    )}
-                  </>
-                )}
-              </>
-            )}
-          </div>
+        <div className="structure-main">
+          {!complex ? (
+            <div className="structure-welcome">
+              <Layers3 size={36} />
+              <h3>단지를 선택하세요</h3>
+            </div>
+          ) : key ? (
+            <UnitContent
+              key={key}
+              property={property}
+              unit={unit}
+              catalog={catalog}
+              generation={generation + refreshKey}
+              onManage={() => {
+                setSourceSelection(undefined);
+                setManager(true);
+              }}
+              onOpenWork={onOpenWork}
+            />
+          ) : (
+            <ApartmentSourcePanel
+              key={complex}
+              name={selectedGroup?.name ?? ""}
+              onRegister={(selection) => {
+                setSourceSelection(selection);
+                setManager(true);
+              }}
+            />
+          )}
         </div>
       )}
     </div>
   );
 }
+
 function UnitContent({
   property,
   unit,
@@ -486,7 +366,10 @@ function UnitContent({
             </p>
           ) : revision ? (
             <>
-              <h3 className="structure-unit-title">
+              <h3
+                className="structure-unit-title"
+                title={`${unit?.complex_name ?? ""} ${unit?.building_name ?? ""} ${unit?.number ?? ""}`}
+              >
                 {unit?.complex_name} ·{" "}
                 {unit
                   ? `${unit.building_name}${unit.building_name.endsWith("동") ? "" : "동"} ${unit.number}${unit.number.endsWith("호") ? "" : "호"}`
