@@ -8,6 +8,7 @@ import { fetchCustomerDirectory } from "../app/customer-directory.ts";
 import { collectOffsetPages } from "../app/client-paging.ts";
 import { calendarWorkPresentation } from "./helpers/calendar-presentation.mjs";
 import { CalendarSubjects } from "./helpers/calendar-subjects.mjs";
+import { initialResultPage, ResultPagination } from "./helpers/result-pagination.mjs";
 
 // Execute production UI callbacks and markup with synthetic data and controlled
 // network responses, including cross-screen transitions rather than text checks.
@@ -58,7 +59,7 @@ function button(tree, label) {
   assert.ok(element, `${label} exists`);
   return element;
 }
-const environment = { React, useContext: () => null, PageToolsSlot: null, createPortal: (node) => node, LISTING_WORK_TYPES: new Set(["매물등록", "매물수정", "가계약", "잔금"]), Icon: () => null, useMemo: (callback) => callback(), seoulDate: () => "2026-09-13", calendarWorkPresentation, CalendarSubjects };
+const environment = { React, useResultPage: initialResultPage, ResultPagination, useContext: () => null, PageToolsSlot: null, createPortal: (node) => node, LISTING_WORK_TYPES: new Set(["매물등록", "매물수정", "가계약", "잔금"]), Icon: () => null, useMemo: (callback) => callback(), seoulDate: () => "2026-09-13", calendarWorkPresentation, CalendarSubjects };
 const common = ["displayDate", "targetText", "statusTone", "EmptyState", "Toolbar", "ListReadFeedback"];
 const Feedback = compile(["ListReadFeedback"], environment);
 const Listings = compile([...common, "Price", "ListingsView"], environment);
@@ -86,13 +87,14 @@ test("공통 조회 안내는 로딩·오류·갱신·준비를 구분하고 재
   assert.equal(retried, 1);
 });
 
-test("매물·고객 목록은 다른 조건 조회 중과 오류에서 이전 행·건수를 숨기고 CSV를 잠근다", () => {
+test("매물·고객 목록은 다른 조건 조회 중과 오류에서 이전 행·건수를 숨기고 페이지 이동을 잠근다", () => {
   for (const [View, props, marker, empty] of [[Listings, listingProps, "이전결과 합성단지", "조건에 맞는 매물이 없습니다"], [Customers, customerProps, "이전결과 합성고객", "조건에 맞는 고객이 없습니다"]]) {
     for (const status of ["loading", "error"]) {
       const html = renderToStaticMarkup(React.createElement(View, { ...props, status, error: "합성 오류" }));
       assert.ok(!html.includes(marker));
       assert.ok(!html.includes(empty));
-      assert.match(html, /class="export-button" disabled=""/);
+      assert.doesNotMatch(html, /CSV|export-button/);
+      if (View === Listings) assert.match(html, /aria-label="다음 페이지" disabled=""/);
       assert.match(html, status === "loading" ? /조회 중…/ : /조회 실패/);
       assert.match(html, status === "loading" ? /role="status"/ : /role="alert"/);
       assert.doesNotMatch(html, /class="count-badge">1[건명]/);
@@ -104,7 +106,8 @@ test("매물·고객 목록은 다른 조건 조회 중과 오류에서 이전 �
     const refreshing = renderToStaticMarkup(React.createElement(View, { ...props, status: "refreshing" }));
     assert.ok(refreshing.includes(marker));
     assert.match(refreshing, /같은 조건의 이전 결과/);
-    assert.match(refreshing, /class="export-button" disabled=""/);
+    assert.doesNotMatch(refreshing, /CSV|export-button/);
+    if (View === Listings) assert.match(refreshing, /aria-label="다음 페이지" disabled=""/);
   }
 });
 
@@ -176,18 +179,18 @@ test("매물관리 초기화는 상태·가격을 전체로 되돌리고 상태 
   assert.ok(descendants(other).some(item => item.props.className === "table-row is-other-status"));
 });
 
-test("관리 CSV 버튼은 전체 조회 내보내기로 연결하며 이름·종류·상태 셀이 올바르게 대응한다", () => {
-  const exported = [];
-  const View = compile([...common, "Price", "ListingsView"], { ...environment, downloadCsv: (...args) => exported.push(args) });
+test("매물 목록은 CSV 없이 이름·종류·상태 셀과 원래 이력 연결을 유지한다", () => {
   const items = [
     { ...listing, id: "villa", property_type: "빌라", building_name: "가람", building_dong: "2", unit_number: "10" },
     { ...listing, id: "apartment", property_type: "아파트", building_name: "나래", building_dong: "10", unit_number: "2" },
   ];
-  const tree = View({ ...listingProps, items, sort: "type", onExport: () => exported.push("all") });
-  button(tree, "CSV 저장").props.onClick();
-  assert.deepEqual(exported, ["all"]);
+  const opened = [];
+  const tree = Listings({ ...listingProps, items, sort: "type", onHistory: (item) => opened.push(item) });
+  assert.doesNotMatch(renderToStaticMarkup(tree), /CSV|export-button/);
   const rows = descendants(tree).filter((item) => item.props.className === "table-row");
   assert.deepEqual(React.Children.toArray(rows[0].props.children).map((item) => item.props["data-label"]), ["매물종류", "이름", "상태", "가격", "등록·말소"]);
+  rows[1].props.onClick();
+  assert.deepEqual(opened, [items[1]]);
 });
 
 test("달력은 불러오지 못한 달을 빈 달로 표시하지 않고 같은 조건 갱신에서만 이전 일정을 유지한다", () => {
@@ -211,7 +214,7 @@ function navigationHarness(allow = true) {
   const props = {
     navigate: (next) => { changes.push(next); return allow; }, setQueries: queries.set,
     seoulDate: () => "2026-09-13",
-    ...Object.fromEntries(["ListingStatuses", "ListingPrices", "PropertyTypeFilter", "ListingSort", "CustomerSort", "WorkTypeFilter", "WorkPeriod", "CalendarMonth", "CalendarWorkType"].map((name) => [`set${name}`, (value) => { values[name] = value; }])),
+    ...Object.fromEntries(["ListingStatuses", "ListingPrices", "PropertyTypeFilter", "ListingSort", "CustomerSort", "WorkTypeFilter", "CalendarMonth", "CalendarWorkType"].map((name) => [`set${name}`, (value) => { values[name] = value; }])),
   };
   return { queries, values, changes, navigate: compile(["navigateFromDashboard"], props) };
 }
@@ -219,7 +222,7 @@ test("홈의 의미형 바로가기는 해당 화면 필터만 초기화하고 �
   const expected = {
     listings: { ListingStatuses: [], ListingPrices: [], PropertyTypeFilter: "", ListingSort: "type" },
     customers: { CustomerSort: "recent" },
-    journal: { WorkTypeFilter: "", WorkPeriod: "" },
+    journal: { WorkTypeFilter: "" },
     calendar: { CalendarMonth: "2026-09", CalendarWorkType: "" },
   };
   for (const destination of Object.keys(expected)) {
@@ -238,12 +241,12 @@ test("홈의 의미형 바로가기는 해당 화면 필터만 초기화하고 �
 test("전체 검색 결과 이동은 검색어와 해당 유형 기본 필터를 적용하고 초안 이동 취소를 보존한다", () => {
   for (const allow of [true,false]) {
     const queries=state({listings:"old-listing",customers:"old-customer",journal:"old-work"}),changes=[];
-    const env={navigate:()=>allow,setQueries:queries.set,...Object.fromEntries(["ListingStatuses","ListingPrices","PropertyTypeFilter","ListingSort","CustomerSort","WorkTypeFilter","WorkPeriod"].map(key=>["set"+key,value=>changes.push([key,value])]))};
+    const env={navigate:()=>allow,setQueries:queries.set,...Object.fromEntries(["ListingStatuses","ListingPrices","PropertyTypeFilter","ListingSort","CustomerSort","WorkTypeFilter"].map(key=>["set"+key,value=>changes.push([key,value])]))};
     const show=compile(["showAllSearchResults"],env);
     assert.equal(show("journal","같은검색"),allow);
     assert.equal(queries.current.journal,allow?"같은검색":"old-work");
     assert.equal(queries.current.listings,"old-listing");
-    assert.deepEqual(changes,allow?[["WorkTypeFilter",""],["WorkPeriod",""]]:[]);
+    assert.deepEqual(changes,allow?[["WorkTypeFilter",""]]:[]);
   }
 });
 

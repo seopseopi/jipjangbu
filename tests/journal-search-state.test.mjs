@@ -7,6 +7,7 @@ import ts from "typescript";
 import { canAppendPage } from "../app/client-paging.ts";
 import { getWorkProperties, workPropertyLabel } from "../app/work-property-summary.ts";
 import { getPropertyDisplayGroups } from "../app/property-display.ts";
+import { initialResultPage, ResultPagination } from "./helpers/result-pagination.mjs";
 
 // Execute the production handlers and markup with synthetic records and controlled I/O.
 const source = readFileSync(new URL("../app/work-manager.tsx", import.meta.url), "utf8");
@@ -28,10 +29,10 @@ function compile(names, environment = {}, callback = false) {
   return new Function(...Object.keys(environment), `${compiled}; return ${names.at(-1)};`)(...Object.values(environment));
 }
 const status = compile(["journalSearchStatus"]);
-const JournalView = compile(["displayDate", "targetText", "statusTone", "EmptyState", "Toolbar", "WorkTable", "JournalView"], {
+const JournalView = compile(["displayDate", "targetText", "statusTone", "EmptyState", "Toolbar", "WorkTable", "ListReadFeedback", "JournalView"], {
   React,
   useContext: () => null, PageToolsSlot: null, createPortal: (node) => node,
-  Icon: () => null,
+  Icon: () => null, useResultPage: initialResultPage, ResultPagination,
   getWorkProperties,
   workPropertyLabel,
   getPropertyDisplayGroups,
@@ -43,9 +44,9 @@ const synthetic = {
 };
 function props(overrides = {}) {
   return {
-    items: [synthetic], total: 222, lookups: { workTypes: ["전화"] }, query: "106동 1503호", workType: "", period: "",
-    setQuery() {}, setWorkType() {}, setPeriod() {}, onReset() {}, onLoadMore() {}, loadingMore: false,
-    status: "ready", error: "", onRetry() {}, exporting: false, canLoadMore: true, onExport() {}, onOpen() {},
+    items: [synthetic], total: 222, lookups: { workTypes: ["전화"] }, query: "106동 1503호", workType: "",
+    setQuery() {}, setWorkType() {}, onReset() {}, onLoadMore() {}, loadingMore: false,
+    status: "ready", error: "", onRetry() {}, canLoadMore: true, onOpen() {},
     onCustomerHistory() {}, onListingHistory() {}, ...overrides,
   };
 }
@@ -74,38 +75,42 @@ test("업무일지는 새 검색·필터 대기, 해당 조건의 오류, 성공
   assert.equal(status("B", "B", false, false, null), "ready");
 });
 
-test("검색 중과 실패 화면은 이전 업무·건수·더보기를 숨기고 CSV를 잠근다", () => {
+test("검색 중과 실패 화면은 이전 업무·건수를 숨기고 페이지 이동을 잠근다", () => {
   for (const searchStatus of ["loading", "error"]) {
     const html = renderToStaticMarkup(React.createElement(JournalView, props({ status: searchStatus, error: "합성 연결 실패" })));
     assert.doesNotMatch(html, /이전 검색에만 속한 내용|1 \/ 222|100건 더 보기/);
     assert.doesNotMatch(html, /조건에 맞는 업무가 없습니다/);
-    assert.match(html, /class="export-button" disabled=""/);
+    assert.match(html, /aria-label="다음 페이지" disabled=""/);
+    assert.doesNotMatch(html, /CSV|업무 기간 필터/);
     assert.match(html, searchStatus === "loading" ? /role="status"/ : /role="alert"/);
-    assert.match(html, searchStatus === "loading" ? /aria-busy="true"/ : /다시 시도/);
+    assert.match(html, searchStatus === "loading" ? /aria-busy="true"/ : /다시 불러오기/);
   }
   const empty = renderToStaticMarkup(React.createElement(JournalView, props({ items: [], total: 0 })));
   assert.match(empty, /조건에 맞는 업무가 없습니다/);
-  assert.match(empty, /0 \/ 0/);
-  assert.doesNotMatch(empty, /조회 실패|다시 시도/);
+  assert.match(empty, /0건/);
+  assert.doesNotMatch(empty, /조회 실패|다시 불러오기/);
 });
 
 test("실패한 업무 검색은 입력 조건을 유지한 채 다시 시도한다", () => {
   let retries = 0;
   const tree = JournalView(props({ status: "error", error: "연결 실패", onRetry: () => { retries++; } }));
-  const retry = descendants(tree).find((element) => element.type === "button" && renderToStaticMarkup(element).includes("다시 시도"));
+  const feedback = descendants(tree).find((element) => typeof element.type === "function" && element.type.name === "ListReadFeedback");
+  assert.ok(feedback);
+  const retry = descendants(feedback.type(feedback.props)).find((element) => element.type === "button" && renderToStaticMarkup(element).includes("다시 불러오기"));
   assert.equal(retry.props.type, "button");
   retry.props.onClick();
   assert.equal(retries, 1);
   assert.match(renderToStaticMarkup(tree), /106동 1503호/);
 });
 
-test("같은 조건의 갱신은 긴 목록을 유지하되 갱신 상태와 잠긴 CSV를 표시한다", () => {
+test("같은 조건의 갱신은 읽던 목록을 유지하되 갱신 상태와 잠긴 페이지 이동을 표시한다", () => {
   const html = renderToStaticMarkup(React.createElement(JournalView, props({ status: "refreshing", canLoadMore: false })));
   assert.match(html, /이전 검색에만 속한 내용/);
-  assert.match(html, /1 \/ 222/);
-  assert.match(html, /같은 조건의 기존 결과를 표시 중/);
+  assert.match(html, /222건/);
+  assert.match(html, /같은 조건의 이전 결과/);
   assert.match(html, /aria-busy="true"/);
-  assert.match(html, /class="export-button" disabled=""/);
+  assert.match(html, /aria-label="다음 페이지" disabled=""/);
+  assert.doesNotMatch(html, /CSV|업무 기간 필터/);
 });
 
 test("검색 일치 물건 표시와 매물 이력은 서버가 반환한 같은 물건을 가리킨다", () => {
@@ -138,8 +143,7 @@ function loadHarness() {
   const loader = (query, response) => compile(["loadWorkLogs"], {
     requestVersion: version, workFirstRequest: firstRequest,
     setWorkFirstPageLoading: loading.set, setWorkSearchError: error.set,
-    journalSearch: query, workTypeFilter: "전화", workPeriod: "month",
-    periodBounds: () => ["2026-09-01", "2026-09-30"],
+    journalSearch: query, workTypeFilter: "전화",
     fetchWorkWindow: (_read, params, count, signal) => { calls.push({ params, count, signal }); return response.promise; },
     jsonFetch: assert.fail, loadedWorkQueryRef: loadedRef, setLoadedWorkQuery: loaded.set,
     setWorkLogs: rows.set, setWorkTotal: total.set,
@@ -155,14 +159,15 @@ test("실제 업무 로더는 실패를 조건 키에 묶고 재시도 성공 �
   failed.reject(new Error("합성 요청 실패"));
   await assert.rejects(request, /합성 요청 실패/);
   assert.equal(h.loading.current, false);
-  assert.deepEqual(h.error.current, { queryKey: JSON.stringify(["106동 1503호", "전화", "2026-09-01", "2026-09-30"]), message: "합성 요청 실패" });
+  assert.deepEqual(h.error.current, { queryKey: JSON.stringify(["106동 1503호", "전화"]), message: "합성 요청 실패" });
   assert.equal(status(h.loaded.current, h.error.current.queryKey, h.loading.current, false, h.error.current), "error");
   const retried = deferred();
   const retry = h.loader("106동 1503호", retried)(undefined, 200);
   assert.equal(h.error.current, null);
   assert.equal(h.calls.at(-1).count, 200, "refresh keeps the requested visible window");
   assert.equal(h.calls.at(-1).params.get("q"), "106동 1503호");
-  assert.equal(h.calls.at(-1).params.get("from"), "2026-09-01");
+  assert.equal(h.calls.at(-1).params.has("from"), false);
+  assert.equal(h.calls.at(-1).params.has("to"), false);
   assert.equal(h.calls.at(-1).params.get("workType"), "전화");
   retried.resolve({ workLogs: [], total: 0 });
   await retry;
@@ -184,36 +189,41 @@ test("늦게 끝난 이전 검색의 실패가 현재 성공 결과를 오류로
   assert.equal(h.loading.current, false);
 });
 
-test("CSV는 최신 성공 조건에서만 실행되고 중복 실행을 막으며 대표 물건임을 알린다", async () => {
-  for (const invalid of ["loading", "refreshing", "error"]) {
-    const exportBlocked = compile(["exportWorkLogs"], { journalStatus: invalid });
-    await exportBlocked();
-  }
-  const pending = deferred(), running = state(false), notices = [], downloads = [], requests = [];
+test("업무 추가 페이지는 최신 성공 조건에서만 읽고 중복 요청과 늦은 응답을 막는다", async () => {
+  const rows = state(Array.from({ length: 100 }, (_, index) => ({ ...synthetic, id: `loaded-${index}` })));
+  const total = state(222), pending = deferred(), requests = [], version = { current: { work: 0 } };
+  const first = { current: null }, more = { current: false }, loading = state(false), notices = [];
   const environment = {
-    journalStatus: "ready", workTotal: 2, workExportPending: { current: false },
+    journalStatus: "ready", workTotal: total.current, workLogs: rows.current,
     canAppendPage, loadedWorkQueryRef: { current: "current" }, workQueryKey: "current",
-    workFirstRequest: { current: null }, workMorePending: { current: false },
-    queries: { journal: "106동 1503호" }, journalSearch: "106동 1503호", workTypeFilter: "전화", workPeriod: "month",
-    setExportingWork: running.set, setNotice: (message) => notices.push(message),
-    periodBounds: () => ["2026-09-01", "2026-09-30"],
-    fetchAllWorkLogs: (params) => { requests.push(params); return pending.promise; },
-    downloadCsv: (...args) => downloads.push(args), seoulDate: () => "2026-09-13", targetText: () => "예시단지 106동 1503호",
+    workFirstRequest: first, workMorePending: more, requestVersion: version,
+    queries: { journal: "106동 1503호" }, journalSearch: "106동 1503호", workTypeFilter: "전화",
+    setLoadingMore: loading.set, setWorkLogs: rows.set, setWorkTotal: total.set,
+    jsonFetch: (url) => { requests.push(new URL(url, "https://local.invalid").searchParams); return pending.promise; },
+    showLoadError: (error) => notices.push(error.message),
   };
-  const exportRows = compile(["exportWorkLogs"], environment);
-  const started = exportRows();
-  await exportRows();
+  const load = compile(["loadMoreWorkLogs"], environment);
+  const started = load();
+  assert.equal(loading.current, true);
+  await load();
   assert.equal(requests.length, 1);
+  assert.equal(requests[0].get("offset"), "100");
+  assert.equal(requests[0].get("limit"), "100");
   assert.equal(requests[0].get("q"), "106동 1503호");
   assert.equal(requests[0].get("workType"), "전화");
-  assert.equal(running.current, true);
-  pending.resolve([synthetic]);
-  await started;
-  assert.equal(running.current, false);
-  assert.equal(downloads[0][1][4], "대표 물건(업무당 1건)");
-  assert.match(notices.at(-1), /현재 조건에 맞는 업무 1건/);
-  assert.match(notices.at(-1), /대표 1건/);
-  const stale = compile(["exportWorkLogs"], { ...environment, loadedWorkQueryRef: { current: "old" } });
-  await stale();
-  assert.equal(requests.length, 1, "stale results never trigger an export");
+  pending.resolve({ workLogs: [{ ...synthetic, id: "next-work" }], total: 222 });
+  assert.equal(await started, 101, "the pagination hook receives the usable loaded count");
+  assert.equal(rows.current.length, 101);
+  assert.equal(loading.current, false);
+  for (const overrides of [{ journalStatus: "refreshing" }, { loadedWorkQueryRef: { current: "old" } }, { workFirstRequest: { current: 9 } }]) {
+    await compile(["loadMoreWorkLogs"], { ...environment, ...overrides })();
+  }
+  assert.equal(requests.length, 1, "unconfirmed results cannot start another page read");
+  const stale = deferred();
+  const old = compile(["loadMoreWorkLogs"], { ...environment, jsonFetch: () => stale.promise })();
+  version.current.work++;
+  stale.resolve({ workLogs: [{ id: "stale-work" }], total: 223 });
+  assert.equal(await old, undefined);
+  assert.equal(rows.current.some((row) => row.id === "stale-work"), false);
+  assert.deepEqual(notices, []);
 });

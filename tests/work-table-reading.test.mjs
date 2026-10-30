@@ -166,7 +166,7 @@ test("표의 일자·내용·전체 업무 버튼은 읽기 동작을 호출하�
   const content = descendants(record).find((element) => element.props["data-label"] === "내용");
   buttons(date, "내용 보기")[0].props.onClick();
   buttons(content, "오전 방문 완료")[0].props.onClick();
-  buttons(record, "전체 업무 내용 보기")[0].props.onClick();
+  byClass(record, "work-record-open")[0].props.onClick();
   assert.deepEqual(opened, [work.id, work.id, work.id]);
   buttons(record, "고객 이력")[0].props.onClick();
   assert.deepEqual(customers, [{ id: work.customer_id, name: work.customer_name }]);

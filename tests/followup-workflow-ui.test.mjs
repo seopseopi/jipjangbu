@@ -157,7 +157,7 @@ test("홈 할 일 요약은 오늘 다음 기한 지남 순서이며 숫자와 �
   }
 });
 
-test("홈 빈 할 일 입력란에서 메모를 함께 입력·저장하고 갱신된 목록에서도 읽는다", async () => {
+test("홈에서 새 할 일 추가를 열어 메모를 함께 저장하고 갱신된 목록에서도 읽는다", async () => {
   const pending = deferred();
   let saved;
   const h = harness({}, { compact: true }, async (_url, options) => {
@@ -169,6 +169,8 @@ test("홈 빈 할 일 입력란에서 메모를 함께 입력·저장하고 갱�
     return { ...response, items: [saved] };
   });
   const notesField = () => find(h.render(), (element) => element.type === "textarea" && element.props.id.endsWith("new-notes"));
+  assert.equal(descendants(h.render()).some((element) => element.type === "form"), false);
+  button(h.render(), "새 할 일 추가").props.onClick();
   assert.equal(notesField().props.value, "");
   assert.equal(notesField().props.required, undefined, "notes remain optional");
   const label = find(h.render(), (element) => element.type === "label" && element.props.htmlFor === notesField().props.id);
@@ -191,15 +193,18 @@ test("홈 빈 할 일 입력란에서 메모를 함께 입력·저장하고 갱�
   pending.resolve({ item: saved });
   await flush();
   assert.equal(h.calls.length, 2, "saved data is reloaded");
-  assert.equal(notesField().props.value, "", "the next blank form still exposes notes");
+  assert.equal(h.state.showForm, false, "a saved form closes back to the compact add button");
   const stored = find(h.render(), (element) => element.props.className === "followup-notes");
   assert.equal(stored.props.children, notes);
   assert.equal(h.state.draft.title, "");
   assert.match(h.state.notice, /할 일을 추가했습니다/);
+  button(h.render(), "새 할 일 추가").props.onClick();
+  assert.equal(notesField().props.value, "", "a fresh form exposes the optional notes again");
 });
 
 test("홈 메모 저장 실패 시 입력한 제목·메모를 보존해 재시도할 수 있다", async () => {
   const h = harness({}, { compact: true }, async () => { throw new Error("합성 저장 실패"); });
+  button(h.render(), "새 할 일 추가").props.onClick();
   find(h.render(), (element) => element.type === "input" && element.props.id.endsWith("new-title"))
     .props.onChange({ target: { value: "보존할 합성 제목" } });
   find(h.render(), (element) => element.type === "textarea")
@@ -336,7 +341,7 @@ test("고객·매물에서 이어진 새 할 일은 연결 대상 이름과 실�
 });
 
 test("저장 실패는 초안을 보존하고 불러오기 버튼 대신 저장 재시도를 안내한다", async () => {
-  const draft = { title: "보존할 제목", notes: "보존할 메모", dueDate: "", customerId: "", listingKey: "" };
+  const draft = { title: "보존할 제목", notes: "보존할 메모", dueDate: "2026-10-31", customerId: "", listingKey: "" };
   const busy = [];
   const h = harness({ showForm: true, draft }, { onBusyChange: (value) => busy.push(value) }, async () => { throw new Error("합성 저장 실패"); });
   const form = find(h.render(), (element) => element.type === "form");
@@ -412,7 +417,7 @@ test("완료 처리 중 중복 입력을 막고 완료된 대상명과 다시 �
   assert.equal(h.state.busyId, null);
 });
 
-test("오늘·내일·날짜 미정 빠른 선택은 제목과 메모·연결을 건드리지 않는다", () => {
+test("오늘·내일 빠른 선택은 제목과 메모·연결을 건드리지 않는다", () => {
   const draft = { title: "예시 제목", notes: "예시 메모", dueDate: "2026-01-01", customerId: synthetic.customer_id, listingKey: synthetic.listing_key };
   const h = harness({ showForm: true, draft });
   const shortcuts = () => find(h.render(), (element) => element.props.className === "followup-date-shortcuts");
@@ -420,8 +425,29 @@ test("오늘·내일·날짜 미정 빠른 선택은 제목과 메모·연결을
   assert.equal(h.state.draft.dueDate, h.todayDate());
   button(shortcuts(), "내일").props.onClick();
   assert.ok(h.state.draft.dueDate > h.todayDate());
-  button(shortcuts(), "날짜 미정").props.onClick();
-  assert.deepEqual(h.state.draft, { ...draft, dueDate: "" });
+  assert.equal(descendants(shortcuts()).filter((element) => element.type === "button").length, 2);
+  assert.deepEqual(h.state.draft, { ...draft, dueDate: h.state.draft.dueDate });
+});
+
+test("홈은 다섯 건을 넘는 진행 할 일도 빠짐없이 표시한다", () => {
+  const items = Array.from({ length: 9 }, (_, index) => ({ ...synthetic, id: `task-${index}`, title: `확인할 일 ${index}` }));
+  const h = harness({ data: { ...response, items } }, { compact: true });
+  const rows = descendants(h.render()).filter((element) => element.type === "article" && element.props.className.startsWith("followup-item"));
+  assert.equal(rows.length, items.length);
+  assert.deepEqual(rows.map((row) => find(row, (element) => element.type === "h3").props.children), items.map((item) => item.title));
+});
+
+test("할 일·예정일은 필수이고 메모는 선택이며 빈 날짜는 저장하지 않는다", () => {
+  const draft = { title: "예정일 확인", notes: "메모 보존", dueDate: "", customerId: "", listingKey: "" };
+  const h = harness({ showForm: true, draft }, { compact: true });
+  const tree = h.render();
+  assert.equal(find(tree, (element) => element.type === "input" && element.props.id.endsWith("new-title")).props.required, true);
+  assert.equal(find(tree, (element) => element.type === "input" && element.props.type === "date").props.required, true);
+  assert.equal(find(tree, (element) => element.type === "textarea").props.required, undefined);
+  find(tree, (element) => element.type === "form").props.onSubmit({ preventDefault() {} });
+  assert.equal(h.calls.length, 0);
+  assert.match(h.state.mutationError, /예정일/);
+  assert.deepEqual(h.state.draft, draft);
 });
 
 test("필터의 전체 건수와 현재 검색 결과 건수를 명시적으로 구분한다", () => {

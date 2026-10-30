@@ -32,9 +32,13 @@ test("집장부 핵심 화면과 데이터 기능이 연결되어 있다", async
   assert.doesNotMatch(manager, /react-loading-skeleton|_sites-preview/);
   assert.match(manager, /집장부 홈으로 이동/);
   assert.match(manager, /<strong>집장부<\/strong>/);
-  for (const feature of ["바로 검색", "최근 7일", "CSV 저장", "100건 더 보기", "업무 등록", "sort-summary"]) {
+  for (const feature of ["바로 검색", "새 업무 등록", "renewal-pagination", "renewal-paginated-list", "sort-summary"]) {
     assert.match(manager, new RegExp(feature));
   }
+  assert.doesNotMatch(manager, /업무 기간 필터|CSV 저장|CSV 준비 중|nav-test-badge/, "removed UI controls stay absent from the renewal");
+  assert.match(manager, /<ResultPagination/);
+  assert.match(manager, /이전 페이지/);
+  assert.match(manager, /다음 페이지/);
   assert.match(manager, /history\.pushState/);
   assert.match(manager, /<Icon name="back"/);
   assert.match(workRoute, /COUNT\(\*\) AS total/);
@@ -45,7 +49,10 @@ test("집장부 핵심 화면과 데이터 기능이 연결되어 있다", async
   assert.match(security, /MAX_LOGIN_ATTEMPTS = 5/);
   assert.match(security, /AES-GCM/);
   assert.match(security, /BACKUP_RETENTION_MS = 90/);
-  assert.match(login, /관리자 전용/);
+  assert.match(login, /마전현대공인중개사무소/);
+  assert.match(login, /fetch\("\/api\/auth\/login"/);
+  assert.match(login, /autoComplete="username"[^>]*required/);
+  assert.match(login, /autoComplete="current-password"[^>]*required/);
   assert.match(settings, /지금 백업/);
   assert.match(settings, /로그아웃/);
   assert.match(layout, /jipjangbu-icon-bright\.png/);

@@ -1,0 +1,190 @@
+/* Approved work composer: the existing workflow on a wide, quiet editing surface. */
+.modal-card:has(> .modal-body > .work-form) {
+  width: min(1080px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+}
+.modal-card:has(> .modal-body > .work-form) > .modal-body {
+  padding: 18px 20px 0;
+}
+.work-form, .customer-form { min-width: 0; color: var(--ink-2); }
+.work-form label, .customer-form label, .work-form .field-label {
+  min-width: 0;
+  color: #3c4e67;
+  font-size: max(17px, var(--text-small));
+  font-weight: 550;
+  line-height: 1.5;
+}
+.work-form .required-mark, .customer-form .required-mark {
+  margin-left: 3px;
+  color: #c73532;
+  font-size: 18px;
+  font-weight: 700;
+}
+.work-form input:not([type="checkbox"]), .work-form select, .work-form textarea,
+.customer-form input, .customer-form textarea {
+  min-width: 0;
+  min-height: max(48px, var(--control-height));
+  margin-top: 5px;
+  padding: 9px 11px;
+  border: 1px solid #b9c5d5;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #253850;
+  font-size: max(18px, var(--text-base));
+  font-weight: 450;
+  line-height: 1.5;
+  box-shadow: none;
+}
+.work-form input::placeholder, .work-form textarea::placeholder,
+.customer-form input::placeholder, .customer-form textarea::placeholder {
+  color: #586b85;
+  opacity: 1;
+}
+.work-form input:focus, .work-form select:focus, .work-form textarea:focus,
+.customer-form input:focus, .customer-form textarea:focus {
+  border-color: #526b8b;
+  box-shadow: 0 0 0 3px #e8edf4;
+}
+.work-form select { padding-right: 36px; }
+.work-form .form-grid.three {
+  grid-template-columns: 165px minmax(0, 1fr) 190px;
+  align-items: start;
+  gap: 14px;
+}
+.work-form .field-label { min-height: 26px; }
+.work-form .field-label button {
+  flex: none;
+  min-height: 30px;
+  margin: -2px 0;
+  padding: 1px 0;
+  color: #3e608b;
+  font-size: max(16px, var(--text-caption));
+  font-weight: 500;
+}
+.work-form .field-label button:hover { text-decoration: underline; text-underline-offset: 4px; }
+.work-form .editor-history-button {
+  min-height: 34px;
+  margin-top: 4px;
+  padding: 3px 0;
+  border: 0;
+  background: transparent;
+  color: #42638c;
+  font-size: max(16px, var(--text-caption));
+  font-weight: 500;
+  box-shadow: none;
+}
+.work-form .field-with-action > .editor-history-button + .editor-history-button { margin-left: 16px; }
+.work-form .editor-history-button:hover:not(:disabled),
+.work-form .editor-history-button[aria-expanded="true"] {
+  background: transparent;
+  color: #294e7c;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.work-form .full-label { display: block; margin-top: 12px; }
+.work-form .full-label textarea { min-height: 98px; }
+.work-form .full-label > .form-help { color: #536680; font-size: max(16px, var(--text-caption)); font-weight: 450; }
+.work-form .detail-head { align-items: start; gap: 12px; margin: 18px 0 10px; }
+.work-form .detail-head h3 { color: #30445f; font-size: 20px; line-height: 1.5; }
+.work-form .detail-head h3 small { margin-left: 7px; color: #52667f; font-size: max(16px, var(--text-caption)); font-weight: 450; white-space: nowrap; }
+.work-form .detail-head p { margin: 4px 0 0; color: #4f627b; font-size: max(16px, var(--text-caption)); font-weight: 450; line-height: 1.5; }
+.work-form .detail-head .secondary-button { min-height: 40px; padding: 7px 11px; font-size: max(16px, var(--text-caption)); }
+.work-form .listing-rule-notice {
+  margin: -1px 0 11px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #4f627b;
+  font-size: max(16px, var(--text-caption));
+  line-height: 1.5;
+}
+.work-form .detail-list { gap: 14px; }
+.work-form .detail-list > fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #cbd5e2;
+  border-radius: 12px;
+  background: #fff;
+}
+.work-form .detail-list legend { padding: 0 5px; color: #3b506c; font-size: max(17px, var(--text-small)); font-weight: 550; }
+.work-form .detail-history-tools { gap: 4px 18px; margin: -3px 0 8px; }
+.work-form .detail-history-tools .editor-history-button { margin-top: 0; }
+.work-form .detail-fields {
+  display: grid;
+  grid-template-columns: minmax(110px, .95fr) minmax(180px, 1.7fr) minmax(75px, .65fr) minmax(85px, .75fr) minmax(85px, .85fr);
+  align-items: start;
+  gap: 10px;
+}
+.work-form .detail-fields .building-field { grid-column: auto; }
+.work-form .detail-fields.is-land { grid-template-columns: minmax(110px, .95fr) minmax(180px, 3.1fr) minmax(85px, .85fr); }
+.work-form .detail-price-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 11px; }
+.work-form .detail-price-fields input { font-variant-numeric: tabular-nums; }
+.work-form .detail-source-fields { display: grid; margin-top: 11px; }
+.work-form .detail-fields label, .work-form .detail-price-fields label, .work-form .detail-source-fields label { font-size: max(17px, var(--text-small)); }
+.work-form .remove-detail { min-height: 36px; margin-top: 6px; padding: 4px 0; color: #985348; font-size: max(16px, var(--text-caption)); }
+.work-form .work-form-error { margin: 0 0 14px; font-size: max(17px, var(--text-small)); }
+.work-form .work-record-actions { gap: 10px; margin-top: 16px; padding-top: 14px; }
+.work-form .modal-actions {
+  bottom: 0;
+  gap: 10px;
+  margin: 16px -20px 0;
+  padding: 12px 20px;
+  border-top: 1px solid #d6dee8;
+  background: #fff;
+}
+.work-form .modal-actions .work-save-state { font-size: max(16px, var(--text-caption)); }
+.customer-form { display: grid; gap: 14px; }
+.customer-form .modal-actions { margin-top: 4px; }
+.customer-form .modal-actions > span { flex: 1; }
+.work-form .customer-picker-results { top: calc(100% + 4px); padding: 4px; border-color: #bbc8d9; border-radius: 8px; box-shadow: 0 8px 20px #273d5a16; }
+.work-form .customer-picker-option { gap: 3px; min-height: 62px; padding: 9px 10px; border-radius: 6px; color: #2e435f; }
+.work-form .customer-picker-option + .customer-picker-option { border-top: 1px solid #e0e6ef; }
+.work-form .customer-picker-option strong { color: #2d405b; font-size: max(18px, var(--text-base)); font-weight: 550; }
+.work-form .customer-picker-option small { color: #4b5f7b; font-size: max(16px, var(--text-caption)); font-weight: 450; }
+.work-form .customer-picker-option:hover, .work-form .customer-picker-option[aria-selected="true"] { background: #f0f4fa; }
+.work-form .customer-picker-empty { color: #4c607b; font-size: max(16px, var(--text-caption)); }
+.work-form .listing-picker { margin: 4px 0 12px; padding: 12px; border: 1px solid #c9d5e6; border-radius: 8px; background: #fff; }
+.work-form .listing-picker-header { align-items: start; gap: 12px; margin-bottom: 10px; }
+.work-form .listing-picker-header h3 { color: #354b68; font-size: 18px; line-height: 1.5; }
+.work-form .listing-picker-header p, .work-form .listing-picker-summary, .work-form .listing-picker-footer { color: #4c607b; font-size: max(16px, var(--text-caption)); }
+.work-form .listing-picker-header .secondary-button { min-height: 36px; padding: 4px 8px; font-size: max(16px, var(--text-caption)); }
+.work-form .listing-picker-controls { padding: 0; background: transparent; }
+.work-form .listing-picker-controls > label { font-size: max(16px, var(--text-caption)); }
+.work-form .listing-picker-search input { margin-top: 0; }
+.work-form .listing-picker-closed-filter { display: flex; align-items: center; gap: 8px; min-height: 36px; }
+.work-form .listing-picker-closed-filter input { width: 20px; height: 20px; min-height: 20px; margin: 0; flex: none; accent-color: #425d80; }
+.work-form .listing-picker-results { max-height: 300px; overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid #dbe2ed; scrollbar-gutter: stable; }
+.work-form .listing-picker-row { gap: 10px; padding: 10px 4px; border-color: #dce4ee; background: #fff; }
+.work-form .listing-picker-row-copy > strong { color: #2d405b; font-size: max(18px, var(--text-base)); font-weight: 550; }
+.work-form .listing-picker-row-copy p { color: #3e5473; font-size: max(16px, var(--text-caption)); }
+.work-form .listing-picker-row-meta { color: #4c607b; font-size: max(16px, var(--text-caption)); }
+.work-form .listing-picker-row .secondary-button { min-height: 40px; padding: 6px 9px; font-size: max(16px, var(--text-caption)); }
+.work-form .listing-picker-message { color: #4c607b; font-size: max(17px, var(--text-small)); }
+.work-form .listing-picker-more { margin-top: 10px; }
+.work-form .listing-loaded-message { margin: 0 0 4px; font-size: max(16px, var(--text-caption)); }
+@media (max-width: 760px) {
+  .modal-card:has(> .modal-body > .work-form) { width: calc(100vw - 20px); max-width: calc(100vw - 20px); }
+  .modal-card:has(> .modal-body > .work-form) > .modal-body { padding: 16px 16px 0; }
+  .work-form .form-grid.three { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  .work-form .form-grid.three > .field-with-action { grid-column: 1 / -1; grid-row: 2; }
+  .work-form .detail-head { gap: 10px; }
+  .work-form .detail-head h3 small { display: inline-block; margin-left: 3px; }
+  .work-form .detail-fields, .work-form .detail-fields.is-land { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .work-form .detail-fields > .building-field { grid-column: 1 / -1; grid-row: 2; }
+  .work-form .detail-price-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .work-form .detail-price-fields > label:last-child { grid-column: 1 / -1; }
+  .work-form .detail-list > fieldset { padding: 10px; }
+  .work-form .detail-history-tools { gap: 3px 14px; }
+  .work-form .detail-head .secondary-button { padding-inline: 9px; }
+  .work-form .modal-actions { margin: 14px -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .work-form .modal-actions .work-save-state { flex-basis: 100%; }
+  .work-form .listing-picker { padding: 9px; }
+  .work-form .listing-picker-results { max-height: 250px; }
+  .work-form .listing-picker-row { flex-wrap: wrap; }
+  .work-form .listing-picker-row > .secondary-button { margin-left: auto; }
+}
+@media (max-width: 400px) {
+  .work-form .detail-price-fields { grid-template-columns: minmax(0, 1fr); }
+  .work-form .detail-price-fields > label:last-child { grid-column: auto; }
+}

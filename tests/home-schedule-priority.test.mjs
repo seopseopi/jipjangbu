@@ -87,9 +87,9 @@ test("일정 칸의 오늘 업무·7일 일정 버튼은 팝업을 열고 달력
   assert.deepEqual(scheduled, [7]);
 });
 
-test("남아 있는 최근 업무 카드는 고객명 옆에 ID를 표시하고 원래 업무를 연다", () => {
-  const opened = [];
-  const tree = render({ onOpen: (id) => opened.push(id) });
+test("최근 업무는 고객명을 한 번 표시하며 고객 이력과 업무 내용을 각각 원래 ID로 연다", () => {
+  const opened = [], customers = [];
+  const tree = render({ onOpen: (id) => opened.push(id), onCustomerHistory: (customer) => customers.push(customer) });
   const schedules = descendants(tree).filter((item) => item.type === production.WorkTable);
   assert.equal(schedules.length, 1);
   for (const schedule of schedules) {
@@ -97,34 +97,37 @@ test("남아 있는 최근 업무 카드는 고객명 옆에 ID를 표시하고 
     const item = schedule.props.items[0];
     const customer = descendants(rows).find((node) => node.props.className === "work-record-customer-link");
     assert.ok(customer);
-    const [name, identifier] = React.Children.toArray(customer.props.children);
-    assert.equal(name.type, "b");
-    assert.equal(name.props.children, item.customer_name);
-    assert.equal(identifier.props.className, "work-customer-id");
-    assert.equal(identifier.props.children, item.customer_id);
-    assert.ok(html(rows).indexOf(item.customer_name) < html(rows).indexOf(item.customer_id));
-    descendants(rows).find((node) => node.props.className === "work-record-open").props.onClick();
+    const children = React.Children.toArray(customer.props.children);
+    assert.equal(children.length, 1, "the first-line customer identity is not duplicated below");
+    assert.equal(children[0].type, "b");
+    assert.equal(children[0].props.children, item.customer_name);
+    customer.props.onClick();
+    const workButton = descendants(rows).find((node) => node.type === "button" && node.props.className?.split(/\s+/).includes("work-record-open"));
+    assert.equal(workButton.props.children, item.work_type);
+    workButton.props.onClick();
   }
+  assert.deepEqual(customers, [{ id: "synthetic-customer-recent-work", name: "합성 고객" }]);
   assert.deepEqual(opened, ["recent-work"]);
 });
 
-test("고객 ID가 없어도 이름을 유지하고 긴 고객명·ID는 좁은 화면에서 자연스럽게 줄바꿈한다", () => {
+test("고객 ID가 없어도 이름을 유지하고 긴 고객명은 줄바꿈하며 긴 ID의 이력 연결도 보존한다", () => {
   const item = { ...dashboard.today[0], customer_id: "" };
   const tree = production.WorkTable({ items: [item], onOpen: noop, empty: "빈 목록" });
   assert.doesNotMatch(html(tree), /schedule-customer-id|고객 ID:/);
   assert.match(html(tree), /합성 고객/);
   const longItem = { ...item, customer_name: "긴 합성 고객 이름 ".repeat(20), customer_id: "synthetic-id-".repeat(30) };
-  const longTree = production.WorkTable({ items: [longItem], onOpen: noop, empty: "빈 목록" });
+  const opened = [];
+  const longTree = production.WorkTable({ items: [longItem], onOpen: noop, onCustomerHistory: (customer) => opened.push(customer), onListingHistory: noop, empty: "빈 목록" });
   assert.ok(html(longTree).includes(longItem.customer_name));
-  assert.ok(html(longTree).includes(longItem.customer_id));
+  const customerButton = descendants(longTree).find((node) => node.props.className === "work-record-customer-link");
+  customerButton.props.onClick();
+  assert.deepEqual(opened, [{ id: longItem.customer_id, name: longItem.customer_name }]);
   const css = readFileSync(new URL("../app/work-reading-list.css", import.meta.url), "utf8");
   assert.match(css, /\.work-record-customer-link\s*\{[^}]*display:\s*flex;[^}]*flex-wrap:\s*wrap/);
   assert.match(css, /\.work-record-customer-link b\s*\{[^}]*overflow-wrap:\s*anywhere/);
-  assert.match(css, /\.work-record-customer-link \.work-customer-id\s*\{[^}]*overflow-wrap:\s*anywhere/);
-  assert.match(css, /\.home-body-grid \.work-record-customer-link \.work-customer-id\s*\{[^}]*flex-basis:\s*auto/);
 });
 
-test("홈 업무는 날짜·업무구분·고객 순서의 머리말을 본문보다 먼저 표시하고 빈 목록 안내를 유지한다", () => {
+test("홈 업무는 고객명·업무구분·날짜를 본문보다 먼저 표시하고 빈 목록 안내를 유지한다", () => {
   const items = ["잔금예정", "집방문예정", "집방문예약", "전화"].map((work_type, index) => ({ ...dashboard.today[0], id: String(index), work_type }));
   const tree = production.WorkTable({ items, onOpen: noop, onCustomerHistory: noop, onListingHistory: noop });
   const records = descendants(tree).filter((node) => node.props.className === "table-row work-record-row");
@@ -132,8 +135,13 @@ test("홈 업무는 날짜·업무구분·고객 순서의 머리말을 본문�
   for (const [index, record] of records.entries()) {
     const [meta, body] = React.Children.toArray(record.props.children);
     assert.equal(meta.props.className, "work-record-meta");
-    assert.deepEqual(React.Children.toArray(meta.props.children).slice(0, 3).map((node) => node.props["data-label"]), ["일자", "업무구분", "고객"]);
-    assert.ok(html(meta).includes(items[index].work_type));
+    const [customer, work, date] = React.Children.toArray(meta.props.children);
+    assert.equal(customer.props["data-label"], "고객");
+    assert.equal(work.type, "button");
+    assert.ok(work.props.className.split(/\s+/).includes("work-record-open"));
+    assert.equal(work.props.children, items[index].work_type);
+    assert.equal(date.props["data-label"], "일자");
+    assert.ok(html(meta).includes(items[index].work_date));
     assert.ok(html(body).includes(items[index].content));
   }
   for (const empty of ["오늘 등록된 업무가 없습니다.", "앞으로 7일간 등록된 일정이 없습니다."]) {

@@ -71,6 +71,12 @@ function emptyDraft(): Draft {
   return { title: "", notes: "", dueDate: todayDate(), customerId: "", listingKey: "" };
 }
 
+function isFollowUpDate(value: string) {
+  if (!/^(?!0000)\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
 function differentDraft(a: Draft, b: Draft) {
   return a.title !== b.title || a.notes !== b.notes || a.dueDate !== b.dueDate || a.customerId !== b.customerId || a.listingKey !== b.listingKey;
 }
@@ -103,7 +109,7 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
   const [conflictRecord, setConflictRecord] = useState<{ id: string; latest?: FollowUpItem; loading?: boolean; error?: string } | null>(null);
   const [notice, setNotice] = useState("");
   const [deletionId, setDeletionId] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(compact);
+  const [showForm, setShowForm] = useState(false);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [draftBaseline, setDraftBaseline] = useState<Draft>(emptyDraft);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -254,6 +260,10 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
     if (!id && editingId) return;
     const title = value.title.trim();
     if (!title) return;
+    if (!isFollowUpDate(value.dueDate)) {
+      setMutationError("예정일을 선택해 주세요.");
+      return;
+    }
     void mutate(id ?? "new", id ? "PATCH" : "POST", {
       title,
       notes: value.notes.trim(),
@@ -268,7 +278,7 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
         setDraft(next);
         setDraftBaseline(next);
         setDraftLabels({ customerName: "", listingLabel: "" });
-        setShowForm(compact);
+        setShowForm(false);
       }
     });
   }
@@ -309,7 +319,7 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
       setDraft(next);
       setDraftBaseline(next);
       setDraftLabels({ customerName: "", listingLabel: "" });
-      setShowForm(compact);
+      setShowForm(false);
     }
     setMutationError("");
     setMutationConflict(false);
@@ -350,14 +360,14 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
     }}>
       <div className="followup-form-main">
         <label className="followup-field followup-title-field" htmlFor={`${id}-title`}>
-          <span>{editing ? "할 일 수정" : "무엇을 해야 하나요?"}</span>
+          <span>{editing ? "할 일 수정" : "할 일"} <b className="followup-required" aria-hidden="true">*</b></span>
           <input ref={editing ? undefined : titleInput} id={`${id}-title`} value={value.title} onChange={(event) => update({ ...value, title: event.target.value })} placeholder="예: 고객에게 상담 일정 확인하기" maxLength={200} required disabled={!!busyId} autoComplete="off" />
         </label>
         <div className="followup-field followup-date-field">
-          <label htmlFor={`${id}-date`}>예정일 <small>선택</small></label>
-          <input id={`${id}-date`} type="date" min="0001-01-01" max="9999-12-31" value={value.dueDate} onChange={(event) => update({ ...value, dueDate: event.target.value })} disabled={!!busyId} />
+          <label htmlFor={`${id}-date`}>예정일 <b className="followup-required" aria-hidden="true">*</b></label>
+          <input id={`${id}-date`} type="date" min="0001-01-01" max="9999-12-31" value={value.dueDate} onChange={(event) => update({ ...value, dueDate: event.target.value })} required disabled={!!busyId} />
           <div className="followup-date-shortcuts" aria-label="예정일 빠른 선택">
-            {[{ label: "오늘", value: today }, { label: "내일", value: nextDay(today) }, { label: "날짜 미정", value: "" }].map((option) => <button key={option.label} type="button" disabled={!!busyId} aria-pressed={value.dueDate === option.value} onClick={() => update({ ...value, dueDate: option.value })}>{option.label}</button>)}
+            {[{ label: "오늘", value: today }, { label: "내일", value: nextDay(today) }].map((option) => <button key={option.label} type="button" disabled={!!busyId} aria-pressed={value.dueDate === option.value} onClick={() => update({ ...value, dueDate: option.value })}>{option.label}</button>)}
           </div>
         </div>
       </div>
@@ -372,15 +382,15 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
       </div>}
       {!editing && editingId && <p className="followup-link-note">수정 중인 할 일을 저장하거나 취소한 뒤 새 할 일을 추가할 수 있습니다.</p>}
       <div className="followup-form-actions">
-        {!compact || editing || draftDirty ? <button className="followup-button" type="button" disabled={!!busyId} onClick={() => cancelForm(editing)}>취소</button> : null}
-        <button className="followup-button followup-button-primary" type="submit" disabled={!!busyId || !value.title.trim() || (!editing && !!editingId)}><Icon name={editing ? "save" : "plus"} size={18} />{busyId === (editing ?? "new") ? "저장 중…" : editing ? "수정 저장" : "할 일 추가"}</button>
+        <button className="followup-button" type="button" disabled={!!busyId} onClick={() => cancelForm(editing)}>취소</button>
+        <button className="followup-button followup-button-primary" type="submit" disabled={!!busyId || !value.title.trim() || !value.dueDate || (!editing && !!editingId)}><Icon name={editing ? "save" : "plus"} size={18} />{busyId === (editing ?? "new") ? "저장 중…" : editing ? "수정 저장" : "할 일 추가"}</button>
       </div>
     </form>;
   }
 
   const summary = readState === "error" ? undefined : data?.summary;
   const items = readState === "ready" || readState === "refreshing" ? data?.items ?? [] : [];
-  const visibleItems = compact ? items.slice(0, 5) : items;
+  const visibleItems = items;
   const filters: Array<{ id: Filter; label: string; count?: number }> = [
     { id: "all", label: "전체 진행", count: summary?.open },
     { id: "today", label: "오늘", count: summary?.today },
@@ -392,7 +402,7 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
   return <section className={`followup-view${compact ? " followup-compact" : ""}`} aria-label={compact ? "챙겨야 할 일" : "할 일 관리"}>
     <div className="followup-heading">
       <div><h2>{compact ? "챙겨야 할 일" : "할 일 목록"}</h2></div>
-      {compact ? onShowAll && <button className="followup-button followup-button-link" disabled={!!busyId} onClick={showAll}>전체 보기</button> : !showForm && <button className="followup-button followup-button-primary" disabled={!!busyId} onClick={openNewForm}><Icon name="plus" size={18} />할 일 추가</button>}
+      {compact ? onShowAll && <button className="followup-button followup-button-link" disabled={!!busyId} onClick={showAll}>전체 보기</button> : !showForm && <button className="followup-button followup-button-primary" disabled={!!busyId} onClick={openNewForm}><Icon name="plus" size={18} />새 할 일 추가</button>}
     </div>
 
     {compact && summary && <div className="followup-urgency" aria-label="챙겨야 할 일 요약">
@@ -448,8 +458,7 @@ export function FollowUpsView({ compact = false, refreshKey = 0, onChange, onDir
         </>}
       </article>)}
     </div>}
-    {compact && renderForm(draft, setDraft)}
-    {compact && items.length > visibleItems.length && onShowAll && <button className="followup-show-more" disabled={!!busyId} onClick={showAll}>나머지 {items.length - visibleItems.length}건 더 보기 <Icon name="next" size={18} /></button>}
+    {compact && (showForm ? renderForm(draft, setDraft) : <button className="followup-button followup-add" type="button" disabled={!!busyId || !!editingId} onClick={openNewForm}><Icon name="plus" size={18} />새 할 일 추가</button>)}
     {deletionId && <DeletionDialog type="followup" id={deletionId} onClose={() => setDeletionId(null)} onBusyChange={(busy) => { mutationLock.current = busy; setBusyId(busy ? deletionId : null); busyCallback.current?.(busy); }} onDeleted={() => {
       setDeletionId(null);
       setNotice("할 일을 휴지통으로 옮겼습니다. 휴지통에서 복구할 수 있습니다.");

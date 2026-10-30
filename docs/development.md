@@ -68,11 +68,23 @@ flowchart LR
 | 관심사 | 시작할 파일 |
 | :--- | :--- |
 | 화면 전환·초안·모달 | [`app/work-manager.tsx`](../app/work-manager.tsx) |
+| 화면 디자인·업무 폼 | [`app/renewal.css`](../app/renewal.css) · [`app/work-form-renewal.css`](../app/work-form-renewal.css) |
+| 목록 페이지·브랜드 심볼 | [`app/result-pagination.ts`](../app/result-pagination.ts) · [`app/brand-mark.tsx`](../app/brand-mark.tsx) |
 | 주소 검색·정렬 | [`app/api/_search.js`](../app/api/_search.js) · [`app/api/_ordering.ts`](../app/api/_ordering.ts) |
 | 관계형 모델·매물 상태 | [`db/schema.ts`](../db/schema.ts) · [`db/listing-sync.ts`](../db/listing-sync.ts) |
 | 읽기 캐시·요청 수명 | [`app/client-api.ts`](../app/client-api.ts) · [`db/bootstrap.ts`](../db/bootstrap.ts) |
 | 삭제·복구 | [`app/api/trash`](../app/api/trash) · [`tests/deletion-safety.test.mjs`](../tests/deletion-safety.test.mjs) |
 | 인증·암호화 백업 | [`worker/security.ts`](../worker/security.ts) · [`tests/runtime-performance.test.mjs`](../tests/runtime-performance.test.mjs) |
+
+## 현재 화면 규칙
+
+2026-10-31 리뉴얼은 기존 데이터 처리와 고객·업무·매물·동호수 연결을 유지한 채 화면을 변경합니다. 아이보리 배경·흰 섹션·둥근 모서리·큰 기본 글씨를 사용하며, 집과 장부를 합친 단색 로고 옆에 사무소명을 표시합니다. 사이드바의 검색은 왼쪽, 새 업무 등록은 오른쪽입니다.
+
+- 업무일지는 검색·업무구분 조회를 유지하고 기간 선택과 CSV 내보내기를 제거합니다.
+- 업무일지 5건·매물 10건의 로컬 페이지를 사용합니다. 서버의 100건 단위 증분 조회와 오류·오래된 응답 보호는 유지하며, 고객 목록은 100건 더보기를 사용합니다.
+- 달력은 하루의 모든 업무를 직접 표시합니다. 업무구분 색상은 유지하고 오늘은 숫자만 진한 원으로 표시합니다.
+- 홈 할 일은 5건 표시 제한을 없애고 목록 스크롤을 사용합니다. 새 할 일 추가 버튼으로 입력을 열며 할 일·예정일은 필수, 메모는 선택입니다. 기존 날짜 미정 기록은 보존합니다.
+- 필수 입력은 빨간 `*`로 표시하며 선택에 따라 바뀌는 원래 업무 검증 규칙을 유지합니다.
 
 ## 기존 엑셀 자료 이관
 
@@ -83,7 +95,7 @@ Excel에서 개발필요 파일을 `.xlsx`로 복사 저장한 뒤 [`scripts/bui
 ## 운영 범위와 주의사항
 
 - 변경 전 백업에 실패하면 데이터 변경을 중단합니다. 일일 백업은 사이트 이용 시 실행하며 한국 시각 자정 예약 트리거도 설정했습니다. 배포 환경에서 실제 트리거 등록과 실행 여부를 확인해야 합니다. 자동 백업 보관 기간은 90일입니다.
-- CSV는 화면별 내보내기이며 전체 관계를 복구하는 백업이 아닙니다. 내려받은 백업은 별도 안전한 장소에 보관하세요.
+- 목록 CSV 내보내기는 제거했습니다. 내려받은 암호화 백업은 별도 안전한 장소에 보관하세요.
 - 업무·고객·할 일은 편집 기준을 조건부 저장에서 비교해 동시 수정을 차단합니다. 자동 병합은 지원하지 않습니다. 할 일 충돌 후에는 초안을 유지하며 최신 내용 확인 경로를 제공합니다.
 - 초안은 새로고침 후 자동 복구되지 않습니다. 할 일은 자동 문자·전화·푸시 알림을 보내지 않습니다.
 - 운영 DB 전체 복원·재해 복구 훈련은 수행하지 않았습니다. 수정 전 버전 복원과 외부 백업은 현재 완료된 기능이 아닙니다. 예약 트리거의 운영 적용 여부는 별도 확인해야 합니다.

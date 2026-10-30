@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { safeReturnTo } from "../../worker/return-to.js";
+import { BrandMark } from "../brand-mark";
+import "../renewal.css";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -34,17 +36,17 @@ export default function LoginPage() {
   return <main className="login-shell">
     <section className="login-card" aria-labelledby="login-title">
       <Link className="login-brand" href="/" prefetch={false} aria-label="집장부 홈">
-        <span className="login-logo" aria-hidden="true" />
+        <BrandMark className="brand-mark login-logo" />
         <strong>집장부</strong>
       </Link>
       <div className="login-heading">
         <h1 id="login-title">로그인</h1>
-        <span>관리자 전용입니다. 등록된 아이디와 비밀번호를 입력해 주세요.</span>
+        <span>마전현대공인중개사무소</span>
       </div>
       <form className="login-form" onSubmit={submit}>
-        <label htmlFor="username">아이디</label>
+        <label htmlFor="username">아이디 <b className="required-mark" aria-hidden="true">*</b></label>
         <input id="username" name="username" value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" autoCapitalize="none" spellCheck={false} required />
-        <label htmlFor="password">비밀번호</label>
+        <label htmlFor="password">비밀번호 <b className="required-mark" aria-hidden="true">*</b></label>
         <input id="password" name="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required />
         {error && <p className="login-error" role="alert">{error}</p>}
         <button className="login-submit" disabled={submitting}>{submitting ? "확인 중…" : "로그인"}</button>

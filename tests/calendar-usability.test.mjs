@@ -65,20 +65,22 @@ test("날짜별 목록은 날짜 오름차순이며 다른 달의 늦은 응답�
   assert.match(renderToStaticMarkup(days[0]), /9월 1일 \(화\)/);
 });
 
-test("업무구분을 바꾼 직후 이전 응답에 남은 다른 업무구분은 양쪽 달력과 전체보기에서 제외된다", () => {
+test("업무구분을 바꾼 직후 이전 응답의 다른 업무구분은 제외하고 일치한 업무 전부를 양쪽 달력에 표시한다", () => {
   const matching = Array.from({ length: 5 }, (_, index) => syntheticWork(`matching-${index}`, "2026-09-12", { work_type: "계약예정" }));
   const previous = [syntheticWork("old-type", "2026-09-12"), syntheticWork("old-day", "2026-09-13")];
   const items = [...previous, ...matching];
   const opened = [];
-  const tree = renderCalendar({ workType: "계약예정", items, onShowDay: (date, records) => opened.push({ date, records }) });
+  const tree = renderCalendar({ workType: "계약예정", items, onOpen: (id) => opened.push(id) });
   assert.equal(findByClass(tree, "calendar-agenda-day").length, 1);
-  assert.equal(findByClass(tree, "calendar-agenda-event").length, 4);
+  assert.equal(findByClass(tree, "calendar-agenda-event").length, matching.length);
   const [desktop] = findByClass(tree, "calendar-desktop-panel");
   const desktopCards = descendants(desktop).filter((element) => element.type === "button" && !hasClass(element, "calendar-more"));
-  assert.equal(desktopCards.length, 4);
+  assert.equal(desktopCards.length, matching.length);
   assert.ok(desktopCards.every((card) => renderToStaticMarkup(card).includes("계약예정")));
-  findByClass(tree, "calendar-agenda-more")[0].props.onClick();
-  assert.deepEqual(opened, [{ date: "2026-09-12", records: matching }]);
+  for (const card of desktopCards) card.props.onClick();
+  assert.deepEqual(opened, matching.map((item) => item.id));
+  assert.equal(findByClass(tree, "calendar-agenda-more").length, 0);
+  assert.equal(findByClass(tree, "calendar-more").length, 0);
   const onlyPrevious = renderCalendar({ workType: "계약예정", items: previous });
   assert.equal(findByClass(onlyPrevious, "calendar-agenda-event").length, 0);
   assert.match(renderToStaticMarkup(findByClass(onlyPrevious, "calendar-agenda")[0]), /해당 업무구분의 기록이 없습니다/);
@@ -165,20 +167,24 @@ test("같은 단지의 묶음 물건은 달력 양쪽에서 제목 한 번과 �
   }
 });
 
-test("하루 4건 초과 업무는 기존 날짜별 이력으로 전체를 열 수 있고 데스크톱 동작도 유지한다", () => {
+test("하루 4건을 넘겨도 모든 업무를 달력에 직접 표시하고 각각 원래 업무를 연다", () => {
   const items = Array.from({ length: 7 }, (_, index) => syntheticWork(`day-${index}`, "2026-09-12"));
-  const calls = [];
-  const tree = renderCalendar({ items, onShowDay: (date, records) => calls.push({ date, records }) });
-  assert.equal(findByClass(tree, "calendar-agenda-event").length, 4);
-  const [agendaMore] = findByClass(tree, "calendar-agenda-more");
-  assert.match(renderToStaticMarkup(agendaMore), /7건 모두 보기/);
-  assert.match(renderToStaticMarkup(agendaMore), /3건 더 있음/);
-  agendaMore.props.onClick();
-  assert.deepEqual(calls[0], { date: "2026-09-12", records: items });
+  const opened = [], dayDialogs = [];
+  const tree = renderCalendar({ items, onOpen: (id) => opened.push(id), onShowDay: (date, records) => dayDialogs.push({ date, records }) });
+  const agendaCards = findByClass(tree, "calendar-agenda-event");
+  assert.equal(agendaCards.length, items.length);
+  assert.equal(findByClass(tree, "calendar-agenda-more").length, 0);
   const [desktop] = findByClass(tree, "calendar-desktop-panel");
   assert.equal(findByClass(desktop, "calendar-week").length, 1);
-  findByClass(desktop, "calendar-more")[0].props.onClick();
-  assert.deepEqual(calls[1], calls[0]);
+  assert.equal(findByClass(desktop, "calendar-more").length, 0);
+  const desktopCards = descendants(desktop).filter((element) => element.type === "button");
+  assert.equal(desktopCards.length, items.length);
+  for (const cards of [agendaCards, desktopCards]) {
+    const first = opened.length;
+    for (const card of cards) card.props.onClick();
+    assert.deepEqual(opened.slice(first), items.map((item) => item.id));
+  }
+  assert.deepEqual(dayDialogs, [], "all rows are directly available without a separate more dialog");
   assert.ok(descendants(tree).filter((element) => element.type === "button").every((button) => button.props.type === "button"));
 });
 
@@ -250,17 +256,20 @@ test("모바일은 월 그리드 대신 전체 폭 일정 목록을 보여주고
     assert.doesNotMatch(rule, /line-clamp|overflow:\s*hidden/, "주소와 고객명은 전체 표시한다");
     assert.match(rule, /overflow-wrap:\s*anywhere/);
   }
-  assert.match(css, /\.calendar-agenda-notes\s*\{[^}]*-webkit-line-clamp:\s*3/, "목록의 긴 메모는 3줄 미리보기이며 업무 열기로 전문에 접근한다");
+  const renewal = readFileSync(new URL("../app/renewal.css", import.meta.url), "utf8");
+  assert.match(renewal, /\.calendar-agenda-notes\s*\{[^}]*display:\s*block[^}]*-webkit-line-clamp:\s*unset[^}]*overflow:\s*visible/, "the renewal keeps long notes fully visible");
+  assert.ok(source.indexOf('import "./calendar.css"') < source.indexOf('import "./renewal.css"'), "renewal rules override the original three-line preview");
 });
 
-test("데스크톱 달력의 업무종별 제목과 더보기는 고정 12px 규칙보다 큰 글씨 토큰을 우선한다", () => {
+test("데스크톱 달력은 모든 업무 제목을 표시하며 리뉴얼의 기본·큰 글씨 토큰을 사용한다", () => {
   const css = readFileSync(new URL("../app/calendar.css", import.meta.url), "utf8");
-  const globalCss = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  const renewal = readFileSync(new URL("../app/renewal.css", import.meta.url), "utf8");
   assert.match(css, /\.calendar-cell button \.calendar-card-heading > span,\s*\.calendar-cell button\.calendar-more\s*\{[^}]*font-size:\s*var\(--text-base\)/);
-  assert.match(globalCss, /html\[data-readable="true"\]\s*\{[^}]*--text-caption:\s*16px/);
+  assert.match(renewal, /\.calendar-desktop-panel\s*\{[^}]*--text-base:\s*16px/);
+  assert.match(renewal, /html\[data-readable="true"\] \.calendar-desktop-panel\s*\{[^}]*--text-base:\s*18px/);
   const items = Array.from({ length: 5 }, (_, index) => syntheticWork(`synthetic-${index}`, "2026-09-12", { work_type: "매물수정" }));
   const [desktop] = findByClass(renderCalendar({ items }), "calendar-desktop-panel");
-  assert.equal(findByClass(desktop, "calendar-card-heading").length, 4);
+  assert.equal(findByClass(desktop, "calendar-card-heading").length, items.length);
   assert.match(renderToStaticMarkup(findByClass(desktop, "calendar-card-heading")[0]), /매물수정/);
-  assert.equal(findByClass(desktop, "calendar-more")[0].type, "button");
+  assert.equal(findByClass(desktop, "calendar-more").length, 0);
 });

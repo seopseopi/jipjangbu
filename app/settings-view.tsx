@@ -134,9 +134,10 @@ function SettingsView({
           <h2>새 분류 추가</h2>
         </div>
         <label>
-          분류
+          분류 <b className="required-mark" aria-hidden="true">*</b>
           <select
             value={kind}
+            aria-required="true"
             disabled={saving}
             onChange={(event) => setKind(event.target.value)}
           >
@@ -146,9 +147,10 @@ function SettingsView({
         </label>
         {kind === "building" && (
           <label>
-            물건구분
+            물건구분 <b className="required-mark" aria-hidden="true">*</b>
             <select
               value={propertyType}
+              aria-required="true"
               disabled={saving}
               onChange={(event) => setPropertyType(event.target.value)}
             >
@@ -159,7 +161,7 @@ function SettingsView({
           </label>
         )}
         <label>
-          이름
+          이름 <b className="required-mark" aria-hidden="true">*</b>
           <input
             value={name}
             disabled={saving}
@@ -349,7 +351,7 @@ function BackupPanel() {
           <span>{loadError || loading ? "마지막으로 확인한 백업" : "가장 최근 백업"}<strong>{dateTime(backups[0].createdAt)}</strong></span>
         </div>
       )}
-      <p className="backup-download-help">내려받은 파일에는 고객 정보가 포함됩니다. 안전한 곳에 보관해 주세요. CSV 목록 저장과 달리 전체 데이터를 담는 복구용 파일입니다.</p>
+      <p className="backup-download-help">내려받은 파일에는 고객 정보가 포함됩니다. 안전한 곳에 보관해 주세요. 전체 데이터를 담는 복구용 파일입니다.</p>
       <div className="backup-list" aria-busy={loading}>
         {loading ? (
           <p className="backup-empty" role="status">백업 목록을 불러오는 중입니다.</p>

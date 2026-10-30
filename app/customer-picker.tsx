@@ -66,6 +66,7 @@ export function CustomerPicker({
       <input
         className="customer-picker-input"
         aria-label="고객 이름 또는 전화번호 검색"
+        aria-required="true"
         role="combobox"
         aria-expanded={open}
         aria-controls={listId}
@@ -126,7 +127,7 @@ export function CustomerPicker({
         >
           {!matches.length && (
             <p className="customer-picker-empty">
-              일치하는 고객이 없습니다. 아래에서 새 고객을 등록해 주세요.
+              일치하는 고객이 없습니다. 위의 ‘+ 새 고객’으로 등록해 주세요.
             </p>
           )}
           {matches.map((customer, index) => (
@@ -146,11 +147,6 @@ export function CustomerPicker({
             </button>
           ))}
         </div>
-      )}
-      {selected && (
-        <span className="customer-picker-selected">
-          선택됨: {selected.name} · {selected.id}
-        </span>
       )}
     </div>
   );

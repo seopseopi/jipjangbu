@@ -1,0 +1,7 @@
+/** House silhouette and an open ledger share one clear, single-color mark. */
+export function BrandMark({ className = "brand-mark" }: { className?: string }) {
+  return <svg className={className} viewBox="2 2 36 36" width="34" height="34" fill="none" aria-hidden="true" focusable="false">
+    <path fill="currentColor" fillRule="evenodd" d="m18.1 4.7-12 10A3 3 0 0 0 5 17v14a4 4 0 0 0 4 4h22a4 4 0 0 0 4-4V17a3 3 0 0 0-1.1-2.3l-12-10a3 3 0 0 0-3.8 0ZM10.5 18.5c3.4-1 6.5-.6 9.5 1.3 3-1.9 6.1-2.3 9.5-1.3v10c-3.4-1-6.5-.6-9.5 1.3-3-1.9-6.1-2.3-9.5-1.3Z" />
+    <path d="M20 20v9.8" stroke="currentColor" strokeWidth="1.8" />
+  </svg>;
+}

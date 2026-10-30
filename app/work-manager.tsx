@@ -27,6 +27,8 @@ import "./workflow-feedback.css";
 import "./workflow-history-backup.css";
 import "./work-form-feedback.css";
 import "./work-reading-list.css";
+import "./renewal.css";
+import "./work-form-renewal.css";
 import { LISTING_WORK_TYPES, findWorkDraftIssue } from "./work-form-rules";
 import { CustomerPicker } from "./customer-picker";
 import { fetchCustomerDirectory } from "./customer-directory";
@@ -41,8 +43,9 @@ import { formatHistoryTimestamp } from "./history-timestamps";
 import type { RelatedHistoryTarget } from "./history-query";
 import { canCloseCustomerDraft, customerDraftChanged } from "./customer-draft";
 import { Icon } from "./icons";
-import { canAppendPage, collectOffsetPages } from "./client-paging";
-import { downloadCsv } from "./csv-export";
+import { canAppendPage } from "./client-paging";
+import { useResultPage } from "./result-pagination";
+import { BrandMark } from "./brand-mark";
 import { SettingsView, type Lookups } from "./settings-view";
 import { createPropertyHistoryTarget } from "./history-query";
 import { fetchWorkWindow } from "./work-window";
@@ -293,8 +296,7 @@ const navItems: Array<[View, string]> = [
 const navGroups: Array<[string, View[]]> = [
   ["업무", ["today", "calendar", "journal"]],
   ["장부", ["listings", "customers"]],
-  ["관리", ["insights", "trash", "settings"]],
-  ["실험 기능", ["structures"]],
+  ["관리", ["insights", "trash", "settings", "structures"]],
 ];
 // Customer and listing histories open as their own page; date and schedule lists stay dialogs.
 const isRecordHistory = (data: HistoryData) => Boolean(data.customer || data.listing || data.listingKey);
@@ -453,10 +455,6 @@ export function WorkManager() {
   const managedFirstPending = useRef<Record<ManagedView, number | null>>({ listings: null, customers: null });
   const managedMorePending = useRef<Record<ManagedView, boolean>>({ listings: false, customers: false });
   const managedMoreControllers = useRef<Partial<Record<ManagedView, AbortController>>>({});
-  const managedExportPending = useRef<Record<ManagedView, boolean>>({ listings: false, customers: false });
-  const [managedExporting, setManagedExporting] = useState<Record<ManagedView, boolean>>({ listings: false, customers: false });
-  const [exportingWork, setExportingWork] = useState(false);
-  const workExportPending = useRef(false);
   const [loadedWorkQuery, setLoadedWorkQuery] = useState<string | null>(null);
   const loadedWorkQueryRef = useRef<string | null>(null);
   const workFirstRequest = useRef<number | null>(null);
@@ -469,7 +467,6 @@ export function WorkManager() {
     customers: "",
   });
   const [workTypeFilter, setWorkTypeFilter] = useState("");
-  const [workPeriod, setWorkPeriod] = useState("");
   const [calendarWorkType, setCalendarWorkType] = useState("");
   const [listingStatuses, setListingStatuses] = useState<string[]>([]);
   const [listingPrices, setListingPrices] = useState<string[]>([]);
@@ -498,7 +495,6 @@ export function WorkManager() {
   const [readable, setReadable] = useState(false);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [globalSearchLoaded, setGlobalSearchLoaded] = useState(false);
-  const [toolsSlot, setToolsSlot] = useState<HTMLElement | null>(null);
   const wideScreen = useWideScreen();
   const [insightsRefreshKey, setInsightsRefreshKey] = useState(0);
   const lastFocusRefresh = useRef(0);
@@ -517,7 +513,6 @@ export function WorkManager() {
   const workQueryKey = JSON.stringify([
     queries.journal,
     workTypeFilter,
-    ...periodBounds(workPeriod),
   ]);
   const journalStatus = journalSearchStatus(
     loadedWorkQuery,
@@ -614,14 +609,9 @@ export function WorkManager() {
       const params = new URLSearchParams({ limit: "100" });
       if (journalSearch) params.set("q", journalSearch);
       if (workTypeFilter) params.set("workType", workTypeFilter);
-      const [from, to] = periodBounds(workPeriod);
-      if (from) params.set("from", from);
-      if (to) params.set("to", to);
       const queryKey = JSON.stringify([
         journalSearch,
         workTypeFilter,
-        from,
-        to,
       ]);
       try {
         const data = await fetchWorkWindow<WorkSummary>(
@@ -651,7 +641,7 @@ export function WorkManager() {
         }
       }
     },
-    [journalSearch, workTypeFilter, workPeriod],
+    [journalSearch, workTypeFilter],
   );
   const loadCalendar = useCallback(
     async (signal?: AbortSignal) => {
@@ -1101,67 +1091,19 @@ export function WorkManager() {
       });
       if (queries.journal) params.set("q", queries.journal);
       if (workTypeFilter) params.set("workType", workTypeFilter);
-      const [from, to] = periodBounds(workPeriod);
-      if (from) params.set("from", from);
-      if (to) params.set("to", to);
       const data = await jsonFetch<{ workLogs: WorkSummary[]; total: number }>(
         `/api/work-logs?${params}`,
       );
       if (version === requestVersion.current.work) {
         setWorkLogs((current) => [...current, ...data.workLogs]);
         setWorkTotal(data.total);
+        return workLogs.length + data.workLogs.length;
       }
     } catch (error) {
       showLoadError(error);
     } finally {
       workMorePending.current = false;
       setLoadingMore(false);
-    }
-  }
-  async function exportWorkLogs() {
-    if (
-      journalStatus !== "ready" ||
-      !workTotal ||
-      workExportPending.current ||
-      !canAppendPage(
-        loadedWorkQueryRef.current,
-        workQueryKey,
-        workFirstRequest.current !== null,
-        workMorePending.current,
-      ) ||
-      queries.journal !== journalSearch
-    ) return;
-    workExportPending.current = true;
-    setExportingWork(true);
-    try {
-      setNotice("현재 조건에 맞는 전체 업무 기록을 준비하고 있습니다.");
-      const params = new URLSearchParams();
-      if (queries.journal) params.set("q", queries.journal);
-      if (workTypeFilter) params.set("workType", workTypeFilter);
-      const [from, to] = periodBounds(workPeriod);
-      if (from) params.set("from", from);
-      if (to) params.set("to", to);
-      const items = await fetchAllWorkLogs(params);
-      downloadCsv(
-        `업무일지-${seoulDate()}.csv`,
-        ["일자", "업무구분", "고객명", "고객ID", "대표 물건(업무당 1건)", "내용"],
-        items.map((item) => [
-          item.work_date,
-          item.work_type,
-          item.customer_name,
-          item.customer_id,
-          targetText(item),
-          item.content,
-        ]),
-      );
-      setNotice(
-        `현재 조건에 맞는 업무 ${items.length.toLocaleString("ko-KR")}건을 저장했습니다. 물건은 업무당 대표 1건입니다.`,
-      );
-    } catch (error) {
-      setNotice((error as Error).message);
-    } finally {
-      workExportPending.current = false;
-      setExportingWork(false);
     }
   }
   function managedQueryParams(target: ManagedView) {
@@ -1203,6 +1145,7 @@ export function WorkManager() {
       if (target === "listings") setListings(appendManagedRows(listings, data.listings));
       else setCustomerResults(appendManagedRows(customerResults, data.customers));
       setManagedPages((current) => ({ ...current, [target]: { ...current[target], total: data.total, hasMore: data.hasMore, moreError: "" } }));
+      return rows.length + nextRows.length;
     } catch (error) {
       if (!controller.signal.aborted && version === requestVersion.current[target]) {
         setManagedPages((current) => ({ ...current, [target]: { ...current[target], moreError: isAborted(error) ? "추가 조회가 중단되었습니다. 다시 불러와 주세요." : (error as Error).message } }));
@@ -1212,43 +1155,6 @@ export function WorkManager() {
         managedMorePending.current[target] = false;
         setManagedPages((current) => ({ ...current, [target]: { ...current[target], loadingMore: false } }));
       }
-    }
-  }
-  async function exportManaged(target: ManagedView) {
-    const status = target === "listings" ? listingStatus : customerStatus;
-    const queryKey = target === "listings" ? listingQueryKey : customerQueryKey;
-    if (status !== "ready" || !managedPages[target].total || managedExportPending.current[target] || !canAppendPage(
-      managedReads[target].loadedQuery, queryKey, managedFirstPending.current[target] !== null, managedMorePending.current[target],
-    )) return;
-    managedExportPending.current[target] = true;
-    setManagedExporting((current) => ({ ...current, [target]: true }));
-    // Freeze the chosen query; later typing must not mix another filter's pages.
-    const params = managedQueryParams(target);
-    params.set("limit", "1000");
-    setNotice("현재 조건에 맞는 전체 목록을 CSV로 준비하고 있습니다.");
-    try {
-      if (target === "listings") {
-        const rows = await collectOffsetPages<Listing>(async (offset) => {
-          const page = new URLSearchParams(params); page.set("offset", String(offset));
-          return (await jsonFetch<{ listings: Listing[] }>(`/api/listings?${page}`)).listings;
-        });
-        downloadCsv(`매물목록-${seoulDate()}.csv`, ["상태", "물건구분", "건물명", "동", "호수", "타입", "매매가", "전세가", "월세가", "등록일", "말소일"],
-          rows.map((item) => [item.status, item.property_type, item.building_name, item.building_dong, item.unit_number, item.size_type, item.sale_price, item.jeonse_price, item.monthly_rent, item.registered_at, item.closed_at]));
-        setNotice(`현재 조건의 전체 매물 ${rows.length.toLocaleString("ko-KR")}건을 CSV로 저장했습니다.`);
-      } else {
-        const rows = await collectOffsetPages<Customer>(async (offset) => {
-          const page = new URLSearchParams(params); page.set("offset", String(offset));
-          return (await jsonFetch<{ customers: Customer[] }>(`/api/customers?${page}`)).customers;
-        });
-        downloadCsv(`고객목록-${seoulDate()}.csv`, ["고객명", "고객ID", "비고", "최근 업무", "업무 이력 수"],
-          rows.map((item) => [item.name, item.id, item.notes, item.last_work_date, item.history_count]));
-        setNotice(`현재 조건의 전체 고객 ${rows.length.toLocaleString("ko-KR")}명을 CSV로 저장했습니다.`);
-      }
-    } catch (error) {
-      setNotice(`CSV를 저장하지 못했습니다. ${(error as Error).message}`);
-    } finally {
-      managedExportPending.current[target] = false;
-      setManagedExporting((current) => ({ ...current, [target]: false }));
     }
   }
   async function copyCustomerId(value: string) {
@@ -1395,7 +1301,7 @@ export function WorkManager() {
     } else if (next === "customers") {
       setQueries((current) => ({ ...current, customers: "" })); setCustomerSort("recent");
     } else if (next === "journal") {
-      setQueries((current) => ({ ...current, journal: "" })); setWorkTypeFilter(""); setWorkPeriod("");
+      setQueries((current) => ({ ...current, journal: "" })); setWorkTypeFilter("");
     } else if (next === "calendar") {
       setCalendarMonth(seoulDate().slice(0, 7)); setCalendarWorkType("");
     }
@@ -1403,7 +1309,7 @@ export function WorkManager() {
   function showAllSearchResults(next: SearchView, search: string) {
     if (!navigate(next)) return false;
     setQueries((current) => ({ ...current, [next]: search }));
-    if (next === "journal") { setWorkTypeFilter(""); setWorkPeriod(""); }
+    if (next === "journal") { setWorkTypeFilter(""); }
     if (next === "customers") setCustomerSort("recent");
     if (next === "listings") {
       setListingStatuses([]); setListingPrices([]); setPropertyTypeFilter(""); setListingSort("type");
@@ -1500,7 +1406,7 @@ export function WorkManager() {
   }
 
   return (
-    <main className="app-shell" data-readable={readable} data-side-panel={sidePanel}>
+    <main className="app-shell" data-view={view} data-readable={readable} data-side-panel={sidePanel}>
       <aside className="sidebar">
         <div className="sidebar-top">
           <button
@@ -1509,29 +1415,15 @@ export function WorkManager() {
             type="button"
             aria-label="집장부 홈으로 이동"
           >
-            <span className="brand-mark" aria-hidden="true" />
+            <BrandMark />
             <span>
               <strong>집장부</strong>
             </span>
           </button>
+          <p className="brand-office">마전현대공인중개사무소</p>
           <div className="sidebar-actions">
-            <button
-              className="primary-button sidebar-new-work"
-              aria-label="새 업무 등록"
-              onClick={() => openWork()}
-              type="button"
-            >
-              <Icon name="plus" /> <span>새 업무<span className="sidebar-new-work-extra"> 등록</span></span>
-            </button>
-            <button
-              className="global-search-trigger"
-              onClick={showGlobalSearch}
-              type="button"
-              aria-keyshortcuts="/"
-              aria-label="통합검색"
-            >
-              <Icon name="search" /> <span>통합검색</span> <kbd>/</kbd>
-            </button>
+            <button className="global-search-trigger" onClick={showGlobalSearch} type="button" aria-keyshortcuts="/" aria-label="통합검색">검색</button>
+            <button className="primary-button sidebar-new-work" aria-label="새 업무 등록" onClick={() => openWork()} type="button"><Icon name="plus" size={18} /> <span>새 업무 등록</span></button>
           </div>
         </div>
         <nav aria-label="주요 메뉴">
@@ -1552,7 +1444,6 @@ export function WorkManager() {
                     size={21}
                   />
                   {label}
-                  {key === "structures" && <span className="nav-test-badge">TEST</span>}
                 </button>
               ))}
             </div>
@@ -1585,7 +1476,7 @@ export function WorkManager() {
             <h1>{recordPage ? recordTitle : titles[view]}</h1>
             {view === "today" && !recordPage && <p className="view-purpose"><span className="record-date">{dateLabel}</span></p>}
           </div>
-          <div className="page-tools" ref={setToolsSlot} />
+          <time className="topbar-date" dateTime={seoulDate()}>{dateLabel}</time>
         </header>
         {notice && (
           <div className="notice" role="status">
@@ -1603,7 +1494,7 @@ export function WorkManager() {
           </div>
         )}
         {recordPage && renderHistory(true)}
-        <PageToolsSlot.Provider value={recordPage ? null : toolsSlot}>
+        <PageToolsSlot.Provider value={null}>
         <div className="view-content" key={view} hidden={Boolean(recordPage)}>
           {loading ? (
             <Loading />
@@ -1682,19 +1573,15 @@ export function WorkManager() {
                   setQuery={setQuery}
                   workType={workTypeFilter}
                   setWorkType={setWorkTypeFilter}
-                  period={workPeriod}
-                  setPeriod={setWorkPeriod}
                   onReset={() => {
                     setQuery("");
                     setWorkTypeFilter("");
-                    setWorkPeriod("");
                   }}
                   onLoadMore={loadMoreWorkLogs}
                   loadingMore={loadingMore}
                   status={journalStatus}
                   error={workSearchError?.queryKey === workQueryKey ? workSearchError.message : ""}
                   onRetry={() => loadWorkLogs().catch(showLoadError)}
-                  exporting={exportingWork}
                   canLoadMore={
                     canAppendPage(
                       loadedWorkQuery,
@@ -1703,7 +1590,6 @@ export function WorkManager() {
                       loadingMore,
                     ) && queries.journal === journalSearch && journalStatus === "ready"
                   }
-                  onExport={exportWorkLogs}
                   onOpen={readWork}
                   onCustomerHistory={showCustomerHistory}
                   onListingHistory={showWorkListingHistory}
@@ -1716,10 +1602,8 @@ export function WorkManager() {
                   hasMore={managedPages.listings.hasMore}
                   loadingMore={managedPages.listings.loadingMore}
                   moreError={managedPages.listings.moreError}
-                  onLoadMore={() => void loadMoreManaged("listings")}
+                  onLoadMore={() => loadMoreManaged("listings")}
                   canLoadMore={listingStatus === "ready" && !managedPages.listings.loadingMore && managedReads.listings.loadedQuery === listingQueryKey}
-                  exporting={managedExporting.listings}
-                  onExport={() => void exportManaged("listings")}
                   status={listingStatus}
                   error={managedReads.listings.error?.queryKey === listingQueryKey ? managedReads.listings.error.message : ""}
                   onRetry={() => void loadListings(undefined, managedReads.listings.loadedQuery === listingQueryKey ? listings.length : MANAGEMENT_PAGE_SIZE).catch(showLoadError)}
@@ -1753,8 +1637,6 @@ export function WorkManager() {
                   moreError={managedPages.customers.moreError}
                   onLoadMore={() => void loadMoreManaged("customers")}
                   canLoadMore={customerStatus === "ready" && !managedPages.customers.loadingMore && managedReads.customers.loadedQuery === customerQueryKey}
-                  exporting={managedExporting.customers}
-                  onExport={() => void exportManaged("customers")}
                   status={customerStatus}
                   error={managedReads.customers.error?.queryKey === customerQueryKey ? managedReads.customers.error.message : ""}
                   onRetry={() => void loadCustomers(undefined, managedReads.customers.loadedQuery === customerQueryKey ? customerResults.length : MANAGEMENT_PAGE_SIZE).catch(showLoadError)}
@@ -2061,163 +1943,56 @@ function Toolbar({
   );
   return slot ? createPortal(bar, slot) : bar;
 }
-function JournalView({
-  items,
-  total,
-  lookups,
-  query,
-  setQuery,
-  workType,
-  setWorkType,
-  period,
-  setPeriod,
-  onReset,
-  onLoadMore,
-  loadingMore,
-  status,
-  error,
-  onRetry,
-  exporting,
-  canLoadMore,
-  onExport,
-  onOpen,
-  onCustomerHistory,
-  onListingHistory,
-}: {
-  items: WorkSummary[];
+function ResultPagination({ paging, total, busy, onPrevious, onNext }: {
+  paging: { page: number; pages: number; start: number; end: number };
   total: number;
-  lookups: Lookups;
-  query: string;
-  setQuery: (v: string) => void;
-  workType: string;
-  setWorkType: (v: string) => void;
-  period: string;
-  setPeriod: (v: string) => void;
-  onReset: () => void;
-  onLoadMore: () => void | Promise<void>;
-  loadingMore: boolean;
-  status: JournalSearchStatus;
-  error: string;
-  onRetry: () => void | Promise<void>;
-  exporting: boolean;
-  canLoadMore: boolean;
-  onExport: () => void | Promise<void>;
+  busy: boolean;
+  onPrevious: () => void;
+  onNext: () => void;
+}) {
+  return <footer className="renewal-pagination" aria-label="목록 페이지">
+    <span role="status">{total ? `${paging.start + 1}–${paging.end} / ${total.toLocaleString("ko-KR")}건` : "0건"}</span>
+    <div className="renewal-pagination-controls">
+      <button type="button" className="secondary-button" aria-label="이전 페이지" onClick={onPrevious} disabled={busy || paging.page === 0}><Icon name="back" size={18} /></button>
+      <span aria-live="polite">{paging.page + 1} / {paging.pages}</span>
+      <button type="button" className="secondary-button" aria-label="다음 페이지" onClick={onNext} disabled={busy || paging.page + 1 >= paging.pages}><Icon name="next" size={18} /></button>
+    </div>
+  </footer>;
+}
+function JournalView({
+  items, total, lookups, query, setQuery, workType, setWorkType, onReset,
+  onLoadMore, loadingMore, status, error, onRetry, canLoadMore,
+  onOpen, onCustomerHistory, onListingHistory,
+}: {
+  items: WorkSummary[]; total: number; lookups: Lookups;
+  query: string; setQuery: (v: string) => void;
+  workType: string; setWorkType: (v: string) => void;
+  onReset: () => void; onLoadMore: () => Promise<number | undefined>;
+  loadingMore: boolean; status: JournalSearchStatus; error: string;
+  onRetry: () => void | Promise<void>; canLoadMore: boolean;
   onOpen: (id?: string) => void;
 } & WorkHistoryActions) {
-  const filtered = Boolean(query || workType || period);
+  const filtered = Boolean(query || workType);
   const resultsVisible = status === "ready" || status === "refreshing";
-  return (
-    <>
-      <Toolbar
-        query={query}
-        setQuery={setQuery}
-        placeholder="고객명, 연락처, 건물명, 동·호수, 내용 검색"
-      >
-        <select
-          aria-label="업무구분 필터"
-          value={workType}
-          onChange={(event) => setWorkType(event.target.value)}
-        >
+  const paging = useResultPage(items.length, total, JSON.stringify([query, workType]), 5);
+  return <>
+    <div className="renewal-paginated-list" ref={paging.listRef}>
+      <Toolbar query={query} setQuery={setQuery} placeholder="고객명, 연락처, 건물명, 동·호수, 내용 검색">
+        <select aria-label="업무구분 필터" value={workType} onChange={(event) => setWorkType(event.target.value)}>
           <option value="">모든 업무구분</option>
-          {lookups.workTypes.map((type) => (
-            <option key={type}>{type}</option>
-          ))}
+          {lookups.workTypes.map((type) => <option key={type}>{type}</option>)}
         </select>
-        <select
-          aria-label="업무 기간 필터"
-          value={period}
-          onChange={(event) => setPeriod(event.target.value)}
-        >
-          <option value="">전체 기간</option>
-          <option value="today">오늘</option>
-          <option value="7d">최근 7일</option>
-          <option value="month">이번 달</option>
-        </select>
-        {filtered && (
-          <button className="filter-reset" onClick={onReset} type="button">
-            초기화
-          </button>
-        )}
-        <button
-          className="export-button"
-          onClick={() => {
-            void onExport();
-          }}
-          disabled={status !== "ready" || !total || loadingMore || exporting}
-          type="button"
-          title="현재 조건에 맞는 전체 업무를 저장합니다. 물건은 업무당 대표 1건이며, 물건 검색 시 첫 일치 물건입니다."
-        >
-          <Icon name={exporting ? "refresh" : "download"} size={18} /> {exporting ? "CSV 준비 중…" : "CSV 저장"}
-        </button>
+        {filtered && <button className="filter-reset" onClick={onReset} type="button">초기화</button>}
       </Toolbar>
-      {filtered && (
-        <div className="active-filter-row">
-          <strong>{status === "loading" ? "검색 중" : status === "refreshing" ? "갱신 중" : status === "error" ? "다시 확인 필요" : "적용 중"}</strong>
-          {query && <span>검색: {query}</span>}
-          {workType && <span>{workType}</span>}
-          {period && (
-            <span>
-              {period === "today"
-                ? "오늘"
-                : period === "7d"
-                  ? "최근 7일"
-                  : "이번 달"}
-            </span>
-          )}
-        </div>
-      )}
+      {filtered && <div className="active-filter-row"><strong>{status === "loading" ? "검색 중" : status === "refreshing" ? "갱신 중" : status === "error" ? "다시 확인 필요" : "적용 중"}</strong>{query && <span>검색: {query}</span>}{workType && <span>{workType}</span>}</div>}
       <section className="panel data-panel" aria-busy={status === "loading" || status === "refreshing"}>
-        <div className="panel-head">
-          <div>
-            <h2>
-              업무 기록{" "}
-              <span className="count-badge">
-                {resultsVisible ? `${items.length} / ${total}` : status === "loading" ? "검색 중…" : "조회 실패"}
-              </span>
-            </h2>
-            <p className="sort-summary">업무일 최신순</p>
-          </div>
-        </div>
-        {status === "refreshing" && (
-          <p className="journal-refresh-notice" role="status">업무 기록을 갱신하고 있습니다. 같은 조건의 기존 결과를 표시 중입니다.</p>
-        )}
-        {status === "loading" ? (
-          <div className="journal-search-feedback" role="status">
-            <strong>업무를 찾고 있습니다.</strong>
-          </div>
-        ) : status === "error" ? (
-          <div className="journal-search-feedback journal-search-error" role="alert">
-            <strong>업무 기록을 불러오지 못했습니다.</strong>
-            <p>{error || "연결 상태를 확인한 뒤 다시 시도해 주세요."}</p>
-            <p>조회에 실패한 상태이며, 검색 결과가 0건이라는 뜻은 아닙니다.</p>
-            <button type="button" className="secondary-button" onClick={() => { void onRetry(); }}>
-              <Icon name="refresh" size={18} /> 다시 시도
-            </button>
-          </div>
-        ) : <WorkTable items={items} onOpen={onOpen} onCustomerHistory={onCustomerHistory} onListingHistory={onListingHistory} />}
-        {resultsVisible && items.length < total && (
-          <div className="load-more">
-            <button
-              type="button"
-              onClick={() => {
-                void onLoadMore();
-              }}
-              disabled={!canLoadMore}
-            >
-              <Icon name={loadingMore ? "refresh" : "plus"} size={18} />
-              {loadingMore ? "불러오는 중…" : "100건 더 보기"}{" "}
-              <small>
-                남은 {(total - items.length).toLocaleString("ko-KR")}건
-              </small>
-            </button>
-          </div>
-        )}
-        {resultsVisible && total > 0 && (
-          <p className="journal-export-note">CSV는 현재 조건에 맞는 전체 업무를 저장합니다. 물건은 업무당 대표 1건이며, 물건 검색 시 첫 일치 물건입니다.</p>
-        )}
+        <div className="panel-head"><h2>업무 기록 <span className="count-badge">{resultsVisible ? `${total.toLocaleString("ko-KR")}건` : status === "loading" ? "검색 중…" : "조회 실패"}</span></h2><p className="sort-summary">업무일 최신순</p></div>
+        <ListReadFeedback status={status} error={error} onRetry={() => { void onRetry(); }} label="업무 기록" />
+        {resultsVisible && <WorkTable items={items.slice(paging.start, paging.end)} onOpen={onOpen} onCustomerHistory={onCustomerHistory} onListingHistory={onListingHistory} />}
       </section>
-    </>
-  );
+    </div>
+    <ResultPagination paging={paging} total={resultsVisible ? total : 0} busy={status !== "ready" || loadingMore} onPrevious={paging.previous} onNext={() => { void paging.next(canLoadMore ? onLoadMore : undefined); }} />
+  </>;
 }
 function WorkTable({
   items,
@@ -2239,10 +2014,9 @@ function WorkTable({
         const groups = getPropertyDisplayGroups(properties);
         return <article className="table-row work-record-row" key={item.id}>
           <div className="work-record-meta">
+            <span data-label="고객" className="work-record-customer"><button type="button" className="work-record-customer-link" onClick={() => onCustomerHistory({ id: item.customer_id, name: item.customer_name })} aria-label={`${item.customer_name} 고객 이력 보기`}><b>{item.customer_name}</b></button></span>
+            <button type="button" className={`work-record-open tag ${statusTone(item.work_type)}`} onClick={() => onOpen(item.id)} aria-label={`${item.work_type} 업무 내용 보기`}>{item.work_type}</button>
             <span data-label="일자"><button type="button" className="work-record-date" onClick={() => onOpen(item.id)} aria-label={`${displayDate(item.work_date)} ${item.customer_name} 업무 내용 보기`}><time dateTime={item.work_date}>{displayDate(item.work_date)}</time></button></span>
-            <span data-label="업무구분"><i className={`tag ${statusTone(item.work_type)}`}>{item.work_type}</i></span>
-            <span data-label="고객" className="work-record-customer"><button type="button" className="work-record-customer-link" onClick={() => onCustomerHistory({ id: item.customer_id, name: item.customer_name })} aria-label={`${item.customer_name} 고객 이력 보기`}><b>{item.customer_name}</b><span className="work-customer-id">{item.customer_id}</span></button></span>
-            <button type="button" className="work-record-open" onClick={() => onOpen(item.id)} aria-label={Number(item.property_count) > 1 ? "전체 업무 내용 보기" : `${item.customer_name} 업무 내용 보기`}>내용 보기</button>
           </div>
           <div className={`work-record-body${properties.length ? " has-properties" : ""}`}>
             <span data-label="내용" className="work-record-content"><button type="button" className="work-cell-button work-record-note" onClick={() => onOpen(item.id)} aria-label={`${item.customer_name} 업무 내용 보기`}><span className="work-record-note-text">{item.content || "기록된 내용이 없습니다."}</span></button></span>
@@ -2291,7 +2065,7 @@ function ListReadFeedback({ status, error = "", onRetry, label = "목록" }: {
 }
 function ListingsView({
   items,
-  total = items.length, hasMore = false, loadingMore = false, moreError = "", onLoadMore, canLoadMore = false, exporting = false, onExport,
+  total = items.length, hasMore = false, loadingMore = false, moreError = "", onLoadMore, canLoadMore = false,
   lookups,
   query,
   setQuery,
@@ -2308,7 +2082,7 @@ function ListingsView({
   status = "ready", error = "", onRetry,
 }: {
   items: Listing[];
-  total?: number; hasMore?: boolean; loadingMore?: boolean; moreError?: string; onLoadMore?: () => void; canLoadMore?: boolean; exporting?: boolean; onExport?: () => void;
+  total?: number; hasMore?: boolean; loadingMore?: boolean; moreError?: string; onLoadMore?: () => Promise<number | undefined>; canLoadMore?: boolean;
   lookups: Lookups;
   query: string;
   setQuery: (v: string) => void;
@@ -2325,6 +2099,7 @@ function ListingsView({
   status?: JournalSearchStatus; error?: string; onRetry?: () => void;
 }) {
   const resultsVisible = status === "ready" || status === "refreshing";
+  const paging = useResultPage(items.length, total, JSON.stringify([query, statuses, prices, propertyType, sort]), 10);
   const filtered = Boolean(
     query || statuses.length || propertyType || sort !== "type" || prices.length,
   );
@@ -2355,6 +2130,7 @@ function ListingsView({
   };
   return (
     <>
+      <div className="renewal-paginated-list" ref={paging.listRef}>
       <div className="listing-controls">
       <Toolbar
         query={query}
@@ -2387,7 +2163,7 @@ function ListingsView({
           </div>
         </details>
         <details className="listing-more-menu" name="listing-filters">
-          <summary>정렬·내보내기</summary>
+          <summary>정렬</summary>
           <div className="listing-more-options">
             <label htmlFor="listing-sort">정렬 기준</label>
             <select
@@ -2404,15 +2180,6 @@ function ListingsView({
               <option value="updated">최근 변경순</option>
               <option value="oldest">오래 미갱신순</option>
             </select>
-            <button
-              className="export-button"
-              onClick={onExport}
-              disabled={status !== "ready" || !items.length || loadingMore || exporting}
-              type="button"
-              title="현재 조건의 전체 매물을 저장합니다. 화면에 아직 펼치지 않은 매물도 포함합니다."
-            >
-              <Icon name={exporting ? "refresh" : "download"} size={18} /> {exporting ? "CSV 준비 중…" : "CSV 저장"}
-            </button>
           </div>
         </details>
       </Toolbar>
@@ -2445,7 +2212,7 @@ function ListingsView({
               <span>가격</span>
               <span>등록·말소</span>
             </div>
-            {items.map((item) => (
+            {items.slice(paging.start, paging.end).map((item) => (
               <button
                 className={`table-row${item.status !== "매물등록" && item.status !== "매물수정" ? " is-other-status" : ""}`}
                 key={item.id}
@@ -2479,9 +2246,9 @@ function ListingsView({
           </div>
         ))}
         {resultsVisible && moreError && <div className="workflow-feedback is-error" role="alert"><p>{moreError}</p><button type="button" className="secondary-button" onClick={onRetry}>최신 목록 다시 불러오기</button></div>}
-        {resultsVisible && hasMore && <div className="load-more"><button type="button" disabled={!canLoadMore} onClick={onLoadMore}><Icon name={loadingMore ? "refresh" : "plus"} size={18} />{loadingMore ? "불러오는 중…" : "100건 더 보기"} <small>남은 {Math.max(0, total - items.length).toLocaleString("ko-KR")}건</small></button></div>}
-        {resultsVisible && total > 0 && <p className="journal-export-note">CSV는 현재 조건의 전체 매물을 저장합니다. 화면에 펼치지 않은 매물도 포함합니다.</p>}
       </section>
+      </div>
+      <ResultPagination paging={paging} total={resultsVisible ? total : 0} busy={status !== "ready" || loadingMore} onPrevious={paging.previous} onNext={() => { void paging.next(canLoadMore ? onLoadMore : undefined); }} />
     </>
   );
 }
@@ -2509,7 +2276,7 @@ function Price({
 }
 function CustomersView({
   items,
-  total = items.length, hasMore = false, loadingMore = false, moreError = "", onLoadMore, canLoadMore = false, exporting = false, onExport,
+  total = items.length, hasMore = false, loadingMore = false, moreError = "", onLoadMore, canLoadMore = false,
   query,
   setQuery,
   sort,
@@ -2523,7 +2290,7 @@ function CustomersView({
   status = "ready", error = "", onRetry,
 }: {
   items: Customer[];
-  total?: number; hasMore?: boolean; loadingMore?: boolean; moreError?: string; onLoadMore?: () => void; canLoadMore?: boolean; exporting?: boolean; onExport?: () => void;
+  total?: number; hasMore?: boolean; loadingMore?: boolean; moreError?: string; onLoadMore?: () => void; canLoadMore?: boolean;
   query: string;
   setQuery: (v: string) => void;
   sort: string;
@@ -2559,15 +2326,6 @@ function CustomersView({
             초기화
           </button>
         )}
-        <button
-          className="export-button"
-          onClick={onExport}
-          disabled={status !== "ready" || !items.length || loadingMore || exporting}
-          type="button"
-          title="현재 조건의 전체 고객을 저장합니다. 화면에 아직 펼치지 않은 고객도 포함합니다."
-        >
-          <Icon name={exporting ? "refresh" : "download"} size={18} /> {exporting ? "CSV 준비 중…" : "CSV 저장"}
-        </button>
         <button className="secondary-button" onClick={onNew} type="button">
           <Icon name="plus" size={18} /> 고객 등록
         </button>
@@ -2643,7 +2401,6 @@ function CustomersView({
         ))}
         {resultsVisible && moreError && <div className="workflow-feedback is-error" role="alert"><p>{moreError}</p><button type="button" className="secondary-button" onClick={onRetry}>최신 목록 다시 불러오기</button></div>}
         {resultsVisible && hasMore && <div className="load-more"><button type="button" disabled={!canLoadMore} onClick={onLoadMore}><Icon name={loadingMore ? "refresh" : "plus"} size={18} />{loadingMore ? "불러오는 중…" : "100건 더 보기"} <small>남은 {Math.max(0, total - items.length).toLocaleString("ko-KR")}명</small></button></div>}
-        {resultsVisible && total > 0 && <p className="journal-export-note">CSV는 현재 조건의 전체 고객을 저장합니다. 화면에 펼치지 않은 고객도 포함합니다.</p>}
       </section>
     </>
   );
@@ -2769,7 +2526,7 @@ function CalendarView({
                 <>
                   <b>{day}</b>
                   <div>
-                    {(grouped[day] || []).slice(0, 4).map((item) => {
+                    {(grouped[day] || []).map((item) => {
                       const presentation = calendarWorkPresentation(item);
                       return (
                       <button
@@ -2784,20 +2541,7 @@ function CalendarView({
                       </button>
                     );
                     })}
-                    {(grouped[day]?.length || 0) > 4 && (
-                      <button
-                        className="calendar-more"
-                        type="button"
-                        onClick={() =>
-                          onShowDay(
-                            `${displayedMonth}-${String(day).padStart(2, "0")}`,
-                            grouped[day],
-                          )
-                        }
-                      >
-                        +{grouped[day].length - 4}건 더보기
-                      </button>
-                    )}
+
                   </div>
                 </>
               )}
@@ -2820,7 +2564,7 @@ function CalendarView({
                 <span>{dayItems.length}건</span>
               </header>
               <div className="calendar-agenda-events">
-                {dayItems.slice(0, 4).map((item) => {
+                {dayItems.map((item) => {
                   const presentation = calendarWorkPresentation(item);
                   return (
                     <button className="calendar-agenda-event" type="button" key={item.id} onClick={() => onOpen(item.id)}>
@@ -2833,11 +2577,7 @@ function CalendarView({
                   );
                 })}
               </div>
-              {dayItems.length > 4 && (
-                <button className="calendar-agenda-more" type="button" onClick={() => onShowDay(date, dayItems)}>
-                  이 날짜 업무 {dayItems.length}건 모두 보기 <span>· {dayItems.length - 4}건 더 있음</span>
-                </button>
-              )}
+
             </article>
           );
         })}
@@ -3051,17 +2791,11 @@ function WorkModal({
             ? "업무 복사 · 새 업무 등록"
             : modal.initialListing && modal.initialWorkType === "매물수정" ? "매물 수정 이력 추가" : "새 업무 등록"
       }
-      subtitle="한 업무에 물건을 최대 10개까지 함께 기록할 수 있습니다"
       onClose={requestClose}
       locked={saving}
       wide
     >
       <form ref={workFormRef} className="work-form" onSubmit={submit} noValidate>
-        <div className="work-form-overview" aria-label="작성 중인 업무 요약">
-          <span><strong>고객</strong>{selectedCustomer?.name || "선택 필요"}</span>
-          <span><strong>업무</strong>{workType || "선택 필요"}</span>
-          <span><strong>물건</strong>{enteredPropertyCount}개 / 최대 10개</span>
-        </div>
         {error && <div ref={errorSummaryRef} className="form-error work-form-error" role="alert" tabIndex={-1}><p>{error}</p></div>}
         {modal.mode === "copy" && (
           <div className="work-copy-context" role="note">
@@ -3071,10 +2805,9 @@ function WorkModal({
           </div>
         )}
         {modal.initialListing && modal.initialWorkType === "매물수정" && <p className="editor-context">기존 기록을 덮어쓰지 않고 새 매물 수정 업무를 추가합니다. 날짜는 오늘, 고객은 최근 이력 기준이므로 실제 업무에 맞는지 확인해 주세요. 현재 매물 정보는 업무일이 가장 최근인 이력으로 표시됩니다.</p>}
-        <div className="work-form-section"><h3>1. 기본 업무</h3><p>* 표시한 항목은 꼭 입력해 주세요.</p></div>
         <div className="form-grid three">
           <label>
-            일자 <b>*</b>
+            일자 <b className="required-mark" aria-hidden="true">*</b>
             <input
               type="date"
               data-work-field="workDate"
@@ -3088,7 +2821,7 @@ function WorkModal({
           <div className="field-with-action" data-work-field="customerId">
             <div className="field-label">
               <span>
-                고객 <b>*</b>
+                고객 <b className="required-mark" aria-hidden="true">*</b>
               </span>
               <button type="button" onClick={() => onNewCustomer(customerQuery.trim())} disabled={saving}>
                 <Icon name="plus" size={16} /> 새 고객
@@ -3118,7 +2851,7 @@ function WorkModal({
             {selectedCustomer && <button type="button" className="editor-history-button" disabled={saving} onClick={() => onEditCustomer(selectedCustomer.id)}><Icon name="edit" size={17} /> 고객 정보 수정</button>}
           </div>
           <label>
-            업무구분 <b>*</b>
+            업무구분 <b className="required-mark" aria-hidden="true">*</b>
             <select
               data-work-field="workType"
               aria-invalid={errorField === "workType" || undefined}
@@ -3147,13 +2880,13 @@ function WorkModal({
             value={content}
             disabled={saving}
             onChange={(event) => setContent(event.target.value)}
-            rows={Math.min(14, Math.max(6, content.split("\n").length))}
+            rows={Math.min(10, Math.max(3, content.split("\n").length))}
             placeholder="상담 내용, 일정, 특이사항을 입력하세요"
           />
         </label>
         <div className="detail-head">
           <div>
-            <h3>2. 관련 물건 {changesListing ? "· 필수" : "· 선택"}</h3>
+            <h3>관련 물건 <small>{changesListing ? "필수" : "선택"} · {details.length}/10</small></h3>
             <p>{changesListing ? "기존 매물을 불러오거나 주소를 입력하세요. 토지 외 물건은 건물명과 호수가 필요합니다." : "기존 매물을 불러오거나 직접 입력하세요. 물건이 없는 업무는 비워 두어도 됩니다."}</p>
           </div>
           <button
@@ -3167,7 +2900,7 @@ function WorkModal({
             <Icon name="housePlus" size={18} /> 물건 추가
           </button>
         </div>
-        {changesListing && <p className="listing-rule-notice"><strong>{workType}</strong> 업무를 저장하면 연결된 매물의 상태와 이력도 다시 계산됩니다. 주소와 가격을 확인해 주세요.</p>}
+        {changesListing && <p className="listing-rule-notice"><strong>{workType}</strong> 저장 시 매물 상태와 이력도 함께 반영됩니다.</p>}
         <div className="detail-list">
           {listingLoadedMessage && <p className="listing-loaded-message" role="status"><Icon name="check" size={18} />{listingLoadedMessage}</p>}
           {details.map((detail, index) => (
@@ -3204,7 +2937,6 @@ function WorkModal({
                 >
                   <Icon name="clock" size={17} /> 매물 이력 보기
                 </button>
-                {!createPropertyHistoryTarget(detail) && <span className="form-help">이력 조회는 물건구분과 주소가 필요합니다. 토지 외 물건은 호수도 입력해 주세요.</span>}
               </div>
               {listingPickerIndex === index && (
                 <div id={`editor-listing-picker-${index}`}>
@@ -3223,13 +2955,13 @@ function WorkModal({
                   </div>
                 ) : null;
               })()}
-              <div className="detail-fields">
+              <div className={`detail-fields${detail.propertyType === "토지" ? " is-land" : ""}`}>
                 <label>
-                  물건구분 {changesListing && <b>*</b>}
+                  물건구분 {changesListing && (hasPropertyDraft(detail) || (!enteredPropertyCount && index === 0)) && <b className="required-mark" aria-hidden="true">*</b>}
                   <select
                     data-work-field={`property-${index}-propertyType`}
                     aria-invalid={errorField === `property-${index}-propertyType` || undefined}
-                    aria-required={changesListing && (hasPropertyDraft(detail) || !enteredPropertyCount)}
+                    aria-required={changesListing && (hasPropertyDraft(detail) || (!enteredPropertyCount && index === 0))}
                     value={detail.propertyType}
                     onChange={(event) =>
                       updateDetail(index, "propertyType", event.target.value)
@@ -3242,11 +2974,11 @@ function WorkModal({
                   </select>
                 </label>
                 <label className="building-field">
-                  {detail.propertyType === "토지" ? "주소 전체" : "건물명"} {changesListing && <b>*</b>}
+                  {detail.propertyType === "토지" ? "주소 전체" : "건물명"} {changesListing && (hasPropertyDraft(detail) || (!enteredPropertyCount && index === 0)) && <b className="required-mark" aria-hidden="true">*</b>}
                   <input
                     data-work-field={`property-${index}-buildingName`}
                     aria-invalid={errorField === `property-${index}-buildingName` || undefined}
-                    aria-required={changesListing && (hasPropertyDraft(detail) || !enteredPropertyCount)}
+                    aria-required={changesListing && (hasPropertyDraft(detail) || (!enteredPropertyCount && index === 0))}
                     list={detail.propertyType === "토지" ? undefined : `buildings-${index}`}
                     value={detail.propertyType === "토지" && (detail.buildingDong || detail.unitNumber)
                       ? workPropertyLabel({ building_name: detail.buildingName, building_dong: detail.buildingDong, unit_number: detail.unitNumber })
@@ -3287,11 +3019,11 @@ function WorkModal({
                   />
                 </label>}
                 {detail.propertyType !== "토지" && <label>
-                  호수 {changesListing && <b>*</b>}
+                  호수 {changesListing && (hasPropertyDraft(detail) || (!enteredPropertyCount && index === 0)) && <b className="required-mark" aria-hidden="true">*</b>}
                   <input
                     data-work-field={`property-${index}-unitNumber`}
                     aria-invalid={errorField === `property-${index}-unitNumber` || undefined}
-                    aria-required={changesListing && (hasPropertyDraft(detail) || !enteredPropertyCount)}
+                    aria-required={changesListing && (hasPropertyDraft(detail) || (!enteredPropertyCount && index === 0))}
                     value={detail.unitNumber}
                     placeholder="예: 1503"
                     onChange={(event) =>
@@ -3309,6 +3041,8 @@ function WorkModal({
                     placeholder="33 / 51A"
                   />
                 </label>
+              </div>
+              <div className="detail-price-fields">
                 <label>
                   매매가
                   <input
@@ -3336,6 +3070,8 @@ function WorkModal({
                     }
                   />
                 </label>
+              </div>
+              <div className="detail-source-fields">
                 <label className="source-field">
                   물건지·업소
                   <input
@@ -3509,13 +3245,12 @@ function CustomerModal({
   return (
     <Modal
       title={modal.item ? "고객 정보 수정" : "새 고객 등록"}
-      subtitle="고객 정보와 상담 메모를 간단하게 관리합니다"
       onClose={requestClose}
       locked={saving}
     >
       <form className="customer-form" onSubmit={submit}>
         <label>
-          고객 ID <b>*</b>
+          고객 ID <b className="required-mark" aria-hidden="true">*</b>
           <input
             value={id}
             onChange={(event) => setId(event.target.value)}
@@ -3525,7 +3260,7 @@ function CustomerModal({
           />
         </label>
         <label>
-          고객명 <b>*</b>
+          고객명 <b className="required-mark" aria-hidden="true">*</b>
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -3858,11 +3593,21 @@ function Modal({
       }
     };
     document.addEventListener("keydown", handleKeyDown);
+    const handleOutsidePointer = (event: PointerEvent) => {
+      if (!sideRef.current || lockedRef.current || openModalIds.at(-1) !== modalId) return;
+      const target = event.target;
+      if (!(target instanceof Node) || cardRef.current?.contains(target)) return;
+      // A nested dialog owns its interaction; the reading panel only closes on the page.
+      if (target instanceof Element && target.closest('dialog, [role="dialog"], [role="alertdialog"], .modal-backdrop')) return;
+      closeRef.current();
+    };
+    document.addEventListener("pointerdown", handleOutsidePointer);
     return () => {
       const index = openModalIds.lastIndexOf(modalId);
       if (index >= 0) openModalIds.splice(index, 1);
       window.cancelAnimationFrame(frame);
       document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("pointerdown", handleOutsidePointer);
       if (openModalIds.length === 0)
         document.body.style.overflow = modalBodyOverflow;
       previousFocus?.focus();

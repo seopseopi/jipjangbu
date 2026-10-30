@@ -23,17 +23,16 @@ function style(file, selector) {
 
 const tokens = style("globals", ":root");
 
-test("작은 휴대폰은 새 업무 라벨만 압축하고 검색의 44px 터치 폭과 전체 접근성 이름을 유지한다", () => {
-  const search = style("globals", ".sidebar-actions .global-search-trigger");
+test("작은 휴대폰도 새 업무 등록 문구와 검색의 44px 터치 폭을 유지한다", () => {
+  const search = style("renewal", ".sidebar-actions .global-search-trigger");
   assert.equal(search.flex, "0 0 44px");
   assert.equal(search.width, "44px");
   assert.equal(search["min-height"], "44px");
-  assert.match(css("globals"), /@media \(max-width: 380px\)\s*\{\s*\.sidebar-new-work-extra\s*\{\s*display: none;/);
-  const compact = style("globals", ".sidebar-actions .sidebar-new-work");
-  assert.equal(compact["font-size"], undefined, "large text must not be reduced to make controls fit");
   const source = readFileSync(new URL("../app/work-manager.tsx", import.meta.url), "utf8");
   assert.match(source, /className="primary-button sidebar-new-work"\s+aria-label="새 업무 등록"/);
-  assert.match(source, /새 업무<span className="sidebar-new-work-extra"> 등록<\/span>/);
+  assert.match(source, /<Icon name="plus" size=\{18\} \/> <span>새 업무 등록<\/span>/);
+  assert.doesNotMatch(source, /className="sidebar-new-work-extra"/);
+  assert.match(css("renewal"), /@media \(max-width: 520px\)[\s\S]*?\.sidebar-top \{ grid-template-columns: minmax\(0, 1fr\)/);
 });
 
 test("한글 본문 폰트는 외부 연결 없이 실제 WOFF2 파일·유니코드 서브셋·라이선스를 제공한다", () => {
