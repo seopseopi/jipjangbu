@@ -143,7 +143,10 @@ function FileViewerContent({
           ? `translate(0, ${imageWidth}px) rotate(270deg)`
           : undefined;
   return (
-    <section className="structure-file-viewer" aria-label="원본 도면 보기">
+    <section
+      className={`structure-file-viewer${fit ? " is-fit" : ""}`}
+      aria-label="원본 도면 보기"
+    >
       {minimal && pdf && (
         <label>
           페이지{" "}
