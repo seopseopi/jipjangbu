@@ -2,9 +2,18 @@
 /* eslint-disable react/no-unknown-property -- R3F JSX describes Three.js objects, not HTML. */
 import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
-import { Shape, Vector3, DoubleSide } from "three";
+import {
+  Shape,
+  Vector3,
+  DoubleSide,
+  ACESFilmicToneMapping,
+  type Mesh,
+  type MeshStandardMaterial,
+} from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { ReferenceFixtures, useFloorTextures } from "./plan-fixtures";
+import { ReferenceFixtures, useFloorTextures, Fitting } from "./plan-fixtures";
+import { reviewedInterior, roomFinish } from "./interior-details";
+import { InteriorFurniture } from "./interior-furniture";
 import { referenceFinish } from "./reference-finishes";
 import { hasReferenceFinishes } from "./hillstate-reference";
 import {
@@ -109,7 +118,10 @@ function Scene({
 }) {
   const { camera, size } = useThree();
   const detailed = hasReferenceFinishes(plan);
-  const textures = useFloorTextures();
+  const interior = useMemo(() => reviewedInterior(plan), [plan]);
+  const textures = useFloorTextures(!!interior);
+  const cutaway = useRef(new Map<string, Mesh>());
+  const wallPosition = useRef(new Vector3());
   const pos = (p: Point): [number, number, number] => {
     const t = transformPoint(p, plan.coordinateSystem.pivot, transform);
     return [
@@ -131,9 +143,29 @@ function Scene({
     [plan],
   );
   const vector = useRef(new Vector3());
+  const footprint = useMemo(() => {
+    const shape = new Shape();
+    plan.outline.forEach(([x, y], i) =>
+      i ? shape.lineTo(x, y) : shape.moveTo(x, y),
+    );
+    shape.closePath();
+    return shape;
+  }, [plan]);
   useFrame(() => {
     // Demand rendering may stop after this frame; project labels with the current camera.
     camera.updateMatrixWorld();
+    if (interior)
+      cutaway.current.forEach((mesh) => {
+        mesh.getWorldPosition(wallPosition.current);
+        const front =
+          wallPosition.current.x * camera.position.x +
+            wallPosition.current.z * camera.position.z >
+          1.5;
+        const material = mesh.material as MeshStandardMaterial;
+        material.opacity = front ? 0.18 : 1;
+        material.depthWrite = !front;
+        mesh.castShadow = !front;
+      });
     plan.rooms.forEach((room, i) => {
       const el = labels.current[i];
       if (!el) return;
@@ -154,8 +186,26 @@ function Scene({
   });
   return (
     <>
-      <ambientLight intensity={1.4} />
-      <directionalLight position={[5, 12, 8]} intensity={2} />
+      <ambientLight intensity={interior ? 0.65 : 1.4} />
+      <hemisphereLight args={["#fff8ed", "#b2bbc0", 1.1]} />
+      <directionalLight
+        position={[4, 15, 7]}
+        intensity={interior ? 2.4 : 2}
+        castShadow={!!interior}
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-15}
+        shadow-camera-right={15}
+        shadow-camera-top={15}
+        shadow-camera-bottom={-15}
+        shadow-normalBias={0.035}
+      />
+      {interior && (
+        <directionalLight
+          position={[-8, 7, -9]}
+          intensity={0.7}
+          color="#dceaff"
+        />
+      )}
       <group
         rotation={[0, (transform.rotation * Math.PI) / 180, 0]}
         scale={[transform.mirror ? -1 : 1, 1, 1]}
@@ -167,23 +217,43 @@ function Scene({
             plan.coordinateSystem.pivot[1],
           ]}
         >
+          {interior && (
+            <mesh
+              rotation={[-Math.PI / 2, 0, 0]}
+              position={[0, -0.14, 0]}
+              receiveShadow
+            >
+              <extrudeGeometry
+                args={[footprint, { depth: 0.12, bevelEnabled: false }]}
+              />
+              <meshStandardMaterial color="#dfd9cd" roughness={0.9} />
+            </mesh>
+          )}
           {plan.rooms.map((room, i) => (
             <mesh
               key={room.id}
               rotation={[-Math.PI / 2, 0, 0]}
+              receiveShadow
               onClick={(e) => {
                 e.stopPropagation();
                 onSelect(room.id);
               }}
             >
               <shapeGeometry args={[shapes[i]]} />
-              <meshBasicMaterial
+              <meshStandardMaterial
                 side={DoubleSide}
-                map={detailed ? textures[referenceFinish(room.id)] : null}
+                map={
+                  interior
+                    ? textures[roomFinish(room)]
+                    : detailed
+                      ? textures[referenceFinish(room.id)]
+                      : null
+                }
+                roughness={interior && /욕실|현관/.test(room.name) ? 0.4 : 0.78}
                 color={
                   selected === room.id
                     ? "#8ab6aa"
-                    : detailed
+                    : detailed || interior
                       ? "#ffffff"
                       : roomColor(room)
                 }
@@ -191,6 +261,22 @@ function Scene({
             </mesh>
           ))}
           {detailed && <ReferenceFixtures onSelect={onSelect} />}
+          {interior && (
+            <>
+              {interior.fixtures.map((f) => (
+                <group
+                  key={f.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelect(f.roomId);
+                  }}
+                >
+                  <Fitting fixture={f} />
+                </group>
+              ))}
+              <InteriorFurniture plan={plan} />
+            </>
+          )}
           {plan.walls.flatMap((w) =>
             wallSolids(w, [...plan.doors, ...plan.windows]).map((s, i) => {
               const top = lowWalls ? Math.min(s.top, 0.6) : s.top;
@@ -199,6 +285,13 @@ function Scene({
               return (
                 <mesh
                   key={`${w.id}-${i}`}
+                  ref={(mesh) => {
+                    const key = `${w.id}-${i}`;
+                    if (mesh) cutaway.current.set(key, mesh);
+                    else cutaway.current.delete(key);
+                  }}
+                  castShadow
+                  receiveShadow
                   position={[p[0], (s.bottom + top) / 2, -p[1]]}
                   rotation={[
                     0,
@@ -209,7 +302,11 @@ function Scene({
                   <boxGeometry
                     args={[s.to - s.from, top - s.bottom, w.thickness]}
                   />
-                  <meshStandardMaterial color="#a5b0ba" roughness={0.85} />
+                  <meshStandardMaterial
+                    color={interior ? "#eee9df" : "#a5b0ba"}
+                    roughness={0.82}
+                    transparent={!!interior}
+                  />
                 </mesh>
               );
             }),
@@ -218,7 +315,7 @@ function Scene({
             const w = plan.walls.find((w) => w.id === o.wallId)!,
               p = wallPoint(w, o.offset + o.width / 2);
             return (
-              <mesh
+              <group
                 key={o.id}
                 position={[
                   p[0],
@@ -231,19 +328,54 @@ function Scene({
                   0,
                 ]}
               >
-                <boxGeometry
-                  args={[
-                    o.width,
-                    lowWalls ? 0.045 : o.height,
-                    lowWalls ? 0.12 : 0.025,
-                  ]}
-                />
-                <meshStandardMaterial
-                  color="#88c7dd"
-                  transparent
-                  opacity={lowWalls ? 1 : 0.3}
-                />
-              </mesh>
+                <mesh>
+                  <boxGeometry
+                    args={[
+                      o.width,
+                      lowWalls ? 0.045 : o.height,
+                      lowWalls ? 0.12 : 0.025,
+                    ]}
+                  />
+                  <meshPhysicalMaterial
+                    color={interior ? "#d5e7e8" : "#88c7dd"}
+                    transparent
+                    opacity={lowWalls ? 1 : interior ? 0.18 : 0.3}
+                    roughness={0.12}
+                    metalness={0.05}
+                    depthWrite={false}
+                  />
+                </mesh>
+                {interior && (
+                  <>
+                    {[-0.5, 0, 0.5].map((n) => (
+                      <mesh key={n} position={[n * o.width, 0, 0]} castShadow>
+                        <boxGeometry
+                          args={[0.045, lowWalls ? 0.045 : o.height, 0.06]}
+                        />
+                        <meshStandardMaterial
+                          color="#dddcd4"
+                          metalness={0.35}
+                          roughness={0.35}
+                        />
+                      </mesh>
+                    ))}
+                    {[-0.5, 0.5].map((n) => (
+                      <mesh
+                        key={n}
+                        position={[0, n * (lowWalls ? 0.045 : o.height), 0]}
+                        castShadow
+                      >
+                        <boxGeometry args={[o.width, 0.045, 0.065]} />
+                        <meshStandardMaterial
+                          color="#deddd5"
+                          metalness={0.35}
+                          roughness={0.35}
+                        />
+                      </mesh>
+                    ))}
+                  </>
+                )}
+              </group>
             );
           })}
           {plan.doors.map((o) => {
@@ -254,7 +386,7 @@ function Scene({
                 ((o.opensTo === "left" ? 1 : -1) * o.width) / 2,
               );
             return (
-              <mesh
+              <group
                 key={o.id}
                 position={[p[0], (lowWalls ? 0.45 : o.height) / 2, -p[1]]}
                 rotation={[
@@ -264,13 +396,46 @@ function Scene({
                   0,
                 ]}
               >
-                <boxGeometry
-                  args={[o.width, lowWalls ? 0.45 : o.height, 0.035]}
-                />
-                <meshBasicMaterial
-                  color={plan.entry?.doorId === o.id ? "#b75b0b" : "#aa987a"}
-                />
-              </mesh>
+                <mesh castShadow receiveShadow>
+                  <boxGeometry
+                    args={[o.width, lowWalls ? 0.45 : o.height, 0.035]}
+                  />
+                  <meshStandardMaterial
+                    color={
+                      interior
+                        ? plan.entry?.doorId === o.id
+                          ? "#857967"
+                          : "#d4c5ac"
+                        : plan.entry?.doorId === o.id
+                          ? "#b75b0b"
+                          : "#aa987a"
+                    }
+                    roughness={0.6}
+                  />
+                </mesh>
+                {interior && (
+                  <>
+                    <mesh position={[0, 0, 0.022]}>
+                      <boxGeometry
+                        args={[
+                          o.width - 0.12,
+                          (lowWalls ? 0.45 : o.height) - 0.16,
+                          0.014,
+                        ]}
+                      />
+                      <meshStandardMaterial color="#ded2bd" roughness={0.6} />
+                    </mesh>
+                    <mesh position={[o.width * 0.34, -0.05, 0.06]}>
+                      <boxGeometry args={[0.11, 0.025, 0.075]} />
+                      <meshStandardMaterial
+                        color="#7c8585"
+                        metalness={0.85}
+                        roughness={0.2}
+                      />
+                    </mesh>
+                  </>
+                )}
+              </group>
             );
           })}
           {showRoute &&
@@ -321,11 +486,18 @@ export default function PlanThree(props: {
   showLabels: boolean;
 }) {
   const labels = useRef<(HTMLSpanElement | null)[]>([]);
+  const interior = useMemo(() => reviewedInterior(props.plan), [props.plan]);
   return (
-    <div className="structure-three">
+    <div className={`structure-three${interior ? " is-furnished" : ""}`}>
       <Canvas
         frameloop="demand"
         dpr={[1, 1.5]}
+        shadows
+        gl={{
+          antialias: true,
+          toneMapping: ACESFilmicToneMapping,
+          toneMappingExposure: 1.05,
+        }}
         camera={{ position: [12, 14, 12], fov: 42 }}
         fallback={<p>3D를 사용할 수 없습니다. 2D 보기를 선택해 주세요.</p>}
       >
@@ -342,7 +514,10 @@ export default function PlanThree(props: {
           <span
             key={r.id}
             className={`${props.selected === r.id ? "is-selected" : ""} ${r.id === props.plan.entry?.roomId ? "is-entrance" : ""}`}
-            hidden={!props.showLabels}
+            hidden={
+              !props.showLabels ||
+              (!!interior && /발코니/.test(r.name) && props.selected !== r.id)
+            }
             ref={(el) => {
               labels.current[i] = el;
             }}

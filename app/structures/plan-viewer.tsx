@@ -12,6 +12,7 @@ import { roomLabelPoint } from "./processing";
 import { PlanSvg } from "./plan-svg";
 import { type Plan, type Transform } from "./plan";
 import { hasReferenceFinishes } from "./hillstate-reference";
+import { reviewedInterior } from "./interior-details";
 const PlanThree = lazy(() => import("./plan-three"));
 class ThreeBoundary extends Component<
   { children: ReactNode; fallback: ReactNode },
@@ -58,6 +59,7 @@ export function PlanViewer({
     [show3dLabels, setShow3dLabels] = useState(!hasReferenceFinishes(plan)),
     [failed, setFailed] = useState(false);
   const showLabels = mode === "2d" ? show2dLabels : show3dLabels;
+  const interior = useMemo(()=>reviewedInterior(plan),[plan]);
   const failure = useCallback(() => {
     setFailed(true);
     setMode("2d");
@@ -208,7 +210,7 @@ export function PlanViewer({
           : "방을 선택해 배치를 확인하세요 · "}
         {plan.scaleStatus === "verified"
           ? "자료 기준 치수 확인"
-          : "배치 참고용 · 실측 아님"}
+          : mode === "3d" && interior ? "설비는 원본 기준 · 가구·마감은 예시 · 실측 아님" : "배치 참고용 · 실측 아님"}
         {failed ? " · 3D 사용 불가, 2D로 표시 중" : ""}
       </p>
     </section>
