@@ -149,25 +149,6 @@ export function PlanSvg({
       })}
       {plan.doors.map((o) => {
         const w = plan.walls.find((w) => w.id === o.wallId)!;
-        const hinge = wallPoint(
-          w,
-          o.offset + (o.hinge === "end" ? o.width : 0),
-        );
-        const closed = wallPoint(
-          w,
-          o.offset + (o.hinge === "end" ? 0 : o.width),
-        );
-        const open = wallPoint(
-          w,
-          o.offset + (o.hinge === "end" ? o.width : 0),
-          (o.opensTo === "left" ? 1 : -1) * o.width,
-        );
-        const c = point(closed),
-          p = point(open);
-        const sweep = Number(
-          ((o.hinge === "end") !== (o.opensTo === "right")) !==
-            transform.mirror,
-        );
         return (
           <g key={o.id}>
             <line
@@ -179,16 +160,9 @@ export function PlanSvg({
               strokeWidth={w.thickness + 0.045}
             />
             <line
-              {...line(hinge, open)}
+              {...line(wallPoint(w, o.offset), wallPoint(w, o.offset + o.width))}
               stroke={plan.entry?.doorId === o.id ? "#b75b0b" : "#8b6d4c"}
               strokeWidth={plan.entry?.doorId === o.id ? 0.1 : 0.05}
-            />
-            <path
-              d={`M ${c} A ${o.width} ${o.width} 0 0 ${sweep} ${p}`}
-              fill="none"
-              stroke="#8b6d4c"
-              strokeWidth={0.025}
-              strokeDasharray=".07 .05"
             />
           </g>
         );
