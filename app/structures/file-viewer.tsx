@@ -9,17 +9,24 @@ type ViewerProps = {
   file: Pick<PlanFile, "file_name" | "mime_type">;
   url: string;
   minimal?: boolean;
+  fit?: boolean;
 };
 export function FileViewer(props: ViewerProps) {
   return <FileViewerContent key={props.url} {...props} />;
 }
-function FileViewerContent({ file, url, minimal = false }: ViewerProps) {
+function FileViewerContent({
+  file,
+  url,
+  minimal = false,
+  fit = false,
+}: ViewerProps) {
   const pdf = file.mime_type === "application/pdf";
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null),
     [page, setPage] = useState(1),
     [zoom, setZoom] = useState(1),
     [rotation, setRotation] = useState(0),
     [width, setWidth] = useState(600),
+    [height, setHeight] = useState(600),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(pdf),
     [retry, setRetry] = useState(0),
@@ -28,9 +35,10 @@ function FileViewerContent({ file, url, minimal = false }: ViewerProps) {
     canvasHost = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!frame.current) return;
-    const observer = new ResizeObserver(([entry]) =>
-      setWidth(Math.max(240, entry.contentRect.width - 16)),
-    );
+    const observer = new ResizeObserver(([entry]) => {
+      setWidth(Math.max(80, entry.contentRect.width - 16));
+      setHeight(Math.max(80, entry.contentRect.height - 16));
+    });
     observer.observe(frame.current);
     return () => observer.disconnect();
   }, []);
@@ -78,7 +86,12 @@ function FileViewerContent({ file, url, minimal = false }: ViewerProps) {
           scale: 1,
           rotation: (p.rotate + rotation) % 360,
         });
-        const scale = Math.min(width / base.width, 1.6) * zoom;
+        const scale =
+          Math.min(
+            width / base.width,
+            fit ? height / base.height : Infinity,
+            1.6,
+          ) * zoom;
         const viewport = p.getViewport({
           scale,
           rotation: (p.rotate + rotation) % 360,
@@ -113,8 +126,13 @@ function FileViewerContent({ file, url, minimal = false }: ViewerProps) {
       render?.cancel();
       canvas.remove();
     };
-  }, [doc, page, zoom, rotation, width, file.file_name]);
-  const imageWidth = width * zoom,
+  }, [doc, page, zoom, rotation, width, height, file.file_name, fit]);
+  const imageWidth =
+      (fit
+        ? rotation % 180
+          ? Math.min(height, width / imageRatio)
+          : Math.min(width, height / imageRatio)
+        : width) * zoom,
     imageHeight = imageWidth * imageRatio;
   const imageTransform =
     rotation === 90
