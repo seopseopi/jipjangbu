@@ -6,6 +6,7 @@ import {
   useCallback,
   useState,
   useMemo,
+  useRef,
   type ReactNode,
 } from "react";
 import { roomLabelPoint } from "./processing";
@@ -13,6 +14,7 @@ import { PlanSvg } from "./plan-svg";
 import { type Plan, type Transform } from "./plan";
 import { hasReferenceFinishes } from "./hillstate-reference";
 import { reviewedInterior } from "./interior-details";
+import type { PlanCameraMemory } from "./camera-continuity";
 const PlanThree = lazy(() => import("./plan-three"));
 class ThreeBoundary extends Component<
   { children: ReactNode; fallback: ReactNode; onFailure?: () => void },
@@ -62,6 +64,7 @@ export function PlanViewer({
     [show3dLabels, setShow3dLabels] = useState(!hasReferenceFinishes(plan)),
     [failed, setFailed] = useState(false);
   const showLabels = mode === "2d" ? show2dLabels : show3dLabels;
+  const viewMemory = useRef<PlanCameraMemory>({key: "", reset: -1, view: null});
   const interior = useMemo(() => reviewedInterior(plan), [plan]);
   const failure = useCallback(() => {
     setFailed(true);
@@ -209,6 +212,7 @@ export function PlanViewer({
               }
             >
               <PlanThree
+                viewMemory={viewMemory}
                 plan={plan}
                 transform={transform}
                 selected={selected}

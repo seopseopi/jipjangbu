@@ -20,6 +20,7 @@ import {
   structureGroups,
   structurePropertyDong,
   structureGroupKey,
+  structureConnectionIssue,
 } from "./catalog";
 import type { Catalog, History, PropertyRow, RevisionData } from "./contracts";
 import "./structures.css";
@@ -340,6 +341,7 @@ function UnitContent({
       });
     return () => controller.abort();
   }, [unit?.revision_id, keys, generation]);
+  const connectionIssue=structureConnectionIssue(catalog,property,unit);
   const records = [
     ...new Map(
       histories.flatMap((h) => h.workLogs).map((w) => [w.id, w]),
@@ -402,7 +404,7 @@ function UnitContent({
                   ? " · 실제 상태와 도면 구분이 다릅니다. 참고용으로만 확인하세요."
                   : ""}
               </p>
-              {revision.file ? (
+              {connectionIssue ? <p className="structure-empty" role="alert">{connectionIssue}</p> : revision.file ? (
                 <Suspense
                   fallback={<p role="status">도면을 준비하고 있습니다…</p>}
                 >

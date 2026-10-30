@@ -28,3 +28,17 @@ test('공식 이름·주소가 일치하는 등록 단지는 장부 별칭과 �
  const wrongAddress={...data,complexes:[{...data.complexes[0],address:'다른 주소'}]};
  assert.equal(structureGroups(wrongAddress).length,2);
 });
+
+test('저장한 도면도 최신 동호수·단지·평형 충돌이면 표시 전에 감지한다',async()=>{
+ const {structureConnectionIssue}=await import('../app/structures/catalog.ts');
+ const {APARTMENT_SOURCES}=await import('../app/structures/source-contract.ts');
+ const source=APARTMENT_SOURCES.find(s=>s.alias==='아이파크1차'),type=source.types.find(t=>t.id==='62354');
+ const property={identity_key:'synthetic',building_name:source.alias,building_dong:'101동',unit_number:'9001호',current_size_type:'33',size_types:'33,45'};
+ const unit={id:'u',complex_id:'c',building_name:'101',number:'9001',revision_id:'r'};
+ const catalog={complexes:[{id:'c',name:source.name,address:source.address}],revisions:[{id:'r',type_name:type.label}]};
+ assert.equal(structureConnectionIssue(catalog,property,unit),'','과거의 다른 평형은 현재 충돌로 취급하지 않음');
+ assert.match(structureConnectionIssue(catalog,{...property,current_size_type:'45'},unit),/최신 장부 평형/);
+ assert.match(structureConnectionIssue(catalog,property,{...unit,number:'9002'}),/동·호수/);
+ assert.match(structureConnectionIssue({...catalog,complexes:[{...catalog.complexes[0],address:'다른 단지'}]},property,unit),/단지/);
+ assert.equal(structureConnectionIssue(catalog,undefined,unit),'');
+});
