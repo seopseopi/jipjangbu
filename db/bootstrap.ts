@@ -121,7 +121,7 @@ const schemaStatements = [
 
 // Bump when bootstrap schema or default lookup definitions change. Runtime
 // metadata is deliberately not business data and is not included in backups.
-const BOOTSTRAP_VERSION = "5";
+const BOOTSTRAP_VERSION = "6";
 const schemaNames = schemaStatements.map((statement) => {
   const name = statement.match(/^CREATE (?:TABLE|(?:UNIQUE )?INDEX) IF NOT EXISTS (\w+)/)?.[1];
   if (!name) throw new Error("Invalid bootstrap schema statement");

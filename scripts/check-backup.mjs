@@ -32,6 +32,7 @@ export async function checkBackup(input, key = process.env.BACKUP_ENCRYPTION_KEY
     backup.tables.listing_source_notes = sources;
     backup.counts.listing_source_notes = sources.length;
   }
+  if (!("structure_plan_processing" in backup.tables) && !("structure_plan_processing" in backup.counts)) { backup.tables.structure_plan_processing = []; backup.counts.structure_plan_processing = 0; }
   if (!("structure_plan_files" in backup.tables) && !("structure_plan_files" in backup.counts)) {
     backup.tables.structure_plan_files = []; backup.counts.structure_plan_files = 0;
   }

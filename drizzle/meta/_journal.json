@@ -64,6 +64,13 @@
       "when": 1793331591732,
       "tag": "0008_curvy_james_howlett",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1793335495857,
+      "tag": "0009_good_hercules",
+      "breakpoints": true
     }
   ]
 }

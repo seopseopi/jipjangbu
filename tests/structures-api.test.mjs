@@ -290,3 +290,37 @@ test("방문 기록만 있는 물건도 탐색 가능하며 매물 projection �
     1,
   );
 });
+
+test("가공 영역과 2D·3D 구조를 저장·조회하고 충돌·위장 데이터는 차단한다", async t => {
+ const db=database(t);fileBucket(t);
+ const upload=await filePost(new TextEncoder().encode('%PDF-1.4\nprocessing-test'));
+ const {id}=await upload.json();
+ const processing={page:7,crop:{x:.1,y:.2,width:.7,height:.6},plan:revisionInput().plan,note:'합성 원본 추적 시험'};
+ const input={action:'process',revisionId:id,confirmed:true,expectedVersion:0,processing};
+ assert.equal((await post(input)).status,200);
+ const detail=await (await api.GET(new Request(`https://test.invalid/api/structures?revision=${id}`))).json();
+ assert.deepEqual(detail.processing.crop,processing.crop);assert.equal(detail.processing.rowVersion,1);assert.ok(detail.processing.plan.walls.length);
+ assert.equal(detail.plan,null);assert.ok(detail.file); // original untouched
+ assert.equal((await post(input)).status,409);
+ assert.equal((await post({...input,expectedVersion:1,processing:{...processing,crop:{x:.8,y:0,width:.5,height:1}}})).status,422);
+ assert.equal((await post({...input,expectedVersion:1,processing:{...processing,plan:DEMO_PLAN}})).status,422);
+ assert.equal((await post({...input,expectedVersion:1,processing:{...processing,plan:null}})).status,200);
+ assert.equal(db.prepare("SELECT COUNT(*) n FROM structure_audit WHERE action='processing.saved'").get().n,2);
+});
+
+const sourceImageApi = await import('../app/api/structures/source-image/route.ts');
+test('외부 도면 조회는 수집한 주소만 허용하고 리다이렉트·위장 이미지·과대 응답을 거절한다',async t=>{
+ const originalFetch=globalThis.fetch;t.after(()=>{globalThis.fetch=originalFetch;});
+ let called=0;
+ globalThis.fetch=async()=>{called++;return new Response(Uint8Array.from([255,216,255,1,2,3,4,5]),{headers:{'Content-Type':'image/jpeg'}});};
+ const url='https://test.invalid/api/structures/source-image?alias='+encodeURIComponent('힐스테이트1차')+'&type=62353&variant=base';
+ assert.equal((await sourceImageApi.GET(new Request(url))).status,200);
+ assert.equal((await sourceImageApi.GET(new Request('https://test.invalid/api/structures/source-image?url=https://evil.invalid'))).status,404);
+ assert.equal(called,1);
+ globalThis.fetch=async()=>new Response(null,{status:302,headers:{Location:'https://evil.invalid'}});
+ assert.equal((await sourceImageApi.GET(new Request(url))).status,502);
+ globalThis.fetch=async()=>new Response('<script>x</script>',{headers:{'Content-Type':'image/jpeg'}});
+ assert.equal((await sourceImageApi.GET(new Request(url))).status,502);
+ globalThis.fetch=async()=>new Response(new Uint8Array(8*1024*1024+1),{headers:{'Content-Type':'image/png'}});
+ assert.equal((await sourceImageApi.GET(new Request(url))).status,502);
+});

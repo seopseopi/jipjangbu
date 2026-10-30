@@ -24,7 +24,14 @@ export function structureGroups(catalog: Catalog) {
   const pending = catalog.properties.filter((p) => !linked.get(p.identity_key));
   return [
     ...registered,
-    ...[...new Set(pending.map((p) => p.building_name))].map((name) => ({
+    ...[
+      ...new Set([
+        ...pending.map((p) => p.building_name),
+        ...(catalog.managedBuildings ?? [])
+          .map((b) => b.building_name)
+          .filter((name) => !catalog.complexes.some((c) => c.name === name)),
+      ]),
+    ].map((name) => ({
       key: `listing:${name}`,
       name,
       address: "장부명 · 공식 단지 연결 전",

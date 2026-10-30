@@ -16,3 +16,8 @@ test("누락된 세대를 가리키는 연결은 확인된 단지로 승격하�
   const data = { complexes: [{ id: "a", name: "단지", address: "주소" }], properties: [{ identity_key: "x", building_name: "단지", building_dong: "1" }], units: [], links: [{ identity_key: "x", unit_id: "missing" }], revisions: [] };
   assert.equal(structureGroups(data).find(g => g.key === "listing:단지").properties.length, 1);
 });
+
+test("업무 기록이 없는 관리 아파트도 전체 도면 수집 목록에 나타난다",()=>{
+ const data={properties:[],complexes:[],units:[],revisions:[],links:[],managedBuildings:[{id:'managed',building_name:'아파트A'}]};
+ assert.equal(structureGroups(data)[0].name,'아파트A');assert.equal(structureGroups(data)[0].properties.length,0);
+});

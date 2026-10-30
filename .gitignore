@@ -48,3 +48,9 @@ yarn-error.log*
 
 # Generated from the pinned pdfjs-dist dependency.
 /public/pdfjs/
+
+# Local public-source research probes.
+/output/research/
+
+__pycache__/
+*.pyc

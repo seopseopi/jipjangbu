@@ -29,6 +29,9 @@ function bucket(content) {
 test("파일 포함 백업은 바이트를 보존하고 격리 DB 및 파일로 복구된다", async () => {
   const original = Buffer.alloc(2 * 1024 * 1024 + 5, 127); original.write("%PDF-1.7");
   const data = fixture(original);
+  const processing={page:7,crop:{x:.2,y:.3,width:.4,height:.5},plan:null,note:"합성 영역 분리"};
+  data.tables.structure_plan_processing.push({revision_id:data.tables.structure_plan_revisions[0].id,processing_json:JSON.stringify(processing),row_version:2});
+  data.counts.structure_plan_processing=1;
   const stream = await portableBackupStream(bytesOf(data), bucket(original));
   const exported = Buffer.from(await new Response(stream).arrayBuffer());
   const parsed = JSON.parse(exported.toString());
@@ -36,6 +39,8 @@ test("파일 포함 백업은 바이트를 보존하고 격리 DB 및 파일로 
   const checked = await checkBackup(exported);
   assert.equal(checked.verifiedFileCount, 1);
   assert.equal(checked.counts.structure_plan_revisions, 1);
+  assert.equal(checked.counts.structure_plan_processing,1);
+  assert.deepEqual(JSON.parse(parsed.tables.structure_plan_processing[0].processing_json),processing);
   const restoredBucket = new Map(parsed.files.map(f => [data.tables.structure_plan_files.find(row => row.revision_id === f.revision_id).storage_key, Buffer.from(f.base64, "base64")]));
   assert.deepEqual(restoredBucket.get(data.tables.structure_plan_files[0].storage_key), original);
 });
