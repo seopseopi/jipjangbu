@@ -1,4 +1,3 @@
-import "./history-work-type-filter.css";
 
 /** Keep the selected type available even if its last record was edited/deleted. */
 export function HistoryWorkTypeFilter({ value, workTypes, count, loading = false, onChange }: {

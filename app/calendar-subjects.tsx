@@ -1,6 +1,5 @@
 import { calendarWorkPresentation } from "./calendar-presentation";
 import { getPropertyDisplayGroups } from "./property-display";
-import "./calendar-subjects.css";
 
 /** Compact addresses without changing the workbook's work-type presentation. */
 export function CalendarSubjects({ item }: { item: Parameters<typeof calendarWorkPresentation>[0] }) {

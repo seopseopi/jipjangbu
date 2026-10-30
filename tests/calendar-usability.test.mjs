@@ -258,7 +258,9 @@ test("모바일은 월 그리드 대신 전체 폭 일정 목록을 보여주고
   }
   const renewal = readFileSync(new URL("../app/renewal.css", import.meta.url), "utf8");
   assert.match(renewal, /\.calendar-agenda-notes\s*\{[^}]*display:\s*block[^}]*-webkit-line-clamp:\s*unset[^}]*overflow:\s*visible/, "the renewal keeps long notes fully visible");
-  assert.ok(source.indexOf('import "./calendar.css"') < source.indexOf('import "./renewal.css"'), "renewal rules override the original three-line preview");
+  const styles = readFileSync(new URL("../app/application.css", import.meta.url), "utf8");
+  const calendarIndex = styles.indexOf('@import "./calendar.css"');
+  assert.ok(calendarIndex >= 0 && calendarIndex < styles.indexOf('@import "./renewal.css"'), "server-loaded renewal rules override the original three-line preview");
 });
 
 test("데스크톱 달력은 모든 업무 제목을 표시하며 리뉴얼의 기본·큰 글씨 토큰을 사용한다", () => {

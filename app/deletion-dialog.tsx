@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { clientJsonFetch } from "./client-api";
 import type { DeletionEntityType, DeletionPreview, DeletionResult } from "./deletion-types";
 import { Icon } from "./icons";
-import "./deletion-dialog.css";
 
 export function deletionTypeLabel(type: DeletionEntityType) {
   return type === "work" ? "업무" : type === "customer" ? "고객" : "할 일";

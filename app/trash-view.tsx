@@ -6,7 +6,6 @@ import type { DeletionEntityType, RestoreResult, TrashDetailResponse, TrashListR
 import { deletionTypeLabel, DeletionPreviewContent, SafetyDialog } from "./deletion-dialog";
 import { formatHistoryTimestamp } from "./history-timestamps";
 import { Icon } from "./icons";
-import "./trash-view.css";
 
 function trashError(error: unknown) {
   return error instanceof Error ? error.message : "휴지통을 확인하지 못했습니다. 다시 시도해 주세요.";

@@ -21,14 +21,6 @@ import type {
 import { FollowUpsView } from "./follow-ups";
 import { DeletionDialog } from "./deletion-dialog";
 import type { DeletionEntityType } from "./deletion-types";
-import "./calendar.css";
-import "./journal-search-feedback.css";
-import "./workflow-feedback.css";
-import "./workflow-history-backup.css";
-import "./work-form-feedback.css";
-import "./work-reading-list.css";
-import "./renewal.css";
-import "./work-form-renewal.css";
 import { LISTING_WORK_TYPES, findWorkDraftIssue } from "./work-form-rules";
 import { CustomerPicker } from "./customer-picker";
 import { fetchCustomerDirectory } from "./customer-directory";
@@ -1964,18 +1956,18 @@ function JournalView({
   const listRef = useResultListRef(paging.page, JSON.stringify([query, workType]));
   return <>
     <div className="renewal-paginated-list" ref={listRef}>
-      <Toolbar query={query} setQuery={setQuery} placeholder="고객명, 연락처, 건물명, 동·호수, 내용 검색">
+      <div className="management-filter journal-filter"><Toolbar query={query} setQuery={setQuery} placeholder="고객명, 연락처, 건물명, 동·호수, 내용 검색">
         <select aria-label="업무구분 필터" value={workType} onChange={(event) => setWorkType(event.target.value)}>
           <option value="">모든 업무구분</option>
           {lookups.workTypes.map((type) => <option key={type}>{type}</option>)}
         </select>
         {filtered && <button className="filter-reset" onClick={onReset} type="button">초기화</button>}
-      </Toolbar>
+      </Toolbar></div>
       {filtered && <div className="active-filter-row"><strong>{status === "loading" ? "검색 중" : status === "refreshing" ? "갱신 중" : status === "error" ? "다시 확인 필요" : "적용 중"}</strong>{query && <span>검색: {query}</span>}{workType && <span>{workType}</span>}</div>}
-      <section className="panel data-panel" aria-busy={status === "loading" || status === "refreshing"}>
+      <section className="panel data-panel journal-panel" aria-busy={status === "loading" || status === "refreshing"}>
         <div className="panel-head"><h2>업무 기록 <span className="count-badge">{resultsVisible ? `${total.toLocaleString("ko-KR")}건` : status === "loading" ? "검색 중…" : "조회 실패"}</span></h2><p className="sort-summary">업무일 최신순</p></div>
         <ListReadFeedback status={status} error={error} onRetry={() => { void onRetry(); }} label="업무 기록" />
-        {resultsVisible && <WorkTable items={items.slice(paging.start, paging.end)} onOpen={onOpen} onCustomerHistory={onCustomerHistory} onListingHistory={onListingHistory} />}
+        {resultsVisible && <WorkTable items={items.slice(paging.start, paging.end)} onOpen={onOpen} onCustomerHistory={onCustomerHistory} onListingHistory={onListingHistory} groupByDate />}
       </section>
     </div>
     <ResultPagination paging={paging} total={resultsVisible ? total : 0} busy={status !== "ready" || loadingMore} onPrevious={paging.previous} onNext={() => { void paging.next(canLoadMore ? onLoadMore : undefined); }} />
@@ -1987,12 +1979,28 @@ function WorkTable({
   onCustomerHistory,
   onListingHistory,
   empty = "조건에 맞는 업무가 없습니다.",
+  groupByDate = false,
+  hideDates = false,
 }: {
   items: WorkSummary[];
   onOpen: (id?: string) => void;
   empty?: string;
+  groupByDate?: boolean;
+  hideDates?: boolean;
 } & WorkHistoryActions) {
   if (!items.length) return <EmptyState title={empty} />;
+  if (groupByDate) {
+    const days: Array<{ date: string; items: WorkSummary[] }> = [];
+    for (const item of items) {
+      const previous = days.at(-1);
+      if (previous?.date === item.work_date) previous.items.push(item);
+      else days.push({ date: item.work_date, items: [item] });
+    }
+    return <div className="journal-day-list">{days.map((day) => <section className="journal-day-group" key={`${day.date}-${day.items[0].id}`}>
+      <time className="journal-day-date" dateTime={day.date}><strong>{displayDate(day.date).slice(5)}</strong><span>{day.date.slice(0, 4)}</span></time>
+      <WorkTable items={day.items} onOpen={onOpen} onCustomerHistory={onCustomerHistory} onListingHistory={onListingHistory} hideDates />
+    </section>)}</div>;
+  }
   return (
     <div className="responsive-table work-table work-reading-list">
       <div className="work-record-head" aria-hidden="true"><span>일자</span><span>업무구분</span><span>고객</span><span>내용</span><span>물건</span></div>
@@ -2003,7 +2011,7 @@ function WorkTable({
           <div className="work-record-meta">
             <span data-label="고객" className="work-record-customer"><button type="button" className="work-record-customer-link" onClick={() => onCustomerHistory({ id: item.customer_id, name: item.customer_name })} aria-label={`${item.customer_name} 고객 이력 보기`}><b>{item.customer_name}</b></button></span>
             <button type="button" className={`work-record-open tag ${statusTone(item.work_type)}`} onClick={() => onOpen(item.id)} aria-label={`${item.work_type} 업무 내용 보기`}>{item.work_type}</button>
-            <span data-label="일자"><button type="button" className="work-record-date" onClick={() => onOpen(item.id)} aria-label={`${displayDate(item.work_date)} ${item.customer_name} 업무 내용 보기`}><time dateTime={item.work_date}>{displayDate(item.work_date)}</time></button></span>
+            {!hideDates && <span data-label="일자"><button type="button" className="work-record-date" onClick={() => onOpen(item.id)} aria-label={`${displayDate(item.work_date)} ${item.customer_name} 업무 내용 보기`}><time dateTime={item.work_date}>{displayDate(item.work_date)}</time></button></span>}
           </div>
           <div className={`work-record-body${properties.length ? " has-properties" : ""}`}>
             <span data-label="내용" className="work-record-content"><button type="button" className="work-cell-button work-record-note" onClick={() => onOpen(item.id)} aria-label={`${item.customer_name} 업무 내용 보기`}><span className="work-record-note-text">{item.content || "기록된 내용이 없습니다."}</span></button></span>
@@ -2192,12 +2200,11 @@ function ListingsView({
         {resultsVisible && (!items.length ? (
           <EmptyState title="조건에 맞는 매물이 없습니다." />
         ) : (
-          <div className="responsive-table listing-table">
+          <div className="responsive-table listing-table listing-renewal-table">
             <div className="table-head">
-              {sortButton("type", "매물종류")}
-              {sortButton("building", "이름")}
-              <span>상태</span>
+              {sortButton("building", "매물 · 동호수")}
               <span>가격</span>
+              <span>상태</span>
               <span>등록·말소</span>
             </div>
             {items.slice(paging.start, paging.end).map((item) => (
@@ -2206,20 +2213,18 @@ function ListingsView({
                 key={item.id}
                 onClick={() => onHistory(item)}
               >
-                <span data-label="매물종류">
-                  {item.property_type || "미지정"}
-                  {item.size_type && <small>타입 {item.size_type}</small>}
-                </span>
-                <span data-label="이름">
+                <span data-label="이름" className="listing-address">
                   <b>{targetText(item)}</b>
+                  <small className="listing-row-type" data-label="매물종류">{item.property_type || "미지정"}{item.size_type && ` · 타입 ${item.size_type}`}</small>
+                  {item.notes && <small className="listing-row-note">{item.notes}</small>}
+                </span>
+                <span data-label="가격" className="listing-price">
+                  <Price item={item} />
                 </span>
                 <span data-label="상태">
                   <i className={`tag ${statusTone(item.status)}`}>
                     {item.status}
                   </i>
-                </span>
-                <span data-label="가격">
-                  <Price item={item} />
                 </span>
                 <span data-label="등록·말소">
                   <time className="record-date" dateTime={item.registered_at || undefined}>{displayDate(item.registered_at)}</time>
@@ -2245,17 +2250,13 @@ function Price({
 }: {
   item: Pick<Listing, "sale_price" | "jeonse_price" | "monthly_rent">;
 }) {
-  const parts = [
-    item.sale_price && `매매 ${item.sale_price}`,
-    item.jeonse_price && `전세 ${item.jeonse_price}`,
-    item.monthly_rent && `월세 ${item.monthly_rent}`,
-  ].filter(Boolean);
+  const parts = [["매매", item.sale_price], ["전세", item.jeonse_price], ["월세", item.monthly_rent]].filter(([, value]) => value);
   return (
     <>
       {parts.length
-        ? parts.map((part) => (
-            <small className="price-line" key={part as string}>
-              {part}
+        ? parts.map(([kind, value]) => (
+            <small className="price-line" key={kind}>
+              <span className="price-kind">{kind}</span>{" "}<strong className="price-value">{value}</strong>
             </small>
           ))
         : "-"}
@@ -2295,7 +2296,7 @@ function CustomersView({
   const filtered = Boolean(query || sort !== "recent");
   return (
     <>
-      <Toolbar
+      <div className="management-filter customer-filter"><Toolbar
         query={query}
         setQuery={setQuery}
         placeholder="고객명, 전화번호, 상담 메모 검색"
@@ -2314,10 +2315,10 @@ function CustomersView({
             초기화
           </button>
         )}
-        <button className="secondary-button" onClick={onNew} type="button">
+        <button className="primary-button" onClick={onNew} type="button">
           <Icon name="plus" size={18} /> 고객 등록
         </button>
-      </Toolbar>
+      </Toolbar></div>
       {query && <div className="active-filter-row"><strong>{status === "loading" ? "조회 중" : "조회 조건"}</strong><span>검색: {query}</span></div>}
       <section className="panel data-panel" aria-busy={status === "loading" || status === "refreshing"}>
         <div className="panel-head">
@@ -2338,12 +2339,12 @@ function CustomersView({
         {resultsVisible && (!items.length ? (
           <EmptyState title="조건에 맞는 고객이 없습니다." />
         ) : (
-          <div className="responsive-table customer-table">
+          <div className="responsive-table customer-table customer-renewal-table">
             <div className="table-head">
               <span>고객명</span>
               <span>연락처 · 고객 ID</span>
-              <span>비고</span>
-              <span>최근 업무</span>
+              <span>연결 업무 · 최근 업무</span>
+              <span>메모</span>
               <span>빠른 관리</span>
             </div>
             {items.map((item) => (
@@ -2351,27 +2352,26 @@ function CustomersView({
                 <button
                   className="customer-link"
                   data-label="고객명"
+                  aria-label={`${item.name} 고객 이력 보기`}
                   onClick={() => onHistory(item)}
                 >
                   <b>{item.name}</b>
-                  <small>전체 이력 보기</small>
                 </button>
                 <button
                   className="customer-id-copy"
                   data-label="고객 ID"
+                  aria-label={`${item.name} 고객 ID ${item.id} 복사`}
                   onClick={() => onCopy(item.id)}
                   title="고객 ID 복사"
                 >
                   {item.id}
-                  <small>
-                    <Icon name="copy" size={13} /> 눌러서 복사
-                  </small>
+                  <Icon name="copy" size={15} />
                 </button>
-                <span className="customer-notes" data-label="비고">{item.notes || "-"}</span>
-                <span data-label="최근 업무">
-                  <time className="record-date" dateTime={item.last_work_date || undefined}>{displayDate(item.last_work_date)}</time>
-                  <small>이력 {item.history_count}건</small>
+                <span className="customer-work-count" data-label="최근 업무">
+                  <strong>{item.history_count}건</strong>
+                  <small><time className="record-date" dateTime={item.last_work_date || undefined}>{displayDate(item.last_work_date)}</time></small>
                 </span>
+                <span className="customer-notes" data-label="비고">{item.notes || "메모 없음"}</span>
                 <span className="row-actions" data-label="빠른 관리">
                   <button
                     className="tiny-button accent"

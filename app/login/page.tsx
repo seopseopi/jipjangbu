@@ -4,7 +4,6 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { safeReturnTo } from "../../worker/return-to.js";
 import { BrandMark } from "../brand-mark";
-import "../renewal.css";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");

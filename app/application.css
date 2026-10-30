@@ -1,0 +1,22 @@
+/* A single server-loaded stylesheet keeps the cascade stable on first load,
+   direct page entry and later navigation to lazy-loaded screens. */
+@import "./globals.css";
+@import "./calendar.css";
+@import "./calendar-subjects.css";
+@import "./journal-search-feedback.css";
+@import "./workflow-feedback.css";
+@import "./workflow-history-backup.css";
+@import "./work-form-feedback.css";
+@import "./work-reading-list.css";
+@import "./follow-ups.css";
+@import "./deletion-dialog.css";
+@import "./history-work-type-filter.css";
+@import "./listing-history-summary.css";
+@import "./work-summary-properties.css";
+@import "./work-detail-view.css";
+@import "./trash-view.css";
+@import "./structures/structures.css";
+@import "./renewal.css";
+@import "./work-form-renewal.css";
+@import "./management-renewal.css";
+@import "./insights-renewal.css";

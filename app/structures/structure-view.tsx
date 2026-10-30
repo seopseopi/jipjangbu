@@ -23,7 +23,6 @@ import {
   structureConnectionIssue,
 } from "./catalog";
 import type { Catalog, History, PropertyRow, RevisionData } from "./contracts";
-import "./structures.css";
 const PlanWorkbench = lazy(() =>
   import("./plan-workbench").then((m) => ({ default: m.PlanWorkbench })),
 );

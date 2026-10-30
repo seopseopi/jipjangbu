@@ -3,7 +3,6 @@
 import { createPropertyHistoryTarget } from "./history-query";
 import { Icon, workTypeIcon } from "./icons";
 import { workPropertyLabel } from "./work-property-summary";
-import "./work-detail-view.css";
 
 export type WorkDetailReadItem = {
   id: string;

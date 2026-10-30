@@ -157,7 +157,7 @@ export function InsightsView({ onOpenWork, onOpenListing, refreshKey, onReviewSt
 
   if (loading) {
     return (
-      <div className="insights-loading" role="status" aria-label="현황 분석을 불러오는 중">
+      <div className="insights-loading insights-renewal" role="status" aria-label="현황 분석을 불러오는 중">
         <div className="insights-loading-cards"><span /><span /><span /><span /></div>
         <div className="insights-loading-panel" />
       </div>
@@ -166,7 +166,7 @@ export function InsightsView({ onOpenWork, onOpenListing, refreshKey, onReviewSt
 
   if (error || !data) {
     return (
-      <section className="insights-error" role="alert">
+      <section className="insights-error insights-renewal" role="alert">
         <span className="insights-error-mark" aria-hidden="true"><Icon name="warning" size={26} /></span>
         <div><h2>현황 분석을 불러오지 못했습니다.</h2><p>{error || "잠시 뒤 다시 시도해 주세요."}</p></div>
         <button className="insights-retry" type="button" onClick={() => setRetryKey((current) => current + 1)}><Icon name="refresh" size={18} /> 다시 불러오기</button>
@@ -182,7 +182,7 @@ export function InsightsView({ onOpenWork, onOpenListing, refreshKey, onReviewSt
 
   if (totalVisible === 0 && summaryTotal === 0) {
     return (
-      <section className="insights-empty">
+      <section className="insights-empty insights-renewal">
         <span className="insights-empty-mark" aria-hidden="true"><Icon name="empty" size={26} /></span>
         <h2>분석할 업무 기록이 아직 없습니다.</h2>
         <p>업무와 고객, 매물을 등록하면 월별 흐름과 확인할 항목이 이곳에 나타납니다.</p>
@@ -198,7 +198,7 @@ export function InsightsView({ onOpenWork, onOpenListing, refreshKey, onReviewSt
   ];
 
   return (
-    <div className="insights-view">
+    <div className="insights-view insights-renewal">
       <section className="insights-summary" aria-label="핵심 업무 현황">
         {summaryCards.map((card) => (
           <article className={`insights-summary-card insights-summary-${card.key}`} key={card.key}>
@@ -210,29 +210,15 @@ export function InsightsView({ onOpenWork, onOpenListing, refreshKey, onReviewSt
       </section>
 
       <div className="insights-grid">
-        <section className="insights-panel insights-monthly" aria-labelledby="insights-monthly-title">
-          <header className="insights-panel-head"><div><h2 id="insights-monthly-title">월별 업무량</h2></div></header>
-          {data.monthly.length === 0 ? <p className="insights-panel-empty">표시할 월별 업무가 없습니다.</p> : (
-            <div className="insights-chart">
-              {data.monthly.map((item) => (
-                <div className="insights-chart-row" key={item.month}>
-                  <span className="insights-chart-label">{monthLabel(item.month)}</span>
-                  <div className="insights-bar-track"><span className="insights-bar insights-bar-monthly" style={{ width: `${Math.round((item.count / chartMax) * 100)}%` }} /></div>
-                  <strong>{item.count.toLocaleString("ko-KR")}건</strong>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
         <section className="insights-panel insights-work-types" aria-labelledby="insights-work-types-title">
           <header className="insights-panel-head"><div><h2 id="insights-work-types-title">업무구분별 현황</h2></div><span>{data.workTypes.length}개 구분</span></header>
           {data.workTypes.length === 0 ? <p className="insights-panel-empty">표시할 업무구분이 없습니다.</p> : (
             <div className="insights-type-list">
               {data.workTypes.map((item) => (
                 <div className="insights-type-row" key={item.name}>
-                  <div className="insights-type-copy"><span>{item.name || "미분류"}</span><strong>{item.count.toLocaleString("ko-KR")}건</strong></div>
+                  <span className="insights-type-name">{item.name || "미분류"}</span>
                   <div className="insights-bar-track"><span className="insights-bar insights-bar-type" style={{ width: `${Math.round((item.count / workTypeMax) * 100)}%` }} /></div>
+                  <strong>{item.count.toLocaleString("ko-KR")}건</strong>
                 </div>
               ))}
             </div>
@@ -247,7 +233,7 @@ export function InsightsView({ onOpenWork, onOpenListing, refreshKey, onReviewSt
               {data.upcoming.map((item) => (
                 <button className="insights-item insights-upcoming-item" type="button" key={item.id} onClick={() => onOpenWork(item.id)}>
                   <time>{displayDate(item.work_date)}</time>
-                  <span className="insights-item-copy"><strong>{workName(item)}</strong><WorkSummaryProperties work={item} showSingle /><small>{item.content || item.customer_name}</small></span>
+                  <span className="insights-item-copy"><strong>{item.customer_name || workName(item)}</strong><WorkSummaryProperties work={item} showSingle />{item.content && <small>{item.content}</small>}</span>
                   <span className="insights-item-status">{item.work_type}</span>
                   <Icon name="next" className="insights-item-arrow" size={18} />
                 </button>
@@ -257,7 +243,7 @@ export function InsightsView({ onOpenWork, onOpenListing, refreshKey, onReviewSt
         </section>
 
         <section className="insights-panel insights-stale" aria-labelledby="insights-stale-title">
-          <header className="insights-panel-head"><div><h2 id="insights-stale-title">오래 갱신되지 않은 매물</h2></div>{onReviewStale ? <button className="text-button" type="button" onClick={onReviewStale}>전체 {data.summary.staleListingCount}건 보기</button> : <span>{data.staleListings.length}건</span>}</header>
+          <header className="insights-panel-head"><div><h2 id="insights-stale-title">확인할 매물</h2><p>90일 이상 갱신되지 않은 매물</p></div>{onReviewStale ? <button className="text-button" type="button" onClick={onReviewStale}>전체 {data.summary.staleListingCount}건 보기</button> : <span>미리보기 {data.staleListings.length}건</span>}</header>
           {data.staleListings.length === 0 ? <p className="insights-panel-empty">지금 확인이 필요한 오래된 매물이 없습니다.</p> : (
             <div className="insights-item-list">
               {data.staleListings.map((listing) => (
@@ -266,6 +252,21 @@ export function InsightsView({ onOpenWork, onOpenListing, refreshKey, onReviewSt
                   <span className="insights-item-date">최근 갱신 {displayDate(listing.updated_at || listing.registered_at)}</span>
                   <Icon name="next" className="insights-item-arrow" size={18} />
                 </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="insights-panel insights-monthly" aria-labelledby="insights-monthly-title">
+          <header className="insights-panel-head"><div><h2 id="insights-monthly-title">월별 업무량</h2></div></header>
+          {data.monthly.length === 0 ? <p className="insights-panel-empty">표시할 월별 업무가 없습니다.</p> : (
+            <div className="insights-chart">
+              {data.monthly.map((item) => (
+                <div className="insights-chart-row" key={item.month}>
+                  <span className="insights-chart-label">{monthLabel(item.month)}</span>
+                  <div className="insights-bar-track"><span className="insights-bar insights-bar-monthly" style={{ width: `${Math.round((item.count / chartMax) * 100)}%` }} /></div>
+                  <strong>{item.count.toLocaleString("ko-KR")}건</strong>
+                </div>
               ))}
             </div>
           )}

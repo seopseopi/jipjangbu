@@ -1,0 +1,304 @@
+/* The approved insights view: one quiet summary strip, then distinct white sections.
+   Scoping keeps earlier global/card variants from bringing back old color fills. */
+.insights-view.insights-renewal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  min-width: 0;
+  container-type: inline-size;
+}
+.insights-renewal .insights-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  min-width: 0;
+  padding: 14px 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  overflow: visible;
+}
+.insights-renewal .insights-summary-card,
+.insights-renewal .insights-summary-card.insights-summary-stale {
+  min-width: 0;
+  min-height: 100px;
+  padding: 2px 20px;
+  border: 0;
+  border-right: 1px solid var(--rule);
+  border-radius: 0;
+  background: transparent;
+}
+.insights-renewal .insights-summary-card:last-child { border-right: 0; }
+.insights-renewal .insights-summary-card p {
+  margin: 0 0 6px;
+  color: #40526a;
+  font-size: max(17px, var(--text-small));
+  font-weight: 550;
+  line-height: 1.5;
+}
+.insights-renewal .insights-summary-card strong,
+.insights-renewal .insights-summary-card.insights-summary-stale strong {
+  display: block;
+  color: #2c394b;
+  font-size: 32px;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -.025em;
+}
+.insights-renewal .insights-summary-card strong small {
+  margin-left: 5px;
+  color: #455773;
+  font-size: max(17px, var(--text-small));
+  font-weight: 500;
+}
+.insights-renewal .insights-summary-card > span {
+  display: block;
+  margin-top: 7px;
+  color: #52627a;
+  font-size: max(16px, var(--text-caption));
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.insights-renewal .insights-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  min-width: 0;
+  align-items: start;
+}
+.insights-renewal .insights-panel {
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+.insights-renewal .insights-stale,
+.insights-renewal .insights-monthly { grid-column: 1 / -1; }
+.insights-renewal .insights-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  min-height: 58px;
+  padding: 13px 18px;
+  border-bottom: 1px solid #d4dce7;
+  background: #fff;
+}
+.insights-renewal .insights-panel-head > div { min-width: 0; }
+.insights-renewal .insights-panel-head h2 {
+  margin: 0;
+  color: #2d3c51;
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+.insights-renewal .insights-panel-head p,
+.insights-renewal .insights-panel-head > span {
+  margin: 3px 0 0;
+  color: #52627a;
+  font-size: max(16px, var(--text-caption));
+  line-height: 1.5;
+}
+.insights-renewal .insights-panel-head .text-button {
+  flex: 0 1 auto;
+  min-height: 40px;
+  max-width: 100%;
+  padding: 4px 0;
+  color: #365678;
+  font-size: max(16px, var(--text-caption));
+  line-height: 1.5;
+  white-space: normal;
+  text-align: left;
+}
+.insights-renewal .insights-type-list {
+  display: grid;
+  gap: 0;
+  padding: 2px 18px;
+  max-height: 440px;
+  overflow: auto;
+}
+.insights-renewal .insights-type-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) minmax(40px, 1.2fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e1e6ee;
+}
+.insights-renewal .insights-type-row:last-child { border-bottom: 0; }
+.insights-renewal .insights-type-name,
+.insights-renewal .insights-type-row > strong {
+  min-width: 0;
+  color: #3d4f68;
+  font-size: max(17px, var(--text-small));
+  font-weight: 550;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.insights-renewal .insights-type-row > strong { text-align: right; font-variant-numeric: tabular-nums; }
+.insights-renewal .insights-bar-track {
+  min-width: 0;
+  height: 8px;
+  border: 0;
+  border-radius: 4px;
+  background: #edf1f6;
+  overflow: hidden;
+}
+.insights-renewal .insights-bar {
+  min-width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: #607b9d;
+}
+.insights-renewal .insights-bar-type { background: #607b9d; }
+.insights-renewal .insights-chart {
+  display: grid;
+  gap: 15px;
+  padding: 18px;
+}
+.insights-renewal .insights-chart-row {
+  display: grid;
+  grid-template-columns: minmax(100px, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+}
+.insights-renewal .insights-chart-row > span,
+.insights-renewal .insights-chart-row > strong {
+  color: #40526b;
+  font-size: max(17px, var(--text-small));
+  font-weight: 500;
+  line-height: 1.5;
+}
+.insights-renewal .insights-chart-row > strong { text-align: right; font-weight: 600; }
+.insights-renewal .insights-item-list {
+  display: grid;
+  min-width: 0;
+  max-height: 440px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.insights-renewal .insights-stale .insights-item-list { max-height: 340px; }
+.insights-renewal .insights-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 18px;
+  align-items: center;
+  gap: 6px 14px;
+  min-width: 0;
+  width: 100%;
+  padding: 14px 18px;
+  border: 0;
+  border-bottom: 1px solid #e1e6ee;
+  border-radius: 0;
+  background: #fff;
+  color: #34485f;
+  text-align: left;
+}
+.insights-renewal .insights-item:last-child { border-bottom: 0; }
+.insights-renewal .insights-item:hover { background: #f7f9fc; }
+.insights-renewal .insights-item-copy { grid-column: 1; grid-row: 2; justify-self: stretch; min-width: 0; }
+.insights-renewal .insights-item time { grid-column: 1; grid-row: 1; }
+.insights-renewal .insights-item-status { grid-column: 2; grid-row: 1 / span 2; }
+.insights-renewal .insights-item-arrow { grid-column: 3; grid-row: 1 / span 2; align-self: center; }
+.insights-renewal .insights-item time,
+.insights-renewal .insights-item-date,
+.insights-renewal .insights-item-copy strong {
+  color: #34485f;
+  font-size: max(18px, var(--text-base));
+  font-weight: 550;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.insights-renewal .insights-item-copy small,
+.insights-renewal .insights-item-status {
+  color: #4c607b;
+  font-size: max(17px, var(--text-small));
+  line-height: 1.55;
+}
+.insights-renewal .insights-item-status {
+  max-width: 110px;
+  margin: 0;
+  padding: 3px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: #edf1f6;
+  white-space: normal;
+}
+.insights-renewal .insights-stale-item { grid-template-columns: minmax(0, 1fr) minmax(120px, auto) 18px; }
+.insights-renewal .insights-stale-item .insights-item-copy { grid-column: 1; grid-row: 1; }
+.insights-renewal .insights-stale-item .insights-item-date {
+  grid-column: 2;
+  grid-row: 1;
+  color: #52627a;
+  font-size: max(16px, var(--text-caption));
+  font-weight: 450;
+  text-align: right;
+}
+.insights-renewal .insights-stale-item .insights-item-arrow { grid-column: 3; grid-row: 1; }
+.insights-renewal .insights-preview-note {
+  margin: 0;
+  padding: 10px 18px;
+  border-bottom: 1px solid #e1e6ee;
+  color: #52627a;
+  font-size: max(16px, var(--text-caption));
+  line-height: 1.5;
+}
+.insights-renewal .insights-panel-empty {
+  min-height: 120px;
+  padding: 24px 18px;
+  color: #52627a;
+  font-size: max(17px, var(--text-small));
+  line-height: 1.6;
+}
+.insights-error.insights-renewal,
+.insights-empty.insights-renewal {
+  max-width: 100%;
+  padding: 28px 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+.insights-error.insights-renewal h2,
+.insights-empty.insights-renewal h2 { font-size: 22px; line-height: 1.5; }
+.insights-error.insights-renewal p,
+.insights-empty.insights-renewal p { font-size: max(17px, var(--text-small)); line-height: 1.6; }
+.insights-error.insights-renewal .insights-retry { border-radius: 8px; font-size: max(17px, var(--text-small)); }
+.insights-loading.insights-renewal .insights-loading-cards { border-radius: 12px; }
+.insights-loading.insights-renewal .insights-loading-panel { border-radius: 12px; background: #fff; }
+@container (max-width: 850px) {
+  .insights-renewal .insights-grid { grid-template-columns: minmax(0, 1fr); }
+  .insights-renewal .insights-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-block: 0; }
+  .insights-renewal .insights-summary-card { min-height: 120px; margin: 0; padding: 14px 16px; border-bottom: 1px solid var(--rule); }
+  .insights-renewal .insights-summary-card:nth-child(2) { border-right: 0; }
+  .insights-renewal .insights-summary-card:nth-child(n + 3) { border-bottom: 0; }
+  .insights-renewal .insights-summary-card.insights-summary-stale { min-height: 120px; padding: 14px 16px; border-bottom: 0; border-right: 0; }
+}
+@container (max-width: 500px) {
+  .insights-renewal .insights-grid { gap: 16px; }
+  .insights-renewal .insights-summary-card,
+  .insights-renewal .insights-summary-card.insights-summary-stale { padding-inline: 12px; }
+  .insights-renewal .insights-summary-card p { font-size: max(16px, var(--text-caption)); }
+  .insights-renewal .insights-summary-card strong,
+  .insights-renewal .insights-summary-card.insights-summary-stale strong { font-size: 30px; }
+  .insights-renewal .insights-summary-card > span { font-size: max(16px, var(--text-caption)); }
+  .insights-renewal .insights-panel-head { padding: 12px 14px; }
+  .insights-renewal .insights-type-list { padding-inline: 14px; }
+  .insights-renewal .insights-type-row { grid-template-columns: minmax(70px, 1fr) minmax(20px, 1fr) auto; gap: 9px; }
+  .insights-renewal .insights-chart { padding: 16px 14px; }
+  .insights-renewal .insights-chart-row { grid-template-columns: minmax(85px, auto) minmax(0, 1fr) auto; gap: 10px; }
+  .insights-renewal .insights-chart-row > span,
+  .insights-renewal .insights-chart-row > strong { font-size: max(16px, var(--text-caption)); white-space: normal; }
+  .insights-renewal .insights-item { grid-template-columns: minmax(0, 1fr) 18px; padding: 13px 14px; gap: 7px 10px; }
+  .insights-renewal .insights-item-copy { grid-column: 1; grid-row: 2; }
+  .insights-renewal .insights-item-status { grid-column: 1; grid-row: 3; justify-self: start; max-width: 100%; }
+  .insights-renewal .insights-item-arrow { grid-column: 2; grid-row: 1 / span 3; }
+  .insights-renewal .insights-stale-item .insights-item-copy { grid-column: 1; grid-row: 1; }
+  .insights-renewal .insights-stale-item .insights-item-date { grid-column: 1; grid-row: 2; text-align: left; }
+  .insights-renewal .insights-stale-item .insights-item-arrow { grid-column: 2; grid-row: 1 / span 2; }
+  .insights-renewal .insights-preview-note { padding-inline: 14px; }
+}

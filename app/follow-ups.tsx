@@ -4,7 +4,6 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { clientJsonFetch } from "./client-api";
 import { Icon } from "./icons";
 import { DeletionDialog } from "./deletion-dialog";
-import "./follow-ups.css";
 
 export type FollowUpItem = {
   id: string;

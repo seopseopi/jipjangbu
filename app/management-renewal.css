@@ -1,0 +1,125 @@
+/* List layouts approved in the preview, with the production records and actions. */
+.management-filter { min-width: 0; margin-bottom: 14px; container-type: inline-size; }
+.management-filter .toolbar { display: flex; align-items: stretch; gap: 0; margin: 0; padding: 5px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.management-filter .toolbar .search-box { flex: 1 1 280px; max-width: none; min-width: 0; margin: 0; border: 0; background: transparent; }
+.management-filter .toolbar .search-box input { min-height: 46px; padding-block: 9px; font-size: max(18px, var(--text-base)); }
+.management-filter .search-live { display: none; }
+.management-filter .toolbar > select { flex: 0 1 210px; max-width: 230px; min-width: 0; margin-left: 7px; border-color: transparent; border-left-color: #dce2eb; border-radius: 0; background-color: #fff; font-size: var(--text-small); }
+.management-filter .toolbar > button { align-self: center; margin-inline: 7px; }
+.customer-filter .toolbar > .primary-button { flex: none; padding-inline: 16px; }
+/* Dates form the left edge of the journal. Work and customer remain separate links. */
+.app-shell .journal-panel { min-width: 0; border-radius: 12px; background: #fff; }
+.journal-panel .panel-head { min-height: 48px; padding: 9px 18px; }
+.journal-panel .panel-head h2 { font-size: 18px; }
+.journal-panel .sort-summary { margin: 0; font-size: 16px; }
+.journal-day-list { min-width: 0; padding: 0 18px; }
+.journal-day-group { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 14px; min-width: 0; padding: 12px 0; border-bottom: 1px solid #cfd8e5; }
+.journal-day-group:last-child { border-bottom: 0; }
+.journal-day-date { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding-top: 11px; color: #435872; font-variant-numeric: tabular-nums; }
+.journal-day-date strong { font-size: max(19px, var(--text-base)); font-weight: 600; }
+.journal-day-date span { color: #52627a; font-size: var(--text-caption); }
+.journal-panel .journal-day-list .work-reading-list { min-width: 0; width: 100%; overflow: visible; }
+.journal-panel .journal-day-list .work-record-head { display: none; }
+.journal-panel .journal-day-list .work-record-row { display: block; min-width: 0; min-height: 0; padding: 10px 0; border-bottom: 1px solid #e2e7ee; }
+.journal-panel .journal-day-list .work-record-row:last-child { border-bottom: 0; }
+.journal-panel .journal-day-list .work-record-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 12px; margin-bottom: 6px; }
+.journal-panel .journal-day-list .work-record-meta > span, .journal-panel .journal-day-list .work-record-meta > button { grid-area: auto; flex: 0 1 auto; margin: 0; padding-top: 0; }
+.journal-panel .journal-day-list .work-record-customer-link { flex-direction: row; min-height: 34px; }
+.journal-panel .journal-day-list .work-record-customer-link b { font-size: max(19px, var(--text-base)); font-weight: 650; }
+.journal-panel .journal-day-list .work-record-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; min-width: 0; }
+.journal-panel .journal-day-list .work-record-content, .journal-panel .journal-day-list .work-record-properties { min-width: 0; padding: 0; border: 0; background: transparent; }
+.journal-panel .journal-day-list .work-record-note { min-height: 34px; padding: 0; font-size: var(--text-base); text-align: left; }
+.journal-panel .journal-day-list .work-record-note-text { display: block; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; -webkit-line-clamp: unset; }
+.journal-panel .journal-day-list .work-record-property-heading { display: none; }
+.journal-panel .journal-day-list .work-property-groups { display: flex; flex-wrap: wrap; gap: 6px 20px; }
+.journal-panel .journal-day-list .work-property-building-group { flex: 0 1 auto; min-width: 0; }
+.journal-panel .journal-day-list .work-property-list { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.journal-panel .journal-day-list .work-property-price { font-size: var(--text-caption); }
+/* A compact search and filter bar keeps every original query option. */
+.listing-controls { min-width: 0; margin-bottom: 14px; container: listing-filters / inline-size; }
+.app-shell .listing-controls .toolbar { grid-template-columns: minmax(200px, 1.8fr) repeat(4, minmax(0, 1fr)); gap: 0; margin: 0; padding: 5px; }
+.app-shell .listing-controls .search-box { min-width: 0; border: 0; border-radius: 8px; background: transparent; }
+.listing-controls .search-live { display: none; }
+.app-shell .listing-controls .toolbar > select, .app-shell .listing-controls .toolbar > details { min-width: 0; max-width: 100%; }
+.app-shell .listing-controls .toolbar > select { border: 0; border-left: 1px solid #dce2eb; border-radius: 0; background-color: #fff; }
+.app-shell .listing-controls .toolbar summary { display: flex; align-items: center; width: 100%; min-height: 48px; padding: 9px 10px; border: 0; border-left: 1px solid #dce2eb; border-radius: 0; background: #fff; font-size: var(--text-small); white-space: normal; overflow-wrap: anywhere; }
+.listing-controls .listing-price-filters, .listing-controls .listing-more-options, .listing-controls .listing-status-options { z-index: 20; max-width: min(320px, calc(100vw - 48px)); }
+.listing-controls .listing-price-filters, .listing-controls .listing-more-options { right: 0; left: auto; }
+/* No legacy 810px minimum: columns use the width of the actual list. */
+.app-shell .listing-renewal-table, .app-shell .customer-renewal-table { width: 100%; min-width: 0; max-width: 100%; overflow: visible; }
+.listing-renewal-table { container: listing-list / inline-size; }
+.customer-renewal-table { container: customer-list / inline-size; }
+.app-shell .listing-renewal-table .table-head, .app-shell .listing-renewal-table .table-row { grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.6fr) minmax(80px, .8fr) minmax(110px, 1fr); gap: 18px; width: 100%; min-width: 0; padding-inline: 18px; }
+.app-shell .listing-renewal-table .table-head { min-height: 48px; border-bottom: 1px solid #cad4e2; background: #fff; }
+.app-shell .listing-renewal-table .table-row { min-height: 92px; padding-block: 14px; border-bottom: 1px solid #dce2eb; background: #fff; }
+.app-shell .listing-renewal-table .table-row.is-other-status { background: #fff; }
+.app-shell .listing-renewal-table .table-row:hover { background: #f8fafd; }
+.app-shell .listing-renewal-table .table-row > span { grid-area: auto; min-width: 0; overflow: visible; white-space: normal; overflow-wrap: anywhere; }
+.app-shell .listing-renewal-table .table-row [data-label]::before { display: none; content: none; }
+.app-shell .listing-renewal-table .listing-address b { font-size: max(20px, var(--text-base)); font-weight: 650; line-height: 1.45; }
+.listing-renewal-table .listing-row-type { margin-top: 4px; font-size: var(--text-caption); color: #4b5d75; }
+.listing-renewal-table .listing-row-note { display: -webkit-box; margin-top: 6px; overflow: hidden; color: #52627a; font-size: var(--text-caption); line-height: 1.5; white-space: pre-wrap; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.listing-renewal-table .listing-price { display: grid; align-content: center; gap: 6px; }
+.app-shell .listing-renewal-table .price-line { margin: 0; line-height: 1.45; white-space: normal; }
+.listing-renewal-table .price-kind { font-size: var(--text-caption); color: #52627a; }
+.listing-renewal-table .price-value { font-size: max(21px, var(--text-base)); font-weight: 650; color: #2f4059; overflow-wrap: anywhere; }
+.app-shell .listing-renewal-table .record-date { white-space: normal; font-size: var(--text-small); }
+.app-shell .listing-renewal-table .tag { font-size: var(--text-small); }
+/* The customer directory reads like the same ledger, with quiet inline actions. */
+.app-shell .customer-renewal-table .table-head, .app-shell .customer-renewal-table .table-row { grid-template-columns: minmax(90px, .9fr) minmax(120px, 1.3fr) minmax(100px, 1fr) minmax(0, 1.5fr) minmax(120px, auto); gap: 16px; width: 100%; min-width: 0; padding-inline: 18px; }
+.app-shell .customer-renewal-table .table-head { min-height: 48px; border-bottom: 1px solid #cad4e2; background: #fff; }
+.app-shell .customer-renewal-table .table-row { min-height: 88px; padding-block: 14px; border-bottom: 1px solid #dce2eb; background: #fff; }
+.app-shell .customer-renewal-table .table-row > [data-label] { grid-area: auto; min-width: 0; overflow-wrap: anywhere; }
+.app-shell .customer-renewal-table .table-row [data-label]::before { display: none; content: none; }
+.app-shell .customer-renewal-table .customer-link { min-height: 44px; padding: 0; }
+.app-shell .customer-renewal-table .customer-link b { font-size: max(20px, var(--text-base)); font-weight: 650; line-height: 1.45; }
+.app-shell .customer-renewal-table .customer-id-copy { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 44px; padding: 0; font-size: var(--text-small); text-align: left; white-space: normal; overflow-wrap: anywhere; }
+.customer-renewal-table .customer-id-copy .ui-icon { color: #66778d; }
+.customer-renewal-table .customer-work-count strong { display: block; font-size: var(--text-base); font-weight: 600; }
+.app-shell .customer-renewal-table .customer-work-count .record-date { font-size: var(--text-caption); }
+.app-shell .customer-renewal-table .customer-notes { font-size: var(--text-small); line-height: 1.6; color: #4b5d75; white-space: pre-wrap; }
+.app-shell .customer-renewal-table .row-actions { display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.app-shell .customer-renewal-table .row-actions .tiny-button { justify-content: flex-start; min-height: 44px; padding: 5px 0; border: 0; background: transparent; box-shadow: none; font-size: var(--text-small); color: #365678; }
+@container listing-filters (max-width: 720px) {
+  .app-shell .listing-controls .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+  .app-shell .listing-controls .toolbar { position: relative; }
+  .app-shell .listing-controls .toolbar > details { position: static; }
+  .app-shell .listing-controls .toolbar .listing-price-filters,
+  .app-shell .listing-controls .toolbar .listing-more-options,
+  .app-shell .listing-controls .toolbar .listing-status-options { top: calc(100% + 6px); left: 0; right: 0; width: auto; min-width: 0; max-width: 100%; max-height: min(360px, 50dvh); overflow: auto; }
+  .app-shell .listing-controls .search-box { grid-column: 1 / -1; }
+  .app-shell .listing-controls .toolbar > select, .app-shell .listing-controls .toolbar summary { border-left: 0; border-radius: 7px; background-color: #f8f9fc; }
+}
+@container listing-list (max-width: 620px) {
+  .app-shell .listing-renewal-table .table-head { display: none; }
+  .app-shell .listing-renewal-table .table-row { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 10px 14px; padding: 16px; }
+  .app-shell .listing-renewal-table .table-row > [data-label="이름"] { grid-column: 1; grid-row: 1; }
+  .app-shell .listing-renewal-table .table-row > [data-label="가격"] { grid-column: 2; grid-row: 1; }
+  .app-shell .listing-renewal-table .table-row > [data-label="상태"] { grid-column: 1; grid-row: 2; }
+  .app-shell .listing-renewal-table .table-row > [data-label="등록·말소"] { grid-column: 2; grid-row: 2; text-align: right; }
+  .app-shell .listing-renewal-table .listing-address b { font-size: var(--text-base); }
+  .listing-renewal-table .price-value { font-size: max(19px, var(--text-base)); }
+}
+@container customer-list (max-width: 760px) {
+  .app-shell .customer-renewal-table .table-head { display: none; }
+  .app-shell .customer-renewal-table .table-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 7px 14px; padding: 16px; }
+  .app-shell .customer-renewal-table .table-row > .customer-link { grid-column: 1; grid-row: 1; }
+  .app-shell .customer-renewal-table .table-row > .customer-id-copy { grid-column: 2; grid-row: 1; }
+  .app-shell .customer-renewal-table .table-row > .customer-work-count { grid-column: 1; grid-row: 2; }
+  .app-shell .customer-renewal-table .table-row > .customer-notes { grid-column: 1 / -1; grid-row: 3; }
+  .app-shell .customer-renewal-table .table-row > .row-actions { grid-column: 2; grid-row: 2; justify-content: flex-end; }
+}
+@container (max-width: 560px) {
+  .management-filter .toolbar { flex-wrap: wrap; gap: 5px; }
+  .management-filter .toolbar .search-box { flex-basis: 100%; }
+  .management-filter .toolbar > select { flex: 1 1 150px; max-width: none; margin: 0; border: 0; background-color: #f8f9fc; border-radius: 7px; }
+  .management-filter .toolbar > button { margin: 0 3px; }
+}
+@media (max-width: 720px) {
+  .journal-day-list { padding-inline: 14px; }
+  .journal-day-group { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .journal-day-date { flex-direction: row; align-items: baseline; gap: 9px; padding: 2px 0 5px; }
+  .journal-day-date strong { font-size: var(--text-base); }
+  .journal-panel .journal-day-list .work-record-meta > .work-record-customer { flex: 0 1 auto; }
+  .journal-panel .journal-day-list .work-property-groups { gap: 5px 14px; }
+}

@@ -1,5 +1,4 @@
 import { Icon } from "./icons";
-import "./listing-history-summary.css";
 
 type SummaryEvent = {
   work_log_id?: string | null;

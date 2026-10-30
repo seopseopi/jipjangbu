@@ -122,8 +122,8 @@ test("매물 종류·이름 제목은 기본 정렬과 역순을 표시하고 �
   ]) {
     const changed = [], opened = [];
     const tree = Listings({ ...listingProps, sort, setSort: (value) => changed.push(value), onHistory: (item) => opened.push(item) });
-    const header = descendants(tree).find((item) => item.props.className === "table-head");
-    const control = button(header, column);
+    const header = descendants(tree).find((item) => item.props.className === (column === "매물종류" ? "listing-mobile-sort" : "table-head"));
+    const control = button(header, column === "이름" ? "매물 · 동호수" : column);
     assert.equal(control.props.type, "button");
     assert.equal(control.props["aria-pressed"], direction !== null);
     if (direction) assert.ok(renderToStaticMarkup(control).includes(direction));
@@ -188,7 +188,11 @@ test("매물 목록은 CSV 없이 이름·종류·상태 셀과 원래 이력 �
   const tree = Listings({ ...listingProps, items, sort: "type", onHistory: (item) => opened.push(item) });
   assert.doesNotMatch(renderToStaticMarkup(tree), /CSV|export-button/);
   const rows = descendants(tree).filter((item) => item.props.className === "table-row");
-  assert.deepEqual(React.Children.toArray(rows[0].props.children).map((item) => item.props["data-label"]), ["매물종류", "이름", "상태", "가격", "등록·말소"]);
+  assert.deepEqual(React.Children.toArray(rows[0].props.children).map((item) => item.props["data-label"]), ["이름", "가격", "상태", "등록·말소"]);
+  assert.match(renderToStaticMarkup(React.Children.toArray(rows[0].props.children)[0]), /가람 2동 10호/);
+  const typeCell = descendants(rows[0]).find((item) => item.props["data-label"] === "매물종류");
+  assert.ok(typeCell, "the property type stays below its address rather than disappearing");
+  assert.match(renderToStaticMarkup(typeCell), /빌라/);
   rows[1].props.onClick();
   assert.deepEqual(opened, [items[1]]);
 });
@@ -462,4 +466,17 @@ test("이전 홈 조회의 늦은 내부 취소는 최신 조회의 로딩·성�
     assert.equal(h.error.current, "");
     assert.equal(h.loading.current, false);
   }
+});
+
+test("리뉴얼 고객 목록은 고객·ID·업무·수정의 원래 연결을 유지한다", () => {
+  const calls = [];
+  const tree = Customers({ ...customerProps, onHistory: item => calls.push(["history", item]), onCopy: id => calls.push(["copy", id]), onNewWork: item => calls.push(["work", item]), onEdit: item => calls.push(["edit", item]) });
+  const row = descendants(tree).find(item => item.props.className === "table-row");
+  descendants(row).find(item => item.props.className === "customer-link").props.onClick();
+  descendants(row).find(item => item.props.className === "customer-id-copy").props.onClick();
+  button(row, "업무 등록").props.onClick(); button(row, "수정").props.onClick();
+  assert.deepEqual(calls, [["history", customer], ["copy", customer.id], ["work", customer], ["edit", customer]]);
+  const html = renderToStaticMarkup(row);
+  assert.match(html, /확인 메모/); assert.match(html, /1건/);
+  assert.doesNotMatch(html, /눌러서 복사|전체 이력 보기/);
 });

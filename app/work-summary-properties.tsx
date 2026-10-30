@@ -1,6 +1,5 @@
 import { getWorkProperties, workPropertyLabel } from "./work-property-summary";
 import { getPropertyDisplayGroups } from "./property-display";
-import "./work-summary-properties.css";
 
 type PropertyWork = Parameters<typeof getWorkProperties>[0] & { search_property_match?: number };
 

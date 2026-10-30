@@ -374,3 +374,20 @@ test("토지 전체 주소는 호수 없이도 이력을 열 수 있고 고객 �
   assert.match(page, /첫 줄\n둘째 줄/);
   assert.match(page, /고객 정보 수정/);
 });
+
+test("리뉴얼 업무일지는 같은 날짜를 묶고 날짜별 원래 업무·모든 매물 순서를 유지한다", () => {
+  const records = [work, { ...work, id: "same-day", customer_name: "같은 날 두번째 고객" }, { ...work, id: "older-day", work_date: "2026-09-12", customer_name: "이전 날짜 고객" }];
+  const tree = table(records, { groupByDate: true });
+  const groups = byClass(tree, "journal-day-group");
+  assert.equal(groups.length, 2);
+  assert.deepEqual(groups.map(group => byClass(group, "journal-day-date")[0].props.dateTime), ["2026-09-13", "2026-09-12"]);
+  for (const [index, group] of groups.entries()) {
+    const list = React.Children.toArray(group.props.children).find(element => element.type === WorkTable);
+    assert.equal(list.props.hideDates, true);
+    assert.deepEqual(list.props.items.map(item => item.id), index === 0 ? [work.id, "same-day"] : ["older-day"]);
+  }
+  const html = markup(tree);
+  assert.ok(html.indexOf(work.customer_name) < html.indexOf("같은 날 두번째 고객"));
+  assert.ok(html.indexOf("같은 날 두번째 고객") < html.indexOf("이전 날짜 고객"));
+  for (const property of properties) assert.equal(html.split(workPropertyLabel(property)).length - 1 >= 3, true);
+});

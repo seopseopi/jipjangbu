@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit --incremental false",
     "db:generate": "drizzle-kit generate",
     "predev": "node scripts/prepare-pdf-worker.mjs",
-    "prebuild": "node scripts/prepare-pdf-worker.mjs"
+    "prebuild": "node scripts/prepare-pdf-worker.mjs",
+    "postbuild": "node scripts/verify-styles.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "9.7.0",
