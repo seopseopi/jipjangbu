@@ -18,9 +18,12 @@ const declarations = ["ListReadFeedback", "CalendarView", "targetText", "statusT
 const compiled = ts.transpileModule(declarations.join("\n"), {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, jsx: ts.JsxEmit.React },
 }).outputText;
-const CalendarView = new Function("React", "useMemo", "seoulDate", "Icon", "calendarWorkPresentation", "CalendarSubjects", `${compiled}; return CalendarView;`)(
-  React, (callback) => callback(), () => "2026-09-12", "span", calendarWorkPresentation, CalendarSubjects,
-);
+function createCalendar({ useRef = (value) => ({ current: value }), useEffect = () => {} } = {}) {
+  return new Function("React", "useMemo", "useRef", "useEffect", "seoulDate", "Icon", "calendarWorkPresentation", "CalendarSubjects", `${compiled}; return CalendarView;`)(
+    React, (callback) => callback(), useRef, useEffect, () => "2026-09-12", "span", calendarWorkPresentation, CalendarSubjects,
+  );
+}
+const CalendarView = createCalendar();
 
 function descendants(element) {
   if (element.type === CalendarSubjects) return descendants(CalendarSubjects(element.props));
@@ -50,6 +53,98 @@ function syntheticWork(id, workDate, extra = {}) {
 function findByClass(tree, name) {
   return descendants(tree).filter((element) => hasClass(element, name));
 }
+
+// Preserve production hook state across renders and attach refs before effects,
+// so these tests exercise delayed loading and navigation rather than source text.
+function calendarNavigation(overrides = {}) {
+  const hooks = [], scrolls = [], monthChanges = [];
+  let cursor = 0, pendingEffects = [], attachedRefs = new Set();
+  let props = {
+    month: "2026-09", setMonth: (value) => monthChanges.push(value),
+    workType: "", setWorkType: () => {}, items: [], lookups: { workTypes: ["상담", "계약예정"] },
+    onOpen: () => {}, onShowDay: () => {}, ...overrides,
+  };
+  const View = createCalendar({
+    useRef(value) {
+      const index = cursor++;
+      if (!hooks[index]) hooks[index] = { current: value };
+      return hooks[index];
+    },
+    useEffect(callback, dependencies) {
+      const index = cursor++, previous = hooks[index];
+      if (!previous || !dependencies || dependencies.some((value, position) => !Object.is(value, previous[position]))) pendingEffects.push(callback);
+      hooks[index] = dependencies;
+    },
+  });
+  function render(changes = {}) {
+    props = { ...props, ...changes };
+    cursor = 0;
+    pendingEffects = [];
+    const tree = View(props), nextRefs = new Set();
+    for (const element of descendants(tree)) {
+      const ref = element.props.ref;
+      if (!ref || typeof ref !== "object") continue;
+      nextRefs.add(ref);
+      ref.current = { scrollIntoView: (options) => scrolls.push({ options, day: descendants(element).find((node) => node.type === "b")?.props.children }) };
+    }
+    for (const ref of attachedRefs) if (!nextRefs.has(ref)) ref.current = null;
+    attachedRefs = nextRefs;
+    for (const effect of pendingEffects) effect();
+    return tree;
+  }
+  return { render, scrolls, monthChanges };
+}
+
+test("현재 달 첫 진입은 자료가 준비된 뒤 오늘 날짜 머리를 한 번만 보여주고 갱신·필터는 화면을 다시 움직이지 않는다", () => {
+  const navigation = calendarNavigation();
+  let tree = navigation.render({ status: "loading" });
+  assert.equal(navigation.scrolls.length, 0);
+  assert.equal(findByClass(tree, "today-cell").length, 0);
+  tree = navigation.render({ status: "ready", items: [syntheticWork("today", "2026-09-12")] });
+  assert.deepEqual(navigation.scrolls, [{ day: 12, options: { block: "start", inline: "nearest", behavior: "auto" } }]);
+  const today = findByClass(tree, "today-cell");
+  assert.equal(today.length, 1);
+  assert.equal(today[0].props["aria-current"], "date");
+  assert.equal(descendants(tree).filter((element) => element.props["aria-current"] === "date").length, 1);
+  navigation.render({ status: "refreshing" });
+  navigation.render({ status: "ready", items: [syntheticWork("updated", "2026-09-12")] });
+  navigation.render({ status: "loading", workType: "계약예정" });
+  navigation.render({ status: "ready", items: [] });
+  assert.equal(navigation.scrolls.length, 1, "ordinary updates must preserve the user's scroll position");
+});
+
+test("오늘 버튼은 과거 달의 조회 완료를 기다려 이동하고 같은 달에서도 다시 오늘 위치로 이동한다", () => {
+  const navigation = calendarNavigation({ month: "2026-08", status: "ready" });
+  let tree = navigation.render();
+  const todayButton = findByClass(tree, "calendar-today")[0];
+  assert.equal(todayButton.props.children, "오늘");
+  todayButton.props.onClick();
+  assert.deepEqual(navigation.monthChanges, ["2026-09"]);
+  assert.equal(navigation.scrolls.length, 0);
+  navigation.render({ month: "2026-09", status: "loading" });
+  assert.equal(navigation.scrolls.length, 0);
+  tree = navigation.render({ status: "ready" });
+  assert.equal(navigation.scrolls.length, 1);
+  findByClass(tree, "calendar-today")[0].props.onClick();
+  assert.equal(navigation.scrolls.length, 2, "the current-month button must work even when setMonth would be unchanged");
+  assert.equal(navigation.scrolls[1].day, 12);
+  assert.equal(navigation.scrolls[1].options.block, "start", "large day cells must start at their date heading");
+});
+
+test("자료를 기다리는 중 다른 달을 탐색하면 초기 오늘 이동을 취소하고 직접 돌아와도 강제로 이동하지 않는다", () => {
+  for (const useMonthInput of [false, true]) {
+    const navigation = calendarNavigation({ status: "loading" });
+    let tree = navigation.render();
+    if (useMonthInput) descendants(tree).find((element) => element.type === "input" && element.props.type === "month").props.onChange({ target: { value: "2026-08" } });
+    else descendants(tree).find((element) => element.props["aria-label"] === "이전 달").props.onClick();
+    assert.deepEqual(navigation.monthChanges, ["2026-08"]);
+    tree = navigation.render({ month: "2026-08", status: "ready" });
+    assert.equal(findByClass(tree, "today-cell").length, 0);
+    descendants(tree).find((element) => element.props["aria-label"] === "다음 달").props.onClick();
+    navigation.render({ month: "2026-09", status: "ready" });
+    assert.equal(navigation.scrolls.length, 0, "month browsing must not reactivate the initial today request");
+  }
+});
 
 test("날짜별 목록은 날짜 오름차순이며 다른 달의 늦은 응답이나 잘못된 날짜를 섞지 않는다", () => {
   const items = [

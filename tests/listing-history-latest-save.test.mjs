@@ -87,40 +87,64 @@ test("고객 이력은 전체 데이터에서 정확한 업무구분만 추려 �
   assert.equal(JSON.stringify(works), snapshot);
 });
 
-test("매물 업무구분 조회는 상태 이벤트에 없는 전화도 표시하고 현재 가격·원본을 수정하지 않는다", () => {
+test("매물 이력에는 업무구분 선택을 두지 않고 남아 있는 필터값과 무관하게 전체 원본·개별 업무를 유지한다", () => {
   const works = [
     { id: "call", work_date: "2026-09-16", work_type: "전화", content: "합성 전화 내용", customer_name: "합성 고객" },
     { id: "registration", work_date: "2026-09-15", work_type: "매물등록", content: "다른 구분 내용", customer_name: "합성 고객" },
   ];
-  const snapshot = JSON.stringify(listing);
-  const tree = history({ workItems: works, historyWorkType: "전화" });
-  const html = markup(tree);
-  assert.match(html, /합성 전화 내용/);
-  assert.equal(html.split("합성 전화 내용").length - 1, 1, "filtered content is not duplicated in a second memo");
-  assert.doesNotMatch(html, /다른 구분 내용|엑셀에 남아 있는 합성 원본 메모/);
-  assert.match(html, /현재 매물.*매물등록.*매매 35000/);
-  assert.equal(byClass(tree, "listing-work-details")[0].props.open, true);
-  assert.equal(timeline(tree).length, 1);
-  assert.equal(JSON.stringify(listing), snapshot);
-  const all = history({ workItems: works, historyWorkType: "" });
-  assert.equal(timeline(all).length, 2);
-  assert.equal(summary(all).element.props.sourceNotes, listing.source_notes);
+  const snapshot = JSON.stringify({ listing, works });
+  for (const page of [false, true]) {
+    const opened = [], changed = [];
+    const tree = history({ workItems: works, historyWorkType: "전화" }, { page, onOpenWork: (id) => opened.push(id), onWorkTypeChange: (value) => changed.push(value) });
+    const html = markup(tree);
+    assert.equal(descendants(tree).some((item) => item.type === HistoryWorkTypeFilter), false);
+    assert.doesNotMatch(html, /<select|history-work-type-filter|선택한 업무구분만/);
+    assert.match(html, /합성 전화 내용/);
+    assert.match(html, /다른 구분 내용/);
+    assert.equal(html.split("합성 전화 내용").length - 1, 1, "each individual work retains one content entry");
+    assert.match(html, /엑셀에 남아 있는 합성 원본 메모/);
+    assert.match(html, /현재 매물.*매물등록.*매매 35000/);
+    assert.equal(Boolean(byClass(tree, "listing-work-details")[0].props.open), page);
+    const rows = timeline(tree);
+    assert.equal(rows.length, 2);
+    rows.forEach((row) => row.props.onClick());
+    assert.deepEqual(opened, ["call", "registration"]);
+    assert.deepEqual(changed, [], "opening the unfiltered history does not rewrite a previously saved selection");
+    assert.equal(summary(tree).element.props.sourceNotes, listing.source_notes);
+    assert.deepEqual(summary(tree).element.props.events, [future, edited]);
+  }
+  assert.equal(JSON.stringify({ listing, works }), snapshot);
 });
 
-test("해당 구분 0건에서도 필터를 유지하고 전체 보기로 복귀할 수 있다", () => {
-  for (const data of [
-    { listing: undefined, customer: { id: "합성ID", name: "합성 고객" }, items: [] },
-    { listing, workItems: [] },
-  ]) {
-    const changes = [];
-    const tree = history({ ...data, historyWorkType: "집방문" }, { onWorkTypeChange: (value) => changes.push(value) });
-    const filter = descendants(tree).find((item) => item.type === HistoryWorkTypeFilter);
-    assert.equal(filter.props.count, 0);
-    assert.match(markup(tree), /집방문 업무 이력이 없습니다/);
-    filter.props.onChange("");
-    assert.deepEqual(changes, [""]);
-    if (data.listing) assert.equal(byClass(tree, "listing-work-details")[0].props.open, true);
-  }
+test("고객 이력은 해당 구분 0건에서도 필터를 유지하고 전체 보기로 복귀할 수 있다", () => {
+  const changes = [];
+  const tree = history({ listing: undefined, customer: { id: "합성ID", name: "합성 고객" }, items: [], historyWorkType: "집방문" }, { onWorkTypeChange: (value) => changes.push(value) });
+  const filter = descendants(tree).find((item) => item.type === HistoryWorkTypeFilter);
+  assert.equal(filter.props.count, 0);
+  assert.match(markup(tree), /집방문 업무 이력이 없습니다/);
+  filter.props.onChange("");
+  assert.deepEqual(changes, [""]);
+});
+
+test("매물 키만 있는 이력과 업무가 없는 매물도 이전 업무구분을 적용하거나 선택창을 표시하지 않는다", () => {
+  const works = [
+    { id: "call", work_date: "2026-09-16", work_type: "전화", content: "합성 전화 내용" },
+    { id: "visit", work_date: "2026-09-15", work_type: "집방문", content: "합성 방문 내용" },
+  ];
+  const opened = [];
+  const tree = history({ listing: undefined, listingKey: listing.identity_key, workItems: works, historyWorkType: "잔금예정" }, { onOpenWork: (id) => opened.push(id) });
+  assert.equal(descendants(tree).some((item) => item.type === HistoryWorkTypeFilter), false);
+  const rows = timeline(tree);
+  assert.equal(rows.length, 2);
+  rows.forEach((row) => row.props.onClick());
+  assert.deepEqual(opened, ["call", "visit"]);
+  assert.match(markup(tree), /합성 전화 내용/);
+  assert.match(markup(tree), /합성 방문 내용/);
+  assert.doesNotMatch(markup(tree), /<select|잔금예정 업무 이력이 없습니다/);
+  const empty = history({ workItems: [], historyWorkType: "집방문" });
+  assert.equal(descendants(empty).some((item) => item.type === HistoryWorkTypeFilter), false);
+  assert.doesNotMatch(markup(empty), /집방문 업무 이력이 없습니다|<select/);
+  assert.equal(summary(empty).element.props.sourceNotes, listing.source_notes);
 });
 
 test("오늘 업무·날짜·예정 일정에는 고객·매물 전용 필터가 끼어들지 않는다", () => {

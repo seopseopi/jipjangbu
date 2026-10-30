@@ -64,7 +64,7 @@ const loaderAst = ts.createSourceFile("listing-scroll-loader.tsx", loaderSource,
 const loaderDeclaration = loaderAst.statements.find((node) => ts.isFunctionDeclaration(node) && node.name?.text === "ListingScrollLoader");
 assert.ok(loaderDeclaration);
 const ListingScrollLoader = evaluate(`${loaderDeclaration.getText(loaderAst).replace(/^export /, "")}\nconst result = ListingScrollLoader;`, { React, useRef: React.useRef, useEffect: React.useEffect });
-const environment = { React, ListingScrollLoader, useResultPage: initialResultPage, useResultListRef: initialResultListRef, ResultPagination, useContext: () => null, PageToolsSlot: null, createPortal: (node) => node, LISTING_WORK_TYPES: new Set(["매물등록", "매물수정", "가계약", "잔금"]), Icon: () => null, useMemo: (callback) => callback(), seoulDate: () => "2026-09-13", calendarWorkPresentation, CalendarSubjects };
+const environment = { React, ListingScrollLoader, useResultPage: initialResultPage, useResultListRef: initialResultListRef, ResultPagination, useContext: () => null, PageToolsSlot: null, createPortal: (node) => node, LISTING_WORK_TYPES: new Set(["매물등록", "매물수정", "가계약", "잔금"]), Icon: () => null, useMemo: (callback) => callback(), useRef: React.useRef, useEffect: React.useEffect, seoulDate: () => "2026-09-13", calendarWorkPresentation, CalendarSubjects };
 const common = ["displayDate", "targetText", "statusTone", "EmptyState", "Toolbar", "ListReadFeedback"];
 const Feedback = compile(["ListReadFeedback"], environment);
 const Listings = compile([...common, "Price", "ListingsView"], environment);

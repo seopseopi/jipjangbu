@@ -1,0 +1,5 @@
+/* Keep the date at the top of a tall day cell when opening today's schedule. */
+.app-shell[data-view="calendar"] .calendar-cell[aria-current="date"] { scroll-margin-block-start: 12px; }
+@media (max-width: 700px) {
+  .app-shell[data-view="calendar"] .calendar-cell[aria-current="date"] { scroll-margin-block-start: 74px; }
+}

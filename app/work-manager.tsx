@@ -2156,6 +2156,7 @@ function ListingsView({
           <label className="reference-filter"><span className="reference-filter-label">매물 상태</span><select aria-label="매물 상태 필터" value={statuses.length > 1 ? "__multiple" : statuses[0] || ""} onChange={event => setStatuses(event.target.value ? [event.target.value] : [])}><option value="">전체 상태</option>{statuses.length > 1 && <option value="__multiple" disabled>{statuses.length}개 선택</option>}{[...new Set([...LISTING_WORK_TYPES, ...items.map(item => item.status)])].filter(Boolean).map(value => <option key={value}>{value}</option>)}</select></label>
           <label className="reference-filter"><span className="reference-filter-label">거래 종류</span><select aria-label="가격 입력 여부" value={prices.length > 1 ? "__multiple" : prices[0] || ""} onChange={event => setPrices(event.target.value ? [event.target.value] : [])}><option value="">전체 거래</option><option value="sale">매매가 있음</option><option value="jeonse">전세가 있음</option><option value="monthly">월세가 있음</option>{prices.length > 1 && <option value="__multiple" disabled>{prices.length}개 선택</option>}</select></label>
         </div>
+        <div className="reference-list-meta listing-condition-row">
         <details className="reference-advanced">
           <summary>상세 조건</summary>
           <div className="reference-advanced-body">
@@ -2164,8 +2165,8 @@ function ListingsView({
             <div className="listing-mobile-sort" role="group" aria-label="매물 정렬 기준">{sortButton("type", "매물종류")}{sortButton("building", "이름")}</div>
           </div>
         </details>
+        <div className="reference-total">매물 <strong>{resultsVisible ? total.toLocaleString("ko-KR") : status === "error" ? "조회 실패" : "조회 중…"}</strong>{resultsVisible && "건"}</div><div className="reference-sort">{filtered && <button className="text-button" onClick={onReset} type="button">조건 초기화</button>}<select id="listing-sort" aria-label="매물 정렬" value={sort} onChange={event => setSort(event.target.value)}><option value="type">매물종류 → 이름순</option><option value="type-desc">매물종류 역순 → 이름순</option><option value="building">이름 가나다순</option><option value="building-desc">이름 역순</option><option value="recent">최근 등록순</option><option value="updated">최근 변경순</option><option value="oldest">오래 미갱신순</option></select></div></div>
         {filtered && <div className="active-filter-row listing-applied-filters" aria-label="현재 매물 조회 조건">{statuses.map(value => <span key={value}>{value}</span>)}{prices.map(price => <span key={price}>{({sale:"매매가 있음",jeonse:"전세가 있음",monthly:"월세가 있음"} as Record<string,string>)[price]}</span>)}{propertyType && <span>{propertyType}</span>}{query && <span>검색: {query}</span>}</div>}
-        <div className="reference-list-meta"><div className="reference-total">매물 <strong>{resultsVisible ? total.toLocaleString("ko-KR") : status === "error" ? "조회 실패" : "조회 중…"}</strong>{resultsVisible && "건"}</div><div className="reference-sort">{filtered && <button className="text-button" onClick={onReset} type="button">조건 초기화</button>}<select id="listing-sort" aria-label="매물 정렬" value={sort} onChange={event => setSort(event.target.value)}><option value="type">매물종류 → 이름순</option><option value="type-desc">매물종류 역순 → 이름순</option><option value="building">이름 가나다순</option><option value="building-desc">이름 역순</option><option value="recent">최근 등록순</option><option value="updated">최근 변경순</option><option value="oldest">오래 미갱신순</option></select></div></div>
         <p className="sort-summary reference-sort-description">{sortDescription}{!statuses.length && dateSorted ? " · 진행 중 우선" : ""}{!dateSorted ? " · 동·호수는 숫자순" : ""}</p>
       <section className="panel data-panel reference-listings-panel" aria-busy={status === "loading" || status === "refreshing"}>
         <ListReadFeedback status={status} error={error} onRetry={onRetry} label="매물 목록" />
@@ -2389,6 +2390,7 @@ function CalendarView({
 }) {
   const resultsVisible = status === "ready" || status === "refreshing";
   const today = seoulDate();
+  const currentMonth = today.slice(0, 7);
   const { displayedMonth, cells, grouped, firstWeekday } = useMemo(() => {
     const displayedMonth = /^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(month) ? month : today.slice(0, 7);
     // ISO parsing avoids Date's special handling of numeric years below 100.
@@ -2415,13 +2417,31 @@ function CalendarView({
       firstWeekday: first.getUTCDay(),
     };
   }, [month, items, today, workType]);
+  const todayCellRef = useRef<HTMLDivElement | null>(null);
+  const pendingTodayScroll = useRef(displayedMonth === currentMonth);
+  useEffect(() => {
+    if (!pendingTodayScroll.current || displayedMonth !== currentMonth || status !== "ready" || !todayCellRef.current) return;
+    todayCellRef.current.scrollIntoView({ block: "start", inline: "nearest", behavior: "auto" });
+    pendingTodayScroll.current = false;
+  }, [displayedMonth, currentMonth, status, workType]);
   const agendaDays = Object.keys(grouped).map(Number).sort((a, b) => a - b);
   const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
   function changeMonth(amount: number) {
     const date = new Date(`${displayedMonth}-01T12:00:00Z`);
     date.setUTCMonth(date.getUTCMonth() + amount);
     const next = `${String(date.getUTCFullYear()).padStart(4, "0")}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
-    if (/^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(next)) setMonth(next);
+    if (/^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(next)) {
+      pendingTodayScroll.current = false;
+      setMonth(next);
+    }
+  }
+  function showToday() {
+    pendingTodayScroll.current = true;
+    if (displayedMonth === currentMonth && status === "ready" && todayCellRef.current) {
+      todayCellRef.current.scrollIntoView({ block: "start", inline: "nearest", behavior: "auto" });
+      pendingTodayScroll.current = false;
+    }
+    setMonth(currentMonth);
   }
   return (
     <>
@@ -2441,7 +2461,10 @@ function CalendarView({
           max="9999-12"
           value={displayedMonth}
           onChange={(event) => {
-            if (/^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)) setMonth(event.target.value);
+            if (/^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)) {
+              pendingTodayScroll.current = false;
+              setMonth(event.target.value);
+            }
           }}
         />
         <button
@@ -2462,7 +2485,7 @@ function CalendarView({
             <option key={type}>{type}</option>
           ))}
         </select>
-        <button className="calendar-today" type="button" onClick={() => setMonth(today.slice(0, 7))}>이번 달</button>
+        <button className="calendar-today" type="button" onClick={showToday}>오늘</button>
         {resultsVisible && <span className="calendar-visible-total">{Object.values(grouped).reduce((count, rows) => count + rows.length, 0)}건</span>}
       </div>
       <ListReadFeedback status={status} error={error} onRetry={onRetry} label="달력 기록" />
@@ -2482,6 +2505,8 @@ function CalendarView({
           {cells.map((day, index) => (
             <div
               className={`calendar-cell ${day === Number(today.slice(8, 10)) && displayedMonth === today.slice(0, 7) ? "today-cell" : ""}`}
+              ref={day === Number(today.slice(8, 10)) && displayedMonth === currentMonth ? todayCellRef : undefined}
+              aria-current={day === Number(today.slice(8, 10)) && displayedMonth === currentMonth ? "date" : undefined}
               key={`${day}-${index}`}
             >
               {day && (
@@ -3304,7 +3329,7 @@ function HistoryModal({
   const RecordContainer = data.listing ? "details" : "div";
   const isListingHistory = Boolean(data.listing || data.listingKey);
   const allRecords = isListingHistory ? data.workItems ?? data.items : data.items;
-  const filterable = Boolean(data.customer || data.listing || data.listingKey);
+  const filterable = !isListingHistory && Boolean(data.customer);
   const selectedType = filterable ? data.historyWorkType ?? "" : "";
   const records = selectedType ? allRecords.filter((record) => ("event_date" in record ? record.status : record.work_type) === selectedType) : allRecords;
   const availableTypes = [...workTypes, ...allRecords.map((record) => "event_date" in record ? record.status : record.work_type)];

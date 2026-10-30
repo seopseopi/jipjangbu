@@ -80,24 +80,25 @@ function assertAllAddresses(tree) {
   assert.doesNotMatch(html, /role="listitem"[^>]*aria-hidden="true"/, "only decorative repeated numbering may be hidden from assistive technology, never an address");
 }
 
-test("변경이력 없는 매물은 집방문·전화 업무를 바로 펼쳐 읽고 구분별 필터와 내용 보기를 유지한다", () => {
+test("변경이력 없는 매물은 업무구분 선택 없이 집방문·전화 업무 전체와 내용 보기를 유지한다", () => {
   const items = [work, { ...work, id: "call", work_type: "전화" }], opened = [];
   const data = { listingKey: "아파트|합성단지|105|401", workItems: items, items: [] };
   const tree = history(data, { onOpenWork: (id) => opened.push(id) });
   const html = markup(tree);
   assert.match(html, /매물 변경 이력은 없으며/);
-  assert.match(html, /조회 2건/);
+  assert.match(html, /2건의 기록/);
   assert.match(html, /이 매물이 포함된 전체 업무/);
-  assert.doesNotMatch(html, /<details|현재 매물|가격 미기재|매물 수정 이력 추가|기록이 없습니다/);
+  assert.doesNotMatch(html, /<details|<select|history-work-type-filter|현재 매물|가격 미기재|매물 수정 이력 추가|기록이 없습니다/);
   const recordButtons = descendants(tree).filter((item) => item.type === "button" && item.props.children?.some?.((child) => child?.props?.className === "history-entry-meta"));
   assert.equal(recordButtons.length, 2);
   recordButtons[0].props.onClick();
   assert.deepEqual(opened, [work.id]);
-  for (const [type, count] of [["집방문", 1], ["잔금예정", 0]]) {
-    const filtered = markup(history({ ...data, historyWorkType: type }));
-    assert.match(filtered, new RegExp(`조회 ${count}건`));
-    assert.doesNotMatch(filtered, /<details/);
-    if (!count) assert.match(filtered, /잔금예정 업무 이력이 없습니다/);
+  for (const type of ["집방문", "잔금예정"]) {
+    const unfiltered = markup(history({ ...data, historyWorkType: type }));
+    assert.match(unfiltered, /2건의 기록/);
+    assert.doesNotMatch(unfiltered, /<details|<select|history-work-type-filter|업무 이력이 없습니다/);
+    assert.match(unfiltered, /집방문/);
+    assert.match(unfiltered, /전화/);
   }
 });
 
