@@ -837,3 +837,5 @@
  .app-shell:has(.structure-fit-screen) .sidebar .nav-item { min-height:44px; padding:4px 6px; font-size:11px; gap:2px; }
  .app-shell:has(.structure-fit-screen) .sidebar .nav-icon { width:17px; height:17px; }
 }
+.structure-file-viewer.is-fit { position:relative; }
+.structure-file-viewer.is-fit > p[role="status"] { position:absolute; top:38px; left:10px; z-index:2; margin:0; padding:3px 6px; border-radius:4px; background:#fffffff0; font-size:12px; pointer-events:none; }
