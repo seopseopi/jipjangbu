@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { registerHooks } from 'node:module';
-const hook=registerHooks({resolve(s,c,next){if(s.startsWith('.')&&!s.endsWith('.ts')){try{return next(s+'.ts',c);}catch{}}return next(s,c);}});
+const hook=registerHooks({resolve(s,c,next){if(s.startsWith('.')&&!s.endsWith('.ts')){try{return next(s+'.ts',c);}catch{/* Retain normal resolution for JSON and explicit extensions. */}}return next(s,c);}});
 const {validatePlan}=await import('../app/structures/plan.ts');
 const {bedPlacement,furnitureFits}=await import('../app/structures/furniture-layout.ts');
 hook.deregister();
