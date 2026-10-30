@@ -37,6 +37,7 @@ import { canCloseCustomerDraft, customerDraftChanged } from "./customer-draft";
 import { Icon } from "./icons";
 import { canAppendPage } from "./client-paging";
 import { useResultListRef, useResultPage } from "./result-pagination";
+import { ListingScrollLoader } from "./listing-scroll-loader";
 import { BrandMark } from "./brand-mark";
 import { SettingsView, type Lookups } from "./settings-view";
 import { createPropertyHistoryTarget } from "./history-query";
@@ -2020,7 +2021,7 @@ function WorkTable({
       else days.push({ date: item.work_date, items: [item] });
     }
     return <div className="journal-day-list">{days.map((day) => <section className="journal-day-group" key={`${day.date}-${day.items[0].id}`}>
-      <time className="journal-day-date" dateTime={day.date}><strong>{displayDate(day.date).slice(5)}</strong><span>{day.date.slice(0, 4)}</span></time>
+      <header className="journal-day-header"><time className="journal-day-date" dateTime={day.date}><strong>{displayDate(day.date)}</strong></time></header>
       <WorkTable items={day.items} onOpen={onOpen} onCustomerHistory={onCustomerHistory} onListingHistory={onListingHistory} hideDates />
     </section>)}</div>;
   }
@@ -2032,15 +2033,15 @@ function WorkTable({
         const groups = getPropertyDisplayGroups(properties);
         return <article className="table-row work-record-row" key={item.id}>
           <div className="work-record-meta">
-            <span data-label="고객" className="work-record-customer"><button type="button" className="work-record-customer-link" onClick={() => onCustomerHistory({ id: item.customer_id, name: item.customer_name })} aria-label={`${item.customer_name} 고객 이력 보기`}><b>{item.customer_name}</b></button></span>
-            <button type="button" className={`work-record-open tag ${statusTone(item.work_type)}`} onClick={() => onOpen(item.id)} aria-label={`${item.work_type} 업무 내용 보기`}>{item.work_type}</button>
+            <span data-label="고객" className="work-record-customer"><span className="work-record-meta-label">고객</span><button type="button" className="work-record-customer-link" onClick={() => onCustomerHistory({ id: item.customer_id, name: item.customer_name })} aria-label={`${item.customer_name} 고객 이력 보기`}><b>{item.customer_name}</b></button></span>
+            <span className="work-record-task"><span className="work-record-meta-label">업무</span><button type="button" className={`work-record-open tag ${statusTone(item.work_type)}`} onClick={() => onOpen(item.id)} aria-label={`${item.work_type} 업무 내용 보기`}>{item.work_type}</button></span>
             {!hideDates && <span data-label="일자"><button type="button" className="work-record-date" onClick={() => onOpen(item.id)} aria-label={`${displayDate(item.work_date)} ${item.customer_name} 업무 내용 보기`}><time dateTime={item.work_date}>{displayDate(item.work_date)}</time></button></span>}
           </div>
           <div className={`work-record-body${properties.length ? " has-properties" : ""}`}>
-            <span data-label="내용" className="work-record-content"><button type="button" className="work-cell-button work-record-note" onClick={() => onOpen(item.id)} aria-label={`${item.customer_name} 업무 내용 보기`}><span className="work-record-note-text">{item.content || "기록된 내용이 없습니다."}</span></button></span>
+            <span data-label="내용" className="work-record-content"><span className="work-record-label">내용</span><button type="button" className="work-cell-button work-record-note" onClick={() => onOpen(item.id)} aria-label={`${item.customer_name} 업무 내용 보기`}><span className="work-record-note-text">{item.content || "기록된 내용이 없습니다."}</span></button></span>
             <span data-label="물건" className="work-record-properties">
+              <span className="work-record-property-heading"><strong className="work-property-group-label" aria-label={properties.length > 0 ? `함께 기록한 물건 ${item.property_count}개` : undefined}>연결 매물 {properties.length > 0 && <span>{item.property_count}</span>}</strong></span>
               {properties.length > 0 ? <>
-                <span className="work-record-property-heading"><strong className="work-property-group-label" aria-label={`함께 기록한 물건 ${item.property_count}개`}>연결 매물 <span>{item.property_count}</span></strong></span>
                 <span className="work-property-groups">
                   {groups.map((group) => <span className="work-property-building-group" key={group.key}>
                     {group.items[0].property.property_type.trim() !== "토지" && <strong className="work-property-building">{group.building || group.items[0].property.property_type || "물건 정보 미입력"}</strong>}
@@ -2083,7 +2084,7 @@ function ListReadFeedback({ status, error = "", onRetry, label = "목록" }: {
 }
 function ListingsView({
   items,
-  total = items.length, loadingMore = false, moreError = "", onLoadMore, canLoadMore = false,
+  total = items.length, hasMore = false, loadingMore = false, moreError = "", onLoadMore, canLoadMore = false,
   lookups,
   query,
   setQuery,
@@ -2117,8 +2118,7 @@ function ListingsView({
   status?: JournalSearchStatus; error?: string; onRetry?: () => void;
 }) {
   const resultsVisible = status === "ready" || status === "refreshing";
-  const paging = useResultPage(items.length, total, JSON.stringify([query, statuses, prices, propertyType, sort]), 10);
-  const listRef = useResultListRef(paging.page, JSON.stringify([query, statuses, prices, propertyType, sort]));
+  const queryKey = JSON.stringify([query, statuses, prices, propertyType, sort]);
   const filtered = Boolean(
     query || statuses.length || propertyType || sort !== "type" || prices.length,
   );
@@ -2149,7 +2149,7 @@ function ListingsView({
   };
   return (
     <>
-      <div className="renewal-paginated-list" ref={listRef}>
+      <div className="renewal-paginated-list listing-scroll-list">
         <div className="reference-filters" role="search" aria-label="매물 검색">
           <label className="reference-filter reference-filter-search"><span className="reference-filter-label">검색</span><div className="reference-search-field"><Icon name="search" size={20} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="건물명, 동호수 또는 메모" aria-label="건물명 동호수 또는 메모 검색" />{query && <button type="button" aria-label="검색어 지우기" onClick={() => setQuery("")}><Icon name="close" size={18} /></button>}</div></label>
           <label className="reference-filter"><span className="reference-filter-label">물건 종류</span><select aria-label="매물종류 필터" value={propertyType} onChange={event => setPropertyType(event.target.value)}><option value="">전체 종류</option>{lookups.propertyTypes.map(type => <option key={type}>{type}</option>)}</select></label>
@@ -2181,7 +2181,7 @@ function ListingsView({
               <span>등록·말소</span>
               <span>메모</span>
             </div>
-            {items.slice(paging.start, paging.end).map((item) => (
+            {items.map((item) => (
               <button
                 className={`table-row${item.status !== "매물등록" && item.status !== "매물수정" ? " is-other-status" : ""}`}
                 key={item.id}
@@ -2216,7 +2216,10 @@ function ListingsView({
         {resultsVisible && moreError && <div className="workflow-feedback is-error" role="alert"><p>{moreError}</p><button type="button" className="secondary-button" onClick={onRetry}>최신 목록 다시 불러오기</button></div>}
       </section>
       </div>
-      <ResultPagination paging={paging} total={resultsVisible ? total : 0} busy={status !== "ready" || loadingMore} onPrevious={paging.previous} onNext={() => { void paging.next(canLoadMore ? onLoadMore : undefined); }} />
+      <footer className="listing-scroll-footer">
+        {resultsVisible && <span className="listing-scroll-count" role="status">{items.length.toLocaleString("ko-KR")} / {total.toLocaleString("ko-KR")}건</span>}
+        <ListingScrollLoader queryKey={queryKey} loaded={items.length} hasMore={hasMore} enabled={status === "ready" && canLoadMore} busy={loadingMore} error={moreError} onLoadMore={onLoadMore} />
+      </footer>
     </>
   );
 }

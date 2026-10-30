@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 import { canAppendPage } from "../app/client-paging.ts";
 import { resultPaginationHarness } from "./helpers/result-pagination.mjs";
@@ -8,11 +10,12 @@ import { resultPaginationHarness } from "./helpers/result-pagination.mjs";
 const source = readFileSync(new URL("../app/work-manager.tsx", import.meta.url), "utf8");
 const ast = ts.createSourceFile("work-manager.tsx", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 function find(predicate) { let found; function visit(node) { if (predicate(node)) found=node; ts.forEachChild(node,visit); } visit(ast); assert.ok(found); return found; }
-function evaluate(code, env) { const js=ts.transpileModule(code,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText; return new Function(...Object.keys(env),js+";return actual;")(...Object.values(env)); }
+function evaluate(code, env) { const js=ts.transpileModule(code,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.React}}).outputText; return new Function(...Object.keys(env),js+";return actual;")(...Object.values(env)); }
 function declaration(name) {return find(n=>ts.isFunctionDeclaration(n)&&n.name?.text===name).getText(ast);}
 function handler(name,env) {return evaluate(declaration(name)+"\nconst actual="+name+";",env);}
 function state(current) {const box={current};box.set=v=>{box.current=typeof v==="function"?v(box.current):v;};return box;}
 function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};}
+function descendants(element) { return React.isValidElement(element) ? [element, ...React.Children.toArray(element.props.children).flatMap(descendants)] : []; }
 const append=handler("appendManagedRows",{});
 const readWindow=handler("readManagedWindow",{MANAGEMENT_PAGE_SIZE:100,appendManagedRows:append});
 const records=Array.from({length:1201},(_,i)=>({id:"synthetic-"+i,name:"고객"+i,notes:"메모",history_count:i,property_type:i%2?"빌라":"아파트",building_name:"단지"+i,status:"매물등록"}));
@@ -42,6 +45,23 @@ function moreHarness(overrides = {}) {
   });
   return {load,pages,customers,listings,version,response,calls};
 }
+
+const loaderSource=readFileSync(new URL("../app/listing-scroll-loader.tsx",import.meta.url),"utf8");
+const loaderAst=ts.createSourceFile("listing-scroll-loader.tsx",loaderSource,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+const loaderNode=loaderAst.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==="ListingScrollLoader");
+assert.ok(loaderNode);
+const ListingScrollLoader=evaluate(loaderNode.getText(loaderAst).replace(/^export /,"")+"\nconst actual=ListingScrollLoader;",{React,useRef:React.useRef,useEffect:React.useEffect});
+const Listings=evaluate(["displayDate","targetText","statusTone","EmptyState","ListReadFeedback","Price","ListingsView"].map(declaration).join("\n")+"\nconst actual=ListingsView;",{
+  React,ListingScrollLoader,Icon:()=>null,LISTING_WORK_TYPES:new Set(["매물등록","매물수정","가계약","잔금"]),
+});
+function listingView(network,extra={}) {
+  return Listings({
+    items:network.listings.current,...network.pages.current.listings,lookups:{propertyTypes:["아파트","빌라"]},
+    query:"same-query",setQuery:()=>{},statuses:[],setStatuses:()=>{},prices:[],setPrices:()=>{},propertyType:"",setPropertyType:()=>{},
+    sort:"type",setSort:()=>{},onReset:()=>{},onHistory:()=>{},status:"ready",onRetry:()=>{},canLoadMore:true,onLoadMore:()=>network.load("listings"),...extra,
+  });
+}
+const listingRows=tree=>descendants(tree).filter(item=>item.props.className?.split(/\s+/).includes("table-row"));
 
 test("management more rejects duplicate clicks and ignores an old response after query invalidation",async()=>{
   const h=moreHarness(),first=h.load("customers");
@@ -74,47 +94,56 @@ test("management page reads stay blocked while another condition or first-page r
   }
 });
 
-test("local listing pages read the next server window only at the loaded boundary",async()=>{
-  const network=moreHarness(),h=resultPaginationHarness();
-  let loaded=100,fetches=0;
-  const render=()=>h.render(()=>h.useResultPage(loaded,1201,"same-query",10));
-  let paging=render();
-  for(let page=1;page<10;page++){await paging.next(()=>{fetches++;return network.load("listings");});paging=render();assert.equal(paging.page,page);}
-  assert.equal(fetches,0,"the first ten local pages reuse the already guarded server window");
-  const next=paging.next(()=>{fetches++;return network.load("listings");});
+test("the scrolling listing view shows every loaded row before and after appending the next server window",async()=>{
+  const network=moreHarness(),opened=[];
+  const first=listingView(network,{onHistory:item=>opened.push(item)});
+  assert.equal(listingRows(first).length,100);
+  assert.doesNotMatch(renderToStaticMarkup(first),/renewal-pagination|다음 페이지|이전 페이지|100건 더 보기/);
+  const loader=descendants(first).find(item=>item.type===ListingScrollLoader);
+  assert.deepEqual([loader.props.loaded,loader.props.hasMore,loader.props.enabled],[100,true,true]);
+  const next=loader.props.onLoadMore();
   assert.equal(network.calls.length,1);
   assert.equal(new URL(network.calls[0].url,"https://local.invalid").searchParams.get("offset"),"100");
   network.response.resolve({listings:records.slice(100,200),total:1201,hasMore:true});
-  await next;loaded=network.listings.current.length;paging=render();
-  assert.equal(paging.page,10);assert.deepEqual([paging.start,paging.end],[100,110]);
-  assert.equal(network.listings.current[paging.start].id,"synthetic-100");
-  assert.equal(fetches,1);
+  await next;
+  const appended=listingView(network,{onHistory:item=>opened.push(item)}),rows=listingRows(appended);
+  assert.equal(rows.length,200,"all earlier rows remain on the same document instead of a local page slice");
+  for(const row of rows)row.props.onClick();
+  assert.deepEqual(opened,records.slice(0,200),"each displayed row still opens its original listing");
+  assert.match(renderToStaticMarkup(appended),/200 \/ 1,201건/);
+  assert.equal(network.calls.length,1,"rendering the full loaded range does not eagerly fetch every remaining record");
 });
 
-test("a failed next server page retains the readable local page and exposes a retry error",async()=>{
-  const network=moreHarness(),h=resultPaginationHarness();
-  const render=()=>h.render(()=>h.useResultPage(100,1201,"same-query",10));
-  let paging=render();
-  for(let page=1;page<10;page++){await paging.next();paging=render();}
-  const next=paging.next(()=>network.load("listings"));
+test("a failed scroll read preserves every loaded row, stops automatic loading and keeps the parent retry reachable",async()=>{
+  const network=moreHarness(),next=network.load("listings");
   network.response.reject(Error("synthetic next page failed"));
-  await next;paging=render();
-  assert.equal(paging.page,9);assert.deepEqual([paging.start,paging.end],[90,100]);
+  await next;
   assert.equal(network.listings.current.length,100);
   assert.match(network.pages.current.listings.moreError,/synthetic next page failed/);
   assert.equal(network.pages.current.listings.loadingMore,false);
+  let retries=0;
+  const tree=listingView(network,{onRetry:()=>retries++});
+  assert.equal(listingRows(tree).length,100);
+  const loader=descendants(tree).find(item=>item.type===ListingScrollLoader);
+  assert.match(loader.props.error,/synthetic next page failed/);
+  assert.equal(loader.props.busy,false);
+  const retry=descendants(tree).find(item=>item.type==="button"&&renderToStaticMarkup(item).includes("최신 목록 다시 불러오기"));
+  retry.props.onClick();
+  assert.equal(retries,1);
+  assert.match(renderToStaticMarkup(tree),/role="alert"/);
 });
 
-test("a pending local page cannot move a replacement query after its old request resolves",async()=>{
-  const h=resultPaginationHarness(),pending=deferred();
-  let query="old",loaded=10,total=50;
-  const render=()=>h.render(()=>h.useResultPage(loaded,total,query,10));
-  const previous=render();
-  const next=previous.next(()=>pending.promise);
-  query="new";loaded=4;total=4;
-  assert.equal(render().page,0);
-  pending.resolve(20);await next;
-  const current=render();assert.equal(current.page,0);assert.deepEqual([current.start,current.end,current.pages],[0,4,1]);
+test("the final scroll window remains fully readable and hasMore=false blocks another network request",async()=>{
+  const network=moreHarness(),next=network.load("listings");
+  network.response.resolve({listings:records.slice(100,137),total:137,hasMore:false});
+  await next;
+  const tree=listingView(network),loader=descendants(tree).find(item=>item.type===ListingScrollLoader);
+  assert.equal(listingRows(tree).length,137);
+  assert.deepEqual([loader.props.loaded,loader.props.hasMore],[137,false]);
+  assert.match(renderToStaticMarkup(tree),/137 \/ 137건/);
+  const complete=moreHarness({managedPages:network.pages.current});
+  assert.equal(await complete.load("listings"),undefined);
+  assert.equal(complete.calls.length,0);
 });
 
 test("deleting the final page clamps it permanently and navigation scrolls the list without disturbing refreshes",async()=>{

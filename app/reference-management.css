@@ -1,4 +1,8 @@
 /* The approved ledger layout, using the production filters and stored fields. */
+.app-shell[data-view="listings"] .listing-scroll-list { flex: none; overflow: visible; overscroll-behavior: auto; scrollbar-gutter: auto; }
+.listing-scroll-footer { display: grid; gap: 6px; min-width: 0; padding: 12px 0 0; color: #4b5b71; font-size: var(--text-small); }
+.listing-scroll-count { font-variant-numeric: tabular-nums; }
+.listing-scroll-loader > p { margin: 0; padding-block: 8px; color: #526176; font-size: var(--text-small); }
 .app-shell[data-view="listings"] .renewal-paginated-list { container: reference-listing-page / inline-size; }
 .reference-filters { display: grid; grid-template-columns: minmax(220px, 1.7fr) repeat(3, minmax(130px, 1fr)); gap: 4px; min-width: 0; min-height: 70px; padding: 5px; border: 1px solid #bfc9d6; border-radius: 12px; background: #fff; }
 .reference-filter { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; padding: 4px 14px; }

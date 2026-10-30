@@ -59,7 +59,12 @@ function button(tree, label) {
   assert.ok(element, `${label} exists`);
   return element;
 }
-const environment = { React, useResultPage: initialResultPage, useResultListRef: initialResultListRef, ResultPagination, useContext: () => null, PageToolsSlot: null, createPortal: (node) => node, LISTING_WORK_TYPES: new Set(["매물등록", "매물수정", "가계약", "잔금"]), Icon: () => null, useMemo: (callback) => callback(), seoulDate: () => "2026-09-13", calendarWorkPresentation, CalendarSubjects };
+const loaderSource = readFileSync(new URL("../app/listing-scroll-loader.tsx", import.meta.url), "utf8");
+const loaderAst = ts.createSourceFile("listing-scroll-loader.tsx", loaderSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+const loaderDeclaration = loaderAst.statements.find((node) => ts.isFunctionDeclaration(node) && node.name?.text === "ListingScrollLoader");
+assert.ok(loaderDeclaration);
+const ListingScrollLoader = evaluate(`${loaderDeclaration.getText(loaderAst).replace(/^export /, "")}\nconst result = ListingScrollLoader;`, { React, useRef: React.useRef, useEffect: React.useEffect });
+const environment = { React, ListingScrollLoader, useResultPage: initialResultPage, useResultListRef: initialResultListRef, ResultPagination, useContext: () => null, PageToolsSlot: null, createPortal: (node) => node, LISTING_WORK_TYPES: new Set(["매물등록", "매물수정", "가계약", "잔금"]), Icon: () => null, useMemo: (callback) => callback(), seoulDate: () => "2026-09-13", calendarWorkPresentation, CalendarSubjects };
 const common = ["displayDate", "targetText", "statusTone", "EmptyState", "Toolbar", "ListReadFeedback"];
 const Feedback = compile(["ListReadFeedback"], environment);
 const Listings = compile([...common, "Price", "ListingsView"], environment);
@@ -87,14 +92,18 @@ test("공통 조회 안내는 로딩·오류·갱신·준비를 구분하고 재
   assert.equal(retried, 1);
 });
 
-test("매물·고객 목록은 다른 조건 조회 중과 오류에서 이전 행·건수를 숨기고 페이지 이동을 잠근다", () => {
+test("매물·고객 목록은 다른 조건 조회 중과 오류에서 이전 행·건수를 숨기고 추가 조회를 잠근다", () => {
   for (const [View, props, marker, empty] of [[Listings, listingProps, "이전결과 합성단지", "조건에 맞는 매물이 없습니다"], [Customers, customerProps, "이전결과 합성고객", "조건에 맞는 고객이 없습니다"]]) {
     for (const status of ["loading", "error"]) {
       const html = renderToStaticMarkup(React.createElement(View, { ...props, status, error: "합성 오류" }));
       assert.ok(!html.includes(marker));
       assert.ok(!html.includes(empty));
       assert.doesNotMatch(html, /CSV|export-button/);
-      if (View === Listings) assert.match(html, /aria-label="다음 페이지" disabled=""/);
+      if (View === Listings) {
+        assert.doesNotMatch(html, /다음 페이지|이전 페이지|100건 더 보기/);
+        const loader = descendants(View({ ...props, status, canLoadMore: true })).find((item) => item.type === ListingScrollLoader);
+        assert.equal(loader.props.enabled, false);
+      }
       assert.match(html, status === "loading" ? /조회 중…/ : /조회 실패/);
       assert.match(html, status === "loading" ? /role="status"/ : /role="alert"/);
       assert.doesNotMatch(html, View === Listings ? /class="reference-total">매물 <strong>1<\/strong>건/ : /class="count-badge">1명/);
@@ -108,7 +117,11 @@ test("매물·고객 목록은 다른 조건 조회 중과 오류에서 이전 �
     assert.match(refreshing, View === Listings ? /class="reference-total">매물 <strong>1<\/strong>건/ : /class="count-badge">1명/);
     assert.match(refreshing, /같은 조건의 이전 결과/);
     assert.doesNotMatch(refreshing, /CSV|export-button/);
-    if (View === Listings) assert.match(refreshing, /aria-label="다음 페이지" disabled=""/);
+    if (View === Listings) {
+      assert.doesNotMatch(refreshing, /다음 페이지|이전 페이지|100건 더 보기/);
+      const loader = descendants(View({ ...props, status: "refreshing", canLoadMore: true })).find((item) => item.type === ListingScrollLoader);
+      assert.equal(loader.props.enabled, false);
+    }
   }
 });
 

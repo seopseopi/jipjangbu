@@ -11,7 +11,7 @@ assert.equal(layoutCss.length, 1, "the layout must load one complete application
 const compiled = read(path.join("dist/client", layoutCss[0].replace(/^\//, "")));
 assert.ok(compiled.includes(".renewal-pagination"), "the server-loaded stylesheet must already include the renewed lists");
 assert.ok(compiled.includes(".insights-renewal"), "the server-loaded stylesheet must already include the renewed insights");
-for (const selector of [".journal-day-group", ".listing-renewal-table", ".customer-renewal-table", ".trash-selectable", ".reference-page-heading", ".reference-home-main", ".reference-filters", ".settings-section", ".structure-page-actions"]) {
+for (const selector of [".journal-day-group", ".listing-renewal-table", ".customer-renewal-table", ".trash-selectable", ".reference-page-heading", ".reference-home-main", ".reference-filters", ".settings-section", ".structure-page-actions", ".journal-day-header", ".work-record-meta-label", ".listing-scroll-list"]) {
   assert.ok(compiled.includes(selector), `the server-loaded stylesheet must include ${selector}`);
 }
 assert.ok(compiled.lastIndexOf("--canvas:#efeae1") > compiled.indexOf("--canvas:#e5eaf0"), "renewal tokens must follow the original tokens");

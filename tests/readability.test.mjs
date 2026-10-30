@@ -23,6 +23,20 @@ function style(file, selector) {
 
 const tokens = style("globals", ":root");
 
+test("업무일지 본문·연결 매물은 이전 표의 4·5번째 열 위치를 버리고 한 열에서 전체 내용을 표시한다", () => {
+  const prefix = '.app-shell[data-view="journal"] .journal-day-list';
+  const body = style("journal-readability", `${prefix} .work-record-body`);
+  assert.equal(body.display, "grid");
+  assert.equal(body["grid-template-columns"], "minmax(0, 1fr)");
+  const cells = style("journal-readability", `${prefix} .work-record-body > span`);
+  assert.equal(cells["grid-area"], "auto", "legacy 1 / 4 and 1 / 5 positions must not create empty columns");
+  assert.equal(cells["text-align"], "left");
+  const note = style("journal-readability", `${prefix} .work-record-note-text`);
+  assert.equal(note["white-space"], "pre-wrap");
+  assert.equal(note.overflow, "visible");
+  assert.equal(note["max-height"], "none");
+});
+
 test("작은 휴대폰도 새 업무 등록 문구와 검색의 44px 터치 폭을 유지한다", () => {
   const search = style("renewal", ".sidebar-actions .global-search-trigger");
   assert.equal(search.flex, "0 0 44px");

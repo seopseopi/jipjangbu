@@ -164,8 +164,12 @@ test("홈 업무는 고객명·업무구분·날짜를 본문보다 먼저 표�
   for (const [index, record] of records.entries()) {
     const [meta, body] = React.Children.toArray(record.props.children);
     assert.equal(meta.props.className, "work-record-meta");
-    const [customer, work, date] = React.Children.toArray(meta.props.children);
+    const [customer, task, date] = React.Children.toArray(meta.props.children);
     assert.equal(customer.props["data-label"], "고객");
+    assert.equal(descendants(customer).find(node => node.props.className === "work-record-meta-label").props.children, "고객");
+    assert.equal(task.props.className, "work-record-task");
+    assert.equal(descendants(task).find(node => node.props.className === "work-record-meta-label").props.children, "업무");
+    const work = descendants(task).find(node => node.props.className?.split(/\s+/).includes("work-record-open"));
     assert.equal(work.type, "button");
     assert.ok(work.props.className.split(/\s+/).includes("work-record-open"));
     assert.equal(work.props.children, items[index].work_type);
