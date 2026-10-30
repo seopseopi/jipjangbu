@@ -1,3 +1,4 @@
+import { portableBackupStream } from "./structure-file-export.ts";
 import { safeReturnTo } from "./return-to.js";
 import { STRUCTURE_TABLES } from "../db/structure-schema.js";
 
@@ -138,6 +139,8 @@ export function isPublicAsset(pathname: string, method: string): boolean {
   return pathname.startsWith("/_next/")
     || pathname.startsWith("/_vinext/")
     || /^\/fonts\/pretendard\/(?:PretendardVariable\.subset\.\d{1,2}\.woff2|OFL\.txt)$/.test(pathname)
+    || /^\/pdfjs\/pdf\.worker-\d+\.\d+\.\d+\.mjs$/.test(pathname)
+    || pathname === "/pdfjs/LICENSE"
     || pathname === "/favicon.ico"
     || pathname === "/jipjangbu-logo.png"
     || pathname === "/jipjangbu-icon.png"
@@ -372,7 +375,7 @@ async function handleBackupDownload(url: URL, env: SecurityEnv): Promise<Respons
     const decrypted = await decryptBackup(await object.arrayBuffer(), env.BACKUP_ENCRYPTION_KEY!);
     const createdAt = object.customMetadata?.createdAt ?? new Date().toISOString();
     const filename = `jipjangbu-backup-${createdAt.slice(0, 10)}-${backupKindFromKey(key)}.json`;
-    return addSecurityHeaders(new Response(decrypted, {
+    return addSecurityHeaders(new Response(await portableBackupStream(decrypted, env.BACKUPS), {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
         "Content-Disposition": `attachment; filename="${filename}"`,

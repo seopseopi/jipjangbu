@@ -27,6 +27,7 @@
 
 | 문서 | 확인할 내용 |
 | :--- | :--- |
+| [집 구조 원본 등록](apartment-structure-local-preview.md) | 이미지·PDF 등록, 세대 연결, 모바일 조작과 파일 포함 백업 검증 |
 | [안정성 개선 기록](reliability-improvements.md) | 원문 보존·충돌·라우팅·관리 페이징의 단계별 검증 |
 | [업무 흐름 점검](workflow-review.md) | 고객·매물 이력, 업무 읽기·수정·복귀, 검증 결과와 남은 과제 |
 | [검색 점검](search-review.md) | 동·호수 검색, 실제 일치 매물 표시, 조회 상태 구분 |

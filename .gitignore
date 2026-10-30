@@ -45,3 +45,6 @@ yarn-error.log*
 
 # Generated from the private Excel workbook; never commit to the GitHub branch.
 /drizzle/*_private_*.sql
+
+# Generated from the pinned pdfjs-dist dependency.
+/public/pdfjs/

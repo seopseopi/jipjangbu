@@ -1,3 +1,4 @@
+import type { PlanFile } from "./file-contract";
 import type { Plan } from "./plan";
 export type PropertyRow = {
   identity_key: string;
@@ -40,7 +41,7 @@ export type Catalog = {
   revisions: Revision[];
   links: { identity_key: string; unit_id: string }[];
 };
-export type RevisionData = { revision: Revision; plan: Plan };
+export type RevisionData = { revision: Revision; plan: Plan | null; file: PlanFile | null };
 export type History = {
   listing: null | {
     id: string;

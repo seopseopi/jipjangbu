@@ -746,3 +746,11 @@
 }
 .structure-svg [role="button"]:focus { outline: none; }
 .structure-svg [role="button"]:focus-visible { stroke: #243c62; stroke-width: .08; }
+
+.structure-file-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.structure-file-toolbar button, .structure-file-toolbar a { min-height: 44px; padding: 8px 12px; }
+.structure-file-toolbar label { display: flex; align-items: center; gap: 5px; }
+.structure-file-toolbar input { width: 64px; min-height: 44px; }
+.structure-file-frame { max-width: 100%; min-width: 0; overflow: auto; max-height: 75vh; background: #eef1f5; padding: 8px; border: 1px solid #d3dae4; }
+.structure-file-frame canvas, .structure-file-frame img { display: block; max-width: none; }
+.structure-file-viewer { min-width: 0; }

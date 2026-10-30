@@ -1,8 +1,10 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { clientJsonFetch } from "../client-api";
 import { validatePlan, type Plan } from "./plan";
 import type { Catalog, PropertyRow } from "./contracts";
+import { FileViewer } from "./file-viewer";
+import { MAX_PLAN_FILE_BYTES, PLAN_FILE_TYPES } from "./file-contract";
 import { PlanViewer } from "./plan-viewer";
 
 export function StructureManager({
@@ -20,9 +22,23 @@ export function StructureManager({
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [plan, setPlan] = useState<Plan | null>(null),
+    [file, setFile] = useState<File | null>(null),
+    [preview, setPreview] = useState(""),
+    [registrationComplex, setRegistrationComplex] = useState(
+      unit?.complex_id ?? "",
+    ),
     [revision, setRevision] = useState(
       unit?.revision_id ?? catalog.revisions[0]?.id ?? "",
     );
+  useEffect(
+    () => () => {
+      if (preview) URL.revokeObjectURL(preview);
+    },
+    [preview],
+  );
+  const registeredComplex = catalog.complexes.find(
+    (c) => c.id === registrationComplex,
+  );
   const chosen = catalog.revisions.find((r) => r.id === revision);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -30,18 +46,46 @@ export function StructureManager({
     setBusy(true);
     setError("");
     try {
-      if (tab === "revision")
-        await clientJsonFetch("/api/structures", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...data,
-            action: "revision",
-            plan,
-            confirmed: data.confirmed === "on",
-          }),
-        });
-      else {
+      if (tab === "revision") {
+        const metadata = {
+          ...data,
+          action: "revision",
+          plan,
+          confirmed: data.confirmed === "on",
+        };
+        if (file) {
+          const digest = await crypto.subtle.digest(
+            "SHA-256",
+            await file.arrayBuffer(),
+          );
+          const sha = Array.from(new Uint8Array(digest), (n) =>
+            n.toString(16).padStart(2, "0"),
+          ).join("");
+          await clientJsonFetch("/api/structures", {
+            method: "POST",
+            headers: {
+              "Content-Type": file.type,
+              "X-File-Name": encodeURIComponent(file.name),
+              "X-File-Size": String(file.size),
+              "X-File-SHA256": sha,
+              "X-Structure-Metadata": encodeURIComponent(
+                JSON.stringify(metadata),
+              ),
+            },
+            body: file,
+          });
+        } else
+          await clientJsonFetch("/api/structures", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...data,
+              action: "revision",
+              plan,
+              confirmed: data.confirmed === "on",
+            }),
+          });
+      } else {
         const unit = catalog.units.find(
           (u) =>
             u.complex_id === chosen?.complex_id &&
@@ -107,7 +151,11 @@ export function StructureManager({
             <>
               <label>
                 기존 단지 (새 버전 추가 시 선택)
-                <select name="complexId">
+                <select
+                  name="complexId"
+                  value={registrationComplex}
+                  onChange={(e) => setRegistrationComplex(e.target.value)}
+                >
                   <option value="">새 단지 등록</option>
                   {catalog.complexes.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -119,11 +167,25 @@ export function StructureManager({
               <div className="structure-form-grid">
                 <label>
                   공식 단지명
-                  <input name="complexName" required maxLength={300} />
+                  <input
+                    key={`name-${registrationComplex}`}
+                    name="complexName"
+                    required
+                    maxLength={300}
+                    defaultValue={registeredComplex?.name ?? ""}
+                    readOnly={!!registeredComplex}
+                  />
                 </label>
                 <label>
                   공식 주소
-                  <input name="address" required maxLength={300} />
+                  <input
+                    key={`address-${registrationComplex}`}
+                    name="address"
+                    required
+                    maxLength={300}
+                    defaultValue={registeredComplex?.address ?? ""}
+                    readOnly={!!registeredComplex}
+                  />
                 </label>
                 <label>
                   타입 이름
@@ -143,17 +205,36 @@ export function StructureManager({
                 </label>
               </div>
               <label>
-                구조 JSON 파일
+                도면 파일 (PDF·JPG·PNG 또는 구조 JSON)
                 <input
                   type="file"
-                  accept=".json,application/json"
+                  accept=".pdf,.jpg,.jpeg,.png,.json,application/pdf,image/jpeg,image/png,application/json"
                   required
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     setPlan(null);
+                    setFile(null);
+                    setPreview("");
                     setError("");
                     if (!file) return;
                     try {
+                      if (
+                        PLAN_FILE_TYPES.includes(
+                          file.type as (typeof PLAN_FILE_TYPES)[number],
+                        )
+                      ) {
+                        if (file.size < 8 || file.size > MAX_PLAN_FILE_BYTES)
+                          throw new Error(
+                            "PDF·이미지는 32MiB 이하 파일을 선택해 주세요.",
+                          );
+                        setFile(file);
+                        setPreview(URL.createObjectURL(file));
+                        return;
+                      }
+                      if (!file.name.toLowerCase().endsWith(".json"))
+                        throw new Error(
+                          "PDF·JPG·PNG 또는 구조 JSON 파일을 선택해 주세요.",
+                        );
                       if (file.size > 512 * 1024)
                         throw new Error(
                           "512 KiB 이하 JSON만 등록할 수 있습니다.",
@@ -191,10 +272,16 @@ export function StructureManager({
                 />
               </label>
               {plan && <PlanViewer plan={plan} />}
+              {file && preview && (
+                <FileViewer
+                  key={preview}
+                  url={preview}
+                  file={{ file_name: file.name, mime_type: file.type }}
+                />
+              )}
               <label className="structure-check">
                 <input type="checkbox" name="confirmed" required />
-                원본과 방·벽·문·창 배치를 대조했고, 이 도면을 사용할 권한이
-                있습니다.
+                원본과 타입·구조를 대조했고, 이 도면을 사용할 권한이 있습니다.
               </label>
             </>
           ) : (
@@ -338,7 +425,8 @@ export function StructureManager({
             type="submit"
             className="primary-button"
             disabled={
-              busy || (tab === "revision" ? !plan : !catalog.revisions.length)
+              busy ||
+              (tab === "revision" ? !plan && !file : !catalog.revisions.length)
             }
           >
             {busy

@@ -99,3 +99,6 @@ Node.js 24에서 `node scripts/check-backup.mjs <백업파일>`을 실행하면 
 `listing_source_notes`는 현재 매물 상태와 독립적인 원문·최소 업무 연결 정보를 보관합니다. 신규 마이그레이션 `0007`과 runtime bootstrap 4는 기존 원문을 이행하고 고객 이력의 source 검색 인덱스를 준비합니다. 변경 전후 백업에도 이 테이블을 포함합니다. 이전 v1 백업의 복원 검사는 기존 매물 원문과 이벤트로 초기 보관 자료를 재구성합니다.
 
 변경 내역과 단계별 검증은 [안정성 개선 기록](reliability-improvements.md), 실제 운영 확인 절차와 키 보관은 [운영 안내](operations.md)를 참고하세요. GitHub 푸시와 운영 배포·DB 복원은 별도 작업입니다.
+
+
+2026-10-30: 마이그레이션 `0008`과 bootstrap 5는 `structure_plan_files`를 추가합니다. 이미지·PDF 도면은 기존 revision의 `geometry_json`에 JSON `null`을 기록하고 별도 파일 행과 연결합니다. 실제 구조 JSON 버전은 기존 형식을 유지합니다. `npm run dev`와 `npm run build`는 고정된 `pdfjs-dist` 의존성의 worker와 라이선스를 `public/pdfjs/`에 생성합니다. 생성 파일은 Git과 린트 대상에서 제외합니다. 인증된 원본 API는 별도로 유지하며 공개 worker 경로에 고객 파일을 저장하지 않습니다.

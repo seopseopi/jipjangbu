@@ -132,3 +132,16 @@ export const structureAudit = sqliteTable(
   },
   (t) => [index("idx_structure_audit_entity").on(t.entityId, t.createdAt)],
 );
+
+export const structurePlanFiles = sqliteTable("structure_plan_files", {
+  revisionId: text("revision_id").primaryKey().references(() => structurePlanRevisions.id),
+  storageKey: text("storage_key").notNull().unique(),
+  fileName: text("file_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  sha256: text("sha256").notNull(),
+}, (t) => [
+  check("structure_file_type", sql`${t.mimeType} IN ('application/pdf','image/jpeg','image/png')`),
+  check("structure_file_size", sql`${t.byteSize} BETWEEN 8 AND 33554432`),
+  check("structure_file_hash", sql`length(${t.sha256})=64`),
+]);

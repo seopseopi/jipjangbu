@@ -40,6 +40,7 @@
 | **매물 관리** | 전체 매물 조회, 종류·이름·동·호수 정렬, 누적 이력, 기존 매물로 새 업무 작성 |
 | **업무 달력·현황** | 월별 일정, 업무량과 업무구분별 현황, 오래 갱신되지 않은 매물 |
 | **휴지통·설정** | 업무·고객·할 일 삭제와 복구, 업무 분류 관리, 암호화 백업 생성·다운로드 |
+| **집 구조 보기** | PDF·이미지 도면 등록, 세대별 버전 연결, 페이지·확대·회전, 원본 포함 백업 |
 | **통합검색** | 업무·고객·매물을 한 번에 검색 (`/` 키) |
 
 자세한 동작과 정렬 기준은 [사용 가이드](docs/usage.md)에 있습니다.
@@ -55,7 +56,7 @@
 
 ## 개발
 
-React·TypeScript·Tailwind CSS 화면과 Cloudflare Workers API로 구성되어 있습니다. 업무 데이터는 **D1**, 암호화 백업은 **R2**에 저장합니다. **Node.js 24와 npm**을 권장합니다.
+React·TypeScript·Tailwind CSS 화면과 Cloudflare Workers API로 구성되어 있습니다. 업무 데이터는 **D1**, 원본 도면과 암호화 백업은 **R2**에 저장합니다. **Node.js 24와 npm**을 권장합니다.
 
 ```bash
 git clone https://github.com/seopseopi/jipjangbu.git

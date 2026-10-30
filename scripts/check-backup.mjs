@@ -1,6 +1,6 @@
 import { readFile, readdir } from "node:fs/promises";
 import { DatabaseSync } from "node:sqlite";
-import { createDecipheriv } from "node:crypto";
+import { createDecipheriv, createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import { STRUCTURE_TABLES } from "../db/structure-schema.js";
 
@@ -32,6 +32,26 @@ export async function checkBackup(input, key = process.env.BACKUP_ENCRYPTION_KEY
     backup.tables.listing_source_notes = sources;
     backup.counts.listing_source_notes = sources.length;
   }
+  if (!("structure_plan_files" in backup.tables) && !("structure_plan_files" in backup.counts)) {
+    backup.tables.structure_plan_files = []; backup.counts.structure_plan_files = 0;
+  }
+  const fileRows = backup.tables.structure_plan_files;
+  let verifiedFileCount = 0;
+  if (Array.isArray(fileRows) && fileRows.length) {
+    if (!Array.isArray(backup.files) || backup.files.length !== fileRows.length) throw new Error("도면 원본 파일이 빠졌습니다. 사이트에서 백업을 내려받아 검증하세요.");
+    const ids = new Set();
+    for (const row of fileRows) {
+      const matches = backup.files.filter(file => file.revision_id === row.revision_id);
+      if (ids.has(row.revision_id) || matches.length !== 1 || !/^[a-f0-9-]{36}$/.test(row.revision_id) || !/^[a-f0-9]{64}$/.test(row.sha256)
+        || row.storage_key !== `structure-files/${row.revision_id}/${row.sha256}`) throw new Error("도면 파일 연결이 올바르지 않습니다.");
+      ids.add(row.revision_id);
+      const file = matches[0];
+      if (typeof file.base64 !== "string" || file.base64.length % 4 !== 0 || /[^A-Za-z0-9+/=]/.test(file.base64)) throw new Error("도면 파일 인코딩 오류");
+      const content = Buffer.from(file.base64, "base64");
+      if (content.toString("base64") !== file.base64 || content.length !== row.byte_size || file.sha256 !== row.sha256 || createHash("sha256").update(content).digest("hex") !== row.sha256) throw new Error("도면 파일 크기 또는 SHA-256 불일치");
+      verifiedFileCount += 1;
+    }
+  } else if (backup.files?.length) throw new Error("도면 파일 연결이 올바르지 않습니다.");
   const db = new DatabaseSync(":memory:");
   try {
     const migrations = (await readdir(new URL("../drizzle/", import.meta.url))).filter((name) => /^\d+_.+\.sql$/.test(name)).sort();
@@ -61,9 +81,10 @@ export async function checkBackup(input, key = process.env.BACKUP_ENCRYPTION_KEY
     }
     const foreignErrors = db.prepare("PRAGMA foreign_key_check").all();
     if (foreignErrors.length) throw new Error(`복구 데이터의 연결 관계 오류: ${foreignErrors.length}건`);
+    if (db.prepare("SELECT COUNT(*) n FROM structure_plan_revisions r LEFT JOIN structure_plan_files f ON f.revision_id=r.id WHERE json_type(r.geometry_json)='null' AND f.revision_id IS NULL").get().n) throw new Error("도면 원본 파일 연결이 빠졌습니다.");
     if (db.prepare("PRAGMA integrity_check").get().integrity_check !== "ok") throw new Error("복구 데이터 무결성 검사 실패");
     db.exec("COMMIT");
-    return { createdAt: backup.createdAt, counts: backup.counts };
+    return { createdAt: backup.createdAt, counts: backup.counts, verifiedFileCount };
   } finally { db.close(); }
 }
 

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { after } from "node:test";
 import { DatabaseSync } from "node:sqlite";
 import { registerHooks } from "node:module";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
@@ -10,6 +10,7 @@ const root = new URL("../", import.meta.url),
   symbol = Symbol.for("structure-test-db");
 const hook = registerHooks({
   resolve(s, c, next) {
+    if (s === "cloudflare:workers") return { url: 'data:text/javascript,export const env = {get BACKUPS(){return globalThis[Symbol.for("structure-test-bucket")]}}', shortCircuit:true };
     if (c.parentURL?.startsWith(root.href) && s.startsWith(".")) {
       const u = new URL(s, c.parentURL);
       if (u.href === new URL("db", root).href)
@@ -43,7 +44,8 @@ const hook = registerHooks({
   },
 });
 const api = await import("../app/api/structures/route.ts");
-hook.deregister();
+after(() => hook.deregister());
+const filesApi = await import("../app/api/structures/files/[id]/route.ts");
 function database(t) {
   const db = new DatabaseSync(":memory:");
   db.exec("PRAGMA foreign_keys=ON");
@@ -109,6 +111,83 @@ const revisionInput = () => ({
   confirmed: true,
   variant: "base",
   plan: { ...structuredClone(DEMO_PLAN), isDemo: false },
+});
+function fileBucket(t) {
+  const objects = new Map();
+  const bucket = {
+    async put(key, stream, options) {
+      const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+      const sha = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)), n => n.toString(16).padStart(2, "0")).join("");
+      if (sha !== options.sha256) throw new Error("R2 checksum mismatch");
+      objects.set(key, bytes); return { size: bytes.length };
+    },
+    async get(key) { const value = objects.get(key); return value ? { size: value.length, body: new Blob([value]).stream() } : null; },
+    async delete(key) { objects.delete(key); },
+  };
+  globalThis[Symbol.for("structure-test-bucket")] = bucket;
+  t.after(() => delete globalThis[Symbol.for("structure-test-bucket")]);
+  return { objects, bucket };
+}
+async function filePost(bytes, type = "application/pdf", headers = {}, metadata = {}) {
+  const sha = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)), n => n.toString(16).padStart(2, "0")).join("");
+  return api.POST(new Request("https://test.invalid/api/structures", { method: "POST", headers: {
+    "Content-Type": type, "X-File-Size": String(bytes.length), "X-File-SHA256": sha,
+    "X-File-Name": encodeURIComponent(type === "application/pdf" ? "합성 도면.pdf" : "합성 도면.png"),
+    "X-Structure-Metadata": encodeURIComponent(JSON.stringify({ ...revisionInput(), plan: undefined, ...metadata })), ...headers,
+  }, body: bytes }));
+}
+
+test("PDF·PNG 원본을 등록하고 geometry 없이 버전·세대에 연결하며 원본을 조회한다", async t => {
+  const db = database(t), { objects } = fileBucket(t);
+  const fixtures = [[new TextEncoder().encode("%PDF-1.4\nsynthetic-file"), "application/pdf"], [Uint8Array.from(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jA1UAAAAASUVORK5CYII=", "base64")), "image/png"]];
+  for (const [bytes, type] of fixtures) {
+    const response = await filePost(bytes, type);
+    assert.equal(response.status, 201, JSON.stringify(await response.clone().json()));
+    const { id } = await response.json();
+    const detail = await (await api.GET(new Request(`https://test.invalid/api/structures?revision=${id}`))).json();
+    assert.equal(detail.plan, null); assert.equal(detail.file.mime_type, type); assert.equal(detail.file.byte_size, bytes.length);
+    assert.equal("storage_key" in detail.file, false);
+    const downloaded = await filesApi.GET(new Request("https://test.invalid/api/structures/files/x?download=1"), { params: Promise.resolve({ id }) });
+    assert.equal(downloaded.status, 200); assert.equal(downloaded.headers.get("content-type"), type);
+    assert.match(downloaded.headers.get("content-disposition"), /^attachment;/);
+    assert.deepEqual(new Uint8Array(await downloaded.arrayBuffer()), bytes);
+    const assigned = await post({ action: "assign", revisionId: id, dong: "합성동", number: id, floor: null, mirror: null, rotation: null, actualCondition: "unknown", evidence: "합성 연결 근거", confirmed: true, expectedVersion: 0 });
+    assert.equal(assigned.status, 201);
+  }
+  assert.equal(objects.size, 2);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM structure_plan_files").get().n, 2);
+});
+
+test("위장 파일·초과 크기·전송 길이·체크섬 오류는 DB와 R2에 도면을 남기지 않는다", async t => {
+  const db = database(t), { objects } = fileBucket(t);
+  const bytes = new TextEncoder().encode("%PDF-1.4\nsynthetic-file");
+  for (const [body, type, headers] of [
+    [new TextEncoder().encode("<script>not pdf</script>"), "application/pdf", {}],
+    [bytes, "application/pdf", { "X-File-Size": "33554433" }],
+    [bytes, "application/pdf", { "X-File-Size": String(bytes.length + 1) }],
+    [bytes, "application/pdf", { "X-File-Size": String(bytes.length - 1) }],
+    [bytes, "application/pdf", { "X-File-SHA256": "0".repeat(64) }],
+    [bytes, "application/pdf", { "X-File-Name": "../bad.pdf" }],
+  ]) assert.equal((await filePost(body, type, headers)).status, 422);
+  assert.equal((await filePost(bytes, "application/pdf", {}, { permissionEvidence: "" })).status, 422);
+  assert.equal(objects.size, 0);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM structure_plan_revisions").get().n, 0);
+});
+
+test("파일 저장 후 DB 실패는 원본 업로드를 정리하고 기존 도면은 보존한다", async t => {
+  const db = database(t), { objects } = fileBucket(t);
+  const first = await post(revisionInput()); assert.equal(first.status, 201);
+  db.exec("CREATE TRIGGER fail_file BEFORE INSERT ON structure_plan_files BEGIN SELECT RAISE(ABORT,'test file insert failure'); END");
+  assert.equal((await filePost(new TextEncoder().encode("%PDF-1.4\nsynthetic-file"))).status, 422);
+  assert.equal(objects.size, 0);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM structure_plan_revisions").get().n, 1);
+});
+
+test("R2가 파일 읽기 전에 실패해도 전송이 멈추지 않고 DB를 보존한다", { timeout: 2000 }, async t => {
+  const db = database(t), { bucket } = fileBucket(t);
+  bucket.put = async () => { throw new Error("synthetic storage outage"); };
+  assert.equal((await filePost(new TextEncoder().encode("%PDF-1.4\nsynthetic-file"))).status, 422);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM structure_plan_files").get().n, 0);
 });
 test("도면 등록은 근거·동의가 필요하고 데모를 실단지에 연결하지 않는다", async (t) => {
   const db = database(t);

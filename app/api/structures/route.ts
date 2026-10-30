@@ -1,5 +1,10 @@
 import { getD1 } from "../../../db";
 import { ready, apiError } from "../_shared";
+import {
+  planBucket,
+  uploadPlanFile,
+  type StoredPlanFile,
+} from "../../../worker/structure-files";
 import { validatePlan } from "../../structures/plan";
 
 export async function GET(request: Request) {
@@ -20,7 +25,13 @@ export async function GET(request: Request) {
           { status: 404 },
         );
       const { geometry_json, ...revision } = row;
-      return Response.json({ revision, plan: JSON.parse(geometry_json) });
+      const file = await db
+        .prepare(
+          "SELECT revision_id,file_name,mime_type,byte_size,sha256 FROM structure_plan_files WHERE revision_id=?",
+        )
+        .bind(id)
+        .first();
+      return Response.json({ revision, plan: JSON.parse(geometry_json), file });
     }
     const results = await db.batch([
       db.prepare(`WITH properties AS (
@@ -54,24 +65,41 @@ function required(value: unknown, name: string, max = 300) {
 }
 export async function POST(request: Request) {
   try {
-    if (Number(request.headers.get("content-length") ?? 0) > 600_000)
-      return Response.json(
-        { error: "파일 크기가 너무 큽니다." },
-        { status: 413 },
-      );
-    const raw = await request.text();
-    if (raw.length > 600_000)
-      return Response.json(
-        { error: "파일 크기가 너무 큽니다." },
-        { status: 413 },
-      );
-    const input = JSON.parse(raw);
+    const fileUpload = ["application/pdf", "image/jpeg", "image/png"].includes(
+      request.headers.get("Content-Type")?.split(";")[0] ?? "",
+    );
+    let input;
+    if (fileUpload) {
+      const metadata = request.headers.get("X-Structure-Metadata") ?? "";
+      if (metadata.length > 24000)
+        throw new Error("도면 등록 정보를 확인해 주세요.");
+      input = JSON.parse(decodeURIComponent(metadata));
+    } else {
+      if (Number(request.headers.get("content-length") ?? 0) > 600_000)
+        return Response.json(
+          { error: "파일 크기가 너무 큽니다." },
+          { status: 413 },
+        );
+      const raw = await request.text();
+      if (raw.length > 600_000)
+        return Response.json(
+          { error: "파일 크기가 너무 큽니다." },
+          { status: 413 },
+        );
+      input = JSON.parse(raw);
+    }
+    if (!input || typeof input !== "object" || Array.isArray(input))
+      throw new Error("도면 등록 정보를 확인해 주세요.");
+    if (fileUpload && input.action !== "revision")
+      throw new Error("도면 등록 정보를 확인해 주세요.");
     await ready();
     const db = getD1();
     if (input.action === "revision") {
-      const plan = validatePlan(input.plan);
-      if (plan.isDemo || plan.referenceOnly)
-        throw new Error("가상 또는 검증 전 참고 도면은 실세대용 도면으로 등록할 수 없습니다.");
+      const plan = fileUpload ? null : validatePlan(input.plan);
+      if (plan?.isDemo || plan?.referenceOnly)
+        throw new Error(
+          "가상 또는 검증 전 참고 도면은 실세대용 도면으로 등록할 수 없습니다.",
+        );
       const name = required(input.complexName, "공식 단지명"),
         address = required(input.address, "공식 주소"),
         typeName = required(input.typeName, "타입 이름"),
@@ -130,6 +158,26 @@ export async function POST(request: Request) {
             typeId,
           ),
       );
+      let file: StoredPlanFile | null = null;
+      let bucket: R2Bucket | null = null;
+      if (fileUpload) {
+        bucket = await planBucket();
+        file = await uploadPlanFile(request, bucket, revisionId);
+        statements.push(
+          db
+            .prepare(
+              "INSERT INTO structure_plan_files(revision_id,storage_key,file_name,mime_type,byte_size,sha256) VALUES(?,?,?,?,?,?)",
+            )
+            .bind(
+              file.revision_id,
+              file.storage_key,
+              file.file_name,
+              file.mime_type,
+              file.byte_size,
+              file.sha256,
+            ),
+        );
+      }
       statements.push(
         db
           .prepare(
@@ -142,7 +190,13 @@ export async function POST(request: Request) {
             JSON.stringify({ complexId, typeId, source }),
           ),
       );
-      await db.batch(statements);
+      try {
+        await db.batch(statements);
+      } catch (error) {
+        if (file && bucket)
+          await bucket.delete(file.storage_key).catch(() => {});
+        throw error;
+      }
       return Response.json({ id: revisionId, complexId }, { status: 201 });
     }
     if (input.action === "assign") {

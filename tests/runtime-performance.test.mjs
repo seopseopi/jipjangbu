@@ -102,7 +102,7 @@ async function snapshot(write, secret) {
 test("초기화 완료된 DB는 새 요청에서도 읽기 1회, 쓰기 0회로 준비되며 완료 여부만 공유한다", async (t) => {
   const { sqlite, db, binding } = database(t);
   await ensureDatabase(db);
-  assert.equal(sqlite.prepare("SELECT value FROM app_runtime_state WHERE key = 'bootstrap_version'").get().value, "4");
+  assert.equal(sqlite.prepare("SELECT value FROM app_runtime_state WHERE key = 'bootstrap_version'").get().value, "5");
   // User-maintained lookups must not be silently reinserted on each cold start.
   sqlite.prepare("DELETE FROM work_types WHERE name = '기타'").run();
   const cold = binding();
