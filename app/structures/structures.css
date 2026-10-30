@@ -764,3 +764,16 @@
 .structure-source-library label { display:grid; gap:6px; }
 .structure-source-library select { width:100%; min-width:0; padding:8px; border:1px solid #bccbc5; border-radius:6px; }
 .structure-coverage { padding:12px 16px; color:#36594c; background:#e9f3ed; border-radius:10px; margin-bottom:16px; line-height:1.7; }
+
+.structure-detail-simple { grid-template-columns:minmax(0,1fr); }
+.structure-detail-simple .structure-record-panel { border-left:0; border-top:1px solid var(--structure-line); padding:16px 0 0; }
+.structure-detail-simple .structure-record-panel summary { cursor:pointer; font-size:14px; color:#52645e; margin-bottom:12px; }
+.structure-clean-image { margin:0; padding:24px; background:#fff; border:1px solid #e3e9e5; border-radius:12px; text-align:center; }
+.structure-clean-image img { display:block; width:100%; height:auto; max-height:70vh; object-fit:contain; }
+.structure-plan-options { margin-top:14px; color:#4b655a; font-size:14px; }
+.structure-plan-options summary { cursor:pointer; margin-bottom:10px; }
+.structure-plan-options > button, .structure-plan-options > a { display:inline-block; margin:0 12px 12px 0; padding:6px 10px; border:1px solid #c7d6ce; border-radius:7px; }
+.structure-unit-title { font-size:22px; font-weight:650; margin:0 0 14px; }
+.structure-editor-tools { display:flex; align-items:end; gap:12px; }
+.structure-editor select, .structure-manager > label select { padding:8px; border:1px solid #c3d2ca; border-radius:7px; }
+@media(max-width:700px) { .structure-clean-image { padding:10px; } .structure-unit-title { font-size:18px; } }

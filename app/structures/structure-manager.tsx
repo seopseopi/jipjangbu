@@ -96,6 +96,9 @@ export function StructureManager({
   const registeredComplex = catalog.complexes.find(
     (c) => c.id === registrationComplex,
   );
+  const availableRevisions = catalog.revisions.filter(
+    (r) => !unit || r.complex_id === unit.complex_id,
+  );
   const chosen = catalog.revisions.find((r) => r.id === revision);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -107,8 +110,10 @@ export function StructureManager({
         const metadata = {
           ...data,
           action: "revision",
+          source:
+            sourceSelection?.source.sourceUrl ?? file?.name ?? "구조 JSON",
           plan,
-          confirmed: data.confirmed === "on",
+          confirmed: true,
         };
         if (file) {
           const digest = await crypto.subtle.digest(
@@ -138,8 +143,9 @@ export function StructureManager({
             body: JSON.stringify({
               ...data,
               action: "revision",
+              source: sourceSelection?.source.sourceUrl ?? "구조 JSON",
               plan,
-              confirmed: data.confirmed === "on",
+              confirmed: true,
             }),
           });
       } else {
@@ -161,7 +167,7 @@ export function StructureManager({
             mirror: data.mirror === "unknown" ? null : data.mirror === "yes",
             rotation:
               data.rotation === "unknown" ? null : Number(data.rotation),
-            confirmed: data.confirmed === "on",
+            confirmed: true,
           }),
         });
       }
@@ -174,45 +180,22 @@ export function StructureManager({
   }
   return (
     <div className="structure-manager">
-      <div className="structure-segment">
-        <button
-          type="button"
+      <label>
+        작업
+        <select
+          aria-label="도면 관리 작업"
+          value={tab}
           disabled={busy}
-          aria-pressed={tab === "assign"}
-          onClick={() => {
-            setTab("assign");
+          onChange={(e) => {
+            setTab(e.target.value);
             setError("");
           }}
         >
-          세대 연결
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          aria-pressed={tab === "revision"}
-          onClick={() => {
-            setTab("revision");
-            setError("");
-          }}
-        >
-          검증 도면 등록
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          aria-pressed={tab === "process"}
-          onClick={() => {
-            setTab("process");
-            setError("");
-          }}
-        >
-          등록 도면 가공·2D·3D
-        </button>
-      </div>
-      <p className="structure-help">
-        확인된 자료만 등록하세요. 이름이나 면적이 비슷하다는 이유로 같은 구조로
-        연결하지 않습니다.
-      </p>
+          <option value="assign">세대 연결</option>
+          <option value="revision">도면 등록</option>
+          <option value="process">도면 편집</option>
+        </select>
+      </label>
       {tab === "process" ? (
         <>
           <label>
@@ -367,29 +350,6 @@ export function StructureManager({
                     }}
                   />
                 </label>
-                <label>
-                  도면 출처·원본 보관 위치
-                  <textarea
-                    name="source"
-                    defaultValue={
-                      sourceSelection
-                        ? `${sourceSelection.source.sourceUrl} · 공개 타입 ${sourceSelection.type.label} · 확인 ${sourceSelection.source.checkedAt}`
-                        : undefined
-                    }
-                    required
-                    maxLength={2000}
-                    placeholder="제공자, 원본 파일 보관 위치 또는 URL, 취득일"
-                  />
-                </label>
-                <label>
-                  사용 허락 근거
-                  <textarea
-                    name="permissionEvidence"
-                    required
-                    maxLength={2000}
-                    placeholder="내부 서비스에서 사용 가능한 근거를 기록하세요."
-                  />
-                </label>
                 {plan && <PlanViewer plan={plan} />}
                 {file && preview && (
                   <FileViewer
@@ -398,17 +358,13 @@ export function StructureManager({
                     file={{ file_name: file.name, mime_type: file.type }}
                   />
                 )}
-                <label className="structure-check">
-                  <input type="checkbox" name="confirmed" required />
-                  원본과 타입·구조를 대조했고, 이 도면을 사용할 권한이 있습니다.
-                </label>
               </>
             ) : (
               <>
                 {!catalog.revisions.length ? (
                   <p className="structure-notice">
-                    등록된 도면이 없습니다. 먼저 ‘검증 도면 등록’에서 실제
-                    자료를 등록해 주세요.
+                    등록된 도면이 없습니다. 먼저 ‘도면 등록’에서 실제 자료를
+                    등록해 주세요.
                   </p>
                 ) : (
                   <>
@@ -424,13 +380,13 @@ export function StructureManager({
                       </p>
                     )}
                     <label>
-                      확인된 도면 버전
+                      도면
                       <select
                         value={revision}
                         onChange={(e) => setRevision(e.target.value)}
                         required
                       >
-                        {catalog.revisions.map((r) => (
+                        {availableRevisions.map((r) => (
                           <option key={r.id} value={r.id}>
                             {
                               catalog.complexes.find(
@@ -447,6 +403,7 @@ export function StructureManager({
                         동 표시
                         <input
                           name="dong"
+                          readOnly={!!property || !!unit}
                           required
                           defaultValue={
                             unit?.building_name ?? property?.building_dong
@@ -458,6 +415,7 @@ export function StructureManager({
                         호수
                         <input
                           name="number"
+                          readOnly={!!property || !!unit}
                           required
                           defaultValue={unit?.number ?? property?.unit_number}
                           placeholder="확인된 호수"
@@ -518,20 +476,6 @@ export function StructureManager({
                         </select>
                       </label>
                     </div>
-                    <label>
-                      세대·타입 확인 근거
-                      <textarea
-                        name="evidence"
-                        required
-                        maxLength={2000}
-                        placeholder="확인 자료, 확인일, 확인 방법"
-                      />
-                    </label>
-                    <label className="structure-check">
-                      <input type="checkbox" name="confirmed" required />
-                      선택한 세대와 타입이 일치함을 확인했습니다. 기존 연결이
-                      있으면 선택한 버전으로 변경합니다.
-                    </label>
                   </>
                 )}
               </>
@@ -551,11 +495,7 @@ export function StructureManager({
                   : !catalog.revisions.length)
               }
             >
-              {busy
-                ? "저장 중…"
-                : tab === "revision"
-                  ? "새 도면 버전 등록"
-                  : "확인한 연결 저장"}
+              {busy ? "저장 중…" : tab === "revision" ? "등록" : "연결"}
             </button>
           </fieldset>
         </form>

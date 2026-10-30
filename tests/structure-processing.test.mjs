@@ -32,3 +32,8 @@ test('관리 30곳의 출처를 포함하며 타지역·동명이인 도면을 �
  assert.equal(sourceImageUrl('힐스테이트1차','x','base'),null);
  assert.ok(sourceImageUrl('힐스테이트1차',hill.types[0].id,'base').startsWith('https://file.kbland.kr/image/'));
 });
+test('영역 편집은 메모 없이 저장 가능하고 방 이름은 벽에서 떨어진 곳에 둔다',async()=>{
+ const {roomLabelPoint}=await import('../app/structures/processing.ts');
+ assert.equal(validateProcessing({page:1,crop:FULL_CROP,plan:null}).note,'');
+ assert.deepEqual(roomLabelPoint([[0,0],[4,0],[4,3],[0,3]]),[2,1.5]);
+});

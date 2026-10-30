@@ -8,11 +8,12 @@ import type { PlanFile } from "./file-contract";
 type ViewerProps = {
   file: Pick<PlanFile, "file_name" | "mime_type">;
   url: string;
+  minimal?: boolean;
 };
 export function FileViewer(props: ViewerProps) {
   return <FileViewerContent key={props.url} {...props} />;
 }
-function FileViewerContent({ file, url }: ViewerProps) {
+function FileViewerContent({ file, url, minimal = false }: ViewerProps) {
   const pdf = file.mime_type === "application/pdf";
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null),
     [page, setPage] = useState(1),
@@ -125,83 +126,102 @@ function FileViewerContent({ file, url }: ViewerProps) {
           : undefined;
   return (
     <section className="structure-file-viewer" aria-label="원본 도면 보기">
-      <div className="structure-file-toolbar">
-        {pdf && (
-          <>
-            <button
-              type="button"
-              disabled={!doc || page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-            >
-              이전 쪽
-            </button>
-            <label>
-              쪽{" "}
-              <input
-                aria-label="도면 페이지"
-                type="number"
-                min={1}
-                max={doc?.numPages ?? 1}
-                value={page}
-                onChange={(e) => {
-                  const n = Number(e.target.value);
-                  if (
-                    Number.isInteger(n) &&
-                    n >= 1 &&
-                    n <= (doc?.numPages ?? 1)
-                  )
-                    setPage(n);
-                }}
-              />{" "}
-              / {doc?.numPages ?? "…"}
-            </label>
-            <button
-              type="button"
-              disabled={!doc || page >= doc.numPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              다음 쪽
-            </button>
-          </>
-        )}
-        <button
-          type="button"
-          disabled={zoom <= 0.5}
-          onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))}
-        >
-          축소
-        </button>
-        <button
-          type="button"
-          disabled={zoom >= 3}
-          onClick={() => setZoom((z) => Math.min(3, z + 0.25))}
-        >
-          확대
-        </button>
-        <button
-          type="button"
-          onClick={() => setRotation((r) => (r + 90) % 360)}
-        >
-          90° 회전
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setZoom(1);
-            setRotation(0);
-          }}
-        >
-          전체 보기
-        </button>
-        <a
-          href={
-            url.includes("/api/structures/files/") ? `${url}?download=1` : url
-          }
-          download={file.file_name}
-        >
-          원본 내려받기
-        </a>
-      </div>
+      {minimal && pdf && (
+        <label>
+          페이지{" "}
+          <input
+            type="number"
+            min={1}
+            max={doc?.numPages ?? 1}
+            value={page}
+            onChange={(e) => {
+              const n = Number(e.target.value);
+              if (Number.isInteger(n) && n >= 1 && n <= (doc?.numPages ?? 1))
+                setPage(n);
+            }}
+          />{" "}
+          / {doc?.numPages ?? "…"}
+        </label>
+      )}
+      {!minimal && (
+        <div className="structure-file-toolbar">
+          {pdf && (
+            <>
+              <button
+                type="button"
+                disabled={!doc || page <= 1}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                이전 쪽
+              </button>
+              <label>
+                쪽{" "}
+                <input
+                  aria-label="도면 페이지"
+                  type="number"
+                  min={1}
+                  max={doc?.numPages ?? 1}
+                  value={page}
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    if (
+                      Number.isInteger(n) &&
+                      n >= 1 &&
+                      n <= (doc?.numPages ?? 1)
+                    )
+                      setPage(n);
+                  }}
+                />{" "}
+                / {doc?.numPages ?? "…"}
+              </label>
+              <button
+                type="button"
+                disabled={!doc || page >= doc.numPages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                다음 쪽
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            disabled={zoom <= 0.5}
+            onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))}
+          >
+            축소
+          </button>
+          <button
+            type="button"
+            disabled={zoom >= 3}
+            onClick={() => setZoom((z) => Math.min(3, z + 0.25))}
+          >
+            확대
+          </button>
+          <button
+            type="button"
+            onClick={() => setRotation((r) => (r + 90) % 360)}
+          >
+            90° 회전
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setZoom(1);
+              setRotation(0);
+            }}
+          >
+            전체 보기
+          </button>
+          <a
+            href={
+              url.includes("/api/structures/files/") ? `${url}?download=1` : url
+            }
+            download={file.file_name}
+          >
+            원본 내려받기
+          </a>
+        </div>
+      )}
       {loading && <p role="status">도면을 불러오는 중…</p>}
       {error && (
         <p role="alert">
@@ -254,10 +274,12 @@ function FileViewerContent({ file, url }: ViewerProps) {
           </div>
         )}{" "}
       </div>
-      <p className="structure-help">
-        원본 도면입니다. 이 파일만으로 실제 확장 여부·방향·치수를 확정하지
-        않습니다.
-      </p>
+      {!minimal && (
+        <p className="structure-help">
+          원본 도면입니다. 이 파일만으로 실제 확장 여부·방향·치수를 확정하지
+          않습니다.
+        </p>
+      )}
     </section>
   );
 }

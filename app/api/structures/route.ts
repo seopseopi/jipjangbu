@@ -192,7 +192,10 @@ export async function POST(request: Request) {
         address = required(input.address, "공식 주소"),
         typeName = required(input.typeName, "타입 이름"),
         source = required(input.source, "도면 출처", 2000),
-        permission = required(input.permissionEvidence, "사용 허락 근거", 2000);
+        permission =
+          typeof input.permissionEvidence === "string"
+            ? input.permissionEvidence.trim().slice(0, 2000)
+            : "";
       if (input.confirmed !== true)
         throw new Error("원본 대조와 이용 허락을 확인해 주세요.");
       if (!["base", "expanded", "remodeled"].includes(input.variant))
@@ -291,7 +294,10 @@ export async function POST(request: Request) {
       const revisionId = required(input.revisionId, "도면 버전"),
         dong = required(input.dong, "동"),
         number = required(input.number, "호수"),
-        evidence = required(input.evidence, "세대 확인 근거", 2000);
+        evidence =
+          typeof input.evidence === "string"
+            ? input.evidence.trim().slice(0, 2000)
+            : "";
       const revision = await db
         .prepare(
           "SELECT t.complex_id FROM structure_plan_revisions r JOIN structure_plan_types t ON t.id=r.type_id WHERE r.id=?",
@@ -361,11 +367,26 @@ export async function POST(request: Request) {
       if (key) {
         const found = await db
           .prepare(
-            "SELECT identity_key FROM listings WHERE identity_key=? UNION SELECT lower(trim(property_type)||'|'||trim(building_name)||'|'||trim(building_dong)||'|'||trim(unit_number)) FROM work_log_properties WHERE lower(trim(property_type)||'|'||trim(building_name)||'|'||trim(building_dong)||'|'||trim(unit_number))=? LIMIT 1",
+            "SELECT identity_key,building_dong,unit_number FROM listings WHERE identity_key=? UNION SELECT lower(trim(property_type)||'|'||trim(building_name)||'|'||trim(building_dong)||'|'||trim(unit_number)),building_dong,unit_number FROM work_log_properties WHERE lower(trim(property_type)||'|'||trim(building_name)||'|'||trim(building_dong)||'|'||trim(unit_number))=? LIMIT 1",
           )
           .bind(key, key)
-          .first();
+          .first<{ building_dong: string; unit_number: string }>();
         if (!found) throw new Error("기존 업무에 없는 매물입니다.");
+        const normalizePart = (value: string, suffix: string) =>
+          value
+            .trim()
+            .replace(new RegExp(`${suffix}$`), "")
+            .trim()
+            .toUpperCase();
+        if (
+          normalizePart(found.building_dong, "동") !==
+            normalizePart(dong, "동") ||
+          normalizePart(found.unit_number, "호") !== normalizePart(number, "호")
+        )
+          return Response.json(
+            { error: "선택한 장부의 동·호수와 다릅니다." },
+            { status: 409 },
+          );
         const link = await db
           .prepare(
             "SELECT unit_id FROM structure_listing_links WHERE identity_key=?",
