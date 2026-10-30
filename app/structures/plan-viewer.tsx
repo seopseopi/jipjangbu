@@ -15,12 +15,15 @@ import { hasReferenceFinishes } from "./hillstate-reference";
 import { reviewedInterior } from "./interior-details";
 const PlanThree = lazy(() => import("./plan-three"));
 class ThreeBoundary extends Component<
-  { children: ReactNode; fallback: ReactNode },
+  { children: ReactNode; fallback: ReactNode; onFailure?: () => void },
   { failed: boolean }
 > {
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
+  }
+  componentDidCatch() {
+    this.props.onFailure?.();
   }
   render() {
     return this.state.failed ? this.props.fallback : this.props.children;
@@ -59,7 +62,7 @@ export function PlanViewer({
     [show3dLabels, setShow3dLabels] = useState(!hasReferenceFinishes(plan)),
     [failed, setFailed] = useState(false);
   const showLabels = mode === "2d" ? show2dLabels : show3dLabels;
-  const interior = useMemo(()=>reviewedInterior(plan),[plan]);
+  const interior = useMemo(() => reviewedInterior(plan), [plan]);
   const failure = useCallback(() => {
     setFailed(true);
     setMode("2d");
@@ -68,6 +71,12 @@ export function PlanViewer({
     (id: string) => setSelected((current) => (current === id ? "" : id)),
     [],
   );
+  const resetView = () => {
+    setZoom(1);
+    setTopView(false);
+    setSelected("");
+    setReset((r) => r + 1);
+  };
   const svg = (
     <PlanSvg
       plan={plan}
@@ -99,6 +108,15 @@ export function PlanViewer({
             {minimal ? "3D" : "3D 구조"}
           </button>
         </div>
+        {minimal && (
+          <button
+            type="button"
+            className="structure-fit-button"
+            onClick={resetView}
+          >
+            전체 보기
+          </button>
+        )}
         {!minimal && (
           <div className="structure-tools">
             <button
@@ -163,19 +181,20 @@ export function PlanViewer({
               입구 안내선 {showRoute ? "켜짐" : "꺼짐"}
             </button>
           )}
-          {!hasReferenceFinishes(plan) && (
+          {!hasReferenceFinishes(plan) && !interior && (
             <span>침실은 파랑 · 욕실은 청록 · 현관은 주황</span>
           )}
         </div>
       )}
       <div className="structure-canvas">
-        {mode === "2d" ? (
+        {mode === "2d" && (!interior || failed) ? (
           svg
         ) : (
           <ThreeBoundary
+            onFailure={failure}
             fallback={
               <>
-                <p role="status">3D 실행이 어려워 평면도로 표시합니다.</p>
+                <p role="status">기본 평면도로 표시합니다.</p>
                 {svg}
               </>
             }
@@ -183,7 +202,9 @@ export function PlanViewer({
             <Suspense
               fallback={
                 <p className="structure-empty" role="status">
-                  3D 구조를 준비하고 있습니다…
+                  {mode === "2d"
+                    ? "실내 평면도를 준비하고 있습니다…"
+                    : "3D 구조를 준비하고 있습니다…"}
                 </p>
               }
             >
@@ -197,20 +218,28 @@ export function PlanViewer({
                 onFailure={failure}
                 lowWalls={false}
                 topView={topView}
+                flatView={mode === "2d"}
                 showRoute={showRoute}
                 showLabels={showLabels}
               />
             </Suspense>
+            {mode === "2d" && (
+              <div className="structure-plan-accessible">{svg}</div>
+            )}
           </ThreeBoundary>
         )}
       </div>
       <p className="structure-help">
         {mode === "3d"
           ? "드래그로 회전 · 휠 또는 두 손가락으로 확대 · "
-          : "방을 선택해 배치를 확인하세요 · "}
+          : interior && !failed
+            ? "수직으로 내려다본 실내 · 휠로 확대 · "
+            : "방을 선택해 배치를 확인하세요 · "}
         {plan.scaleStatus === "verified"
           ? "자료 기준 치수 확인"
-          : mode === "3d" && interior ? "설비는 원본 기준 · 가구·마감은 예시 · 실측 아님" : "배치 참고용 · 실측 아님"}
+          : interior
+            ? "설비는 원본 기준 · 가구·마감은 예시 · 실측 아님"
+            : "배치 참고용 · 실측 아님"}
         {failed ? " · 3D 사용 불가, 2D로 표시 중" : ""}
       </p>
     </section>

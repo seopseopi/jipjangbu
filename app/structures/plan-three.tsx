@@ -7,8 +7,11 @@ import {
   Vector3,
   DoubleSide,
   ACESFilmicToneMapping,
+  MOUSE,
+  TOUCH,
   type Mesh,
   type MeshStandardMaterial,
+  type OrthographicCamera,
 } from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { ReferenceFixtures, useFloorTextures, Fitting } from "./plan-fixtures";
@@ -16,6 +19,7 @@ import { reviewedInterior, roomFinish } from "./interior-details";
 import { InteriorFurniture } from "./interior-furniture";
 import { referenceFinish } from "./reference-finishes";
 import { hasReferenceFinishes } from "./hillstate-reference";
+import { overheadFrame, recommendedView } from "./overhead-frame";
 import {
   roomColor,
   transformPoint,
@@ -26,31 +30,97 @@ import {
   type Transform,
 } from "./plan";
 
+function OverheadControls({
+  plan,
+  transform,
+  reset,
+  zoom,
+  onFailure,
+}: {
+  plan: Plan;
+  transform: Transform;
+  reset: number;
+  zoom: number;
+  onFailure: () => void;
+}) {
+  const { camera, gl, size, invalidate } = useThree();
+  const controlsRef = useRef<OrbitControls | null>(null);
+  const frame = useMemo(
+    () => overheadFrame(plan, transform, size.width, size.height),
+    [plan, transform, size.width, size.height],
+  );
+  useEffect(() => {
+    const controls = new OrbitControls(camera, gl.domElement);
+    controls.enableRotate = false;
+    controls.screenSpacePanning = true;
+    controls.mouseButtons.LEFT = MOUSE.PAN;
+    controls.touches.ONE = TOUCH.PAN;
+    controls.touches.TWO = TOUCH.DOLLY_PAN;
+    controlsRef.current = controls;
+    const changed = () => invalidate();
+    const lost = (event: Event) => {
+      event.preventDefault();
+      onFailure();
+    };
+    controls.addEventListener("change", changed);
+    gl.domElement.addEventListener("webglcontextlost", lost);
+    return () => {
+      controls.removeEventListener("change", changed);
+      controls.dispose();
+      controlsRef.current = null;
+      gl.domElement.removeEventListener("webglcontextlost", lost);
+    };
+  }, [camera, gl, invalidate, onFailure]);
+  /* eslint-disable react-hooks/immutability -- Three.js camera is mutable renderer state, updated in effects. */
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+    camera.position.set(frame.x, 25, frame.z + 0.001);
+    (camera as OrthographicCamera).zoom = frame.zoom * zoom;
+    camera.updateProjectionMatrix();
+    controls.target.set(frame.x, 0, frame.z);
+    controls.minZoom = frame.zoom * 0.65;
+    controls.maxZoom = frame.zoom * 3;
+    controls.update();
+    invalidate();
+  }, [camera, frame, reset, zoom, invalidate]);
+  /* eslint-enable react-hooks/immutability */
+  return null;
+}
+
 function Controls({
+  plan,
+  transform,
   reset,
   zoom,
   onFailure,
   topView,
 }: {
+  plan: Plan;
+  transform: Transform;
   reset: number;
   zoom: number;
   onFailure: () => void;
   topView: boolean;
 }) {
   const { camera, gl, invalidate, size } = useThree();
-  const fit = Math.max(1, 1.05 / (size.width / size.height));
+  const view = useMemo(
+    () => recommendedView(plan, transform, size.width, size.height),
+    [plan, transform, size.width, size.height],
+  );
+  const fit = JSON.stringify(view);
   const controlsRef = useRef<OrbitControls | null>(null);
   const previousView = useRef<{
     zoom: number;
     reset: number;
     topView: boolean;
-    fit: number;
+    fit: string;
   } | null>(null);
   useEffect(() => {
     const controls = new OrbitControls(camera, gl.domElement);
     controlsRef.current = controls;
     controls.target.set(0, 0, 0);
-    controls.maxPolarAngle = Math.PI / 2 - 0.08;
+    controls.maxPolarAngle = Math.PI / 3;
     controls.minDistance = 4;
     controls.maxDistance = 45;
     controls.update();
@@ -80,12 +150,16 @@ function Controls({
       previous.topView !== topView ||
       previous.fit !== fit
     ) {
-      controls.target.set(0, 0, 0);
-      camera.position.set(
-        topView ? 0 : (7 * fit) / zoom,
-        topView ? (23 * fit) / zoom : (20 * fit) / zoom,
-        topView ? 0.01 : (12 * fit) / zoom,
-      );
+      controls.maxDistance = Math.max(45, view.distance * 2);
+      controls.minDistance = view.distance * 0.3;
+      controls.target.set(...view.target);
+      const direction = topView ? [0, 1, 0.0001] : view.direction;
+      camera.position
+        .set(...view.target)
+        .addScaledVector(
+          new Vector3(direction[0], direction[1], direction[2]),
+          view.distance / zoom,
+        );
     } else if (previous.zoom !== zoom) {
       // Dolly along the current line of sight; do not discard the user's orbit or pan.
       camera.position
@@ -96,7 +170,7 @@ function Controls({
     previousView.current = { zoom, reset, topView, fit };
     controls.update();
     invalidate();
-  }, [camera, fit, zoom, reset, topView, invalidate]);
+  }, [camera, fit, view, zoom, reset, topView, invalidate]);
   return null;
 }
 function Scene({
@@ -107,6 +181,7 @@ function Scene({
   labels,
   lowWalls,
   showRoute,
+  flatView = false,
 }: {
   plan: Plan;
   transform: Transform;
@@ -115,6 +190,7 @@ function Scene({
   labels: React.RefObject<(HTMLSpanElement | null)[]>;
   lowWalls: boolean;
   showRoute: boolean;
+  flatView?: boolean;
 }) {
   const { camera, size } = useThree();
   const detailed = hasReferenceFinishes(plan);
@@ -158,9 +234,10 @@ function Scene({
       cutaway.current.forEach((mesh) => {
         mesh.getWorldPosition(wallPosition.current);
         const front =
+          !flatView &&
           wallPosition.current.x * camera.position.x +
             wallPosition.current.z * camera.position.z >
-          1.5;
+            1.5;
         const material = mesh.material as MeshStandardMaterial;
         material.opacity = front ? 0.18 : 1;
         material.depthWrite = !front;
@@ -279,7 +356,11 @@ function Scene({
           )}
           {plan.walls.flatMap((w) =>
             wallSolids(w, [...plan.doors, ...plan.windows]).map((s, i) => {
-              const top = lowWalls ? Math.min(s.top, 0.6) : s.top;
+              const top = flatView
+                ? Math.min(s.top, 0.18)
+                : lowWalls
+                  ? Math.min(s.top, 0.6)
+                  : s.top;
               if (s.bottom >= top) return null;
               const p = wallPoint(w, (s.from + s.to) / 2);
               return (
@@ -319,7 +400,11 @@ function Scene({
                 key={o.id}
                 position={[
                   p[0],
-                  lowWalls ? 0.62 : (o.sillHeight ?? 0) + o.height / 2,
+                  flatView
+                    ? 0.12
+                    : lowWalls
+                      ? 0.62
+                      : (o.sillHeight ?? 0) + o.height / 2,
                   -p[1],
                 ]}
                 rotation={[
@@ -332,7 +417,7 @@ function Scene({
                   <boxGeometry
                     args={[
                       o.width,
-                      lowWalls ? 0.045 : o.height,
+                      flatView ? 0.08 : lowWalls ? 0.045 : o.height,
                       lowWalls ? 0.12 : 0.025,
                     ]}
                   />
@@ -350,7 +435,11 @@ function Scene({
                     {[-0.5, 0, 0.5].map((n) => (
                       <mesh key={n} position={[n * o.width, 0, 0]} castShadow>
                         <boxGeometry
-                          args={[0.045, lowWalls ? 0.045 : o.height, 0.06]}
+                          args={[
+                            0.045,
+                            flatView ? 0.08 : lowWalls ? 0.045 : o.height,
+                            0.06,
+                          ]}
                         />
                         <meshStandardMaterial
                           color="#dddcd4"
@@ -362,7 +451,11 @@ function Scene({
                     {[-0.5, 0.5].map((n) => (
                       <mesh
                         key={n}
-                        position={[0, n * (lowWalls ? 0.045 : o.height), 0]}
+                        position={[
+                          0,
+                          n * (flatView ? 0.08 : lowWalls ? 0.045 : o.height),
+                          0,
+                        ]}
                         castShadow
                       >
                         <boxGeometry args={[o.width, 0.045, 0.065]} />
@@ -388,7 +481,11 @@ function Scene({
             return (
               <group
                 key={o.id}
-                position={[p[0], (lowWalls ? 0.45 : o.height) / 2, -p[1]]}
+                position={[
+                  p[0],
+                  (flatView ? 0.22 : lowWalls ? 0.45 : o.height) / 2,
+                  -p[1],
+                ]}
                 rotation={[
                   0,
                   Math.atan2(w.end[1] - w.start[1], w.end[0] - w.start[0]) +
@@ -398,7 +495,11 @@ function Scene({
               >
                 <mesh castShadow receiveShadow>
                   <boxGeometry
-                    args={[o.width, lowWalls ? 0.45 : o.height, 0.035]}
+                    args={[
+                      o.width,
+                      flatView ? 0.22 : lowWalls ? 0.45 : o.height,
+                      0.035,
+                    ]}
                   />
                   <meshStandardMaterial
                     color={
@@ -419,7 +520,7 @@ function Scene({
                       <boxGeometry
                         args={[
                           o.width - 0.12,
-                          (lowWalls ? 0.45 : o.height) - 0.16,
+                          (flatView ? 0.22 : lowWalls ? 0.45 : o.height) - 0.16,
                           0.014,
                         ]}
                       />
@@ -484,12 +585,23 @@ export default function PlanThree(props: {
   topView: boolean;
   showRoute: boolean;
   showLabels: boolean;
+  flatView?: boolean;
 }) {
   const labels = useRef<(HTMLSpanElement | null)[]>([]);
   const interior = useMemo(() => reviewedInterior(props.plan), [props.plan]);
   return (
-    <div className={`structure-three${interior ? " is-furnished" : ""}`}>
+    <div
+      className={`structure-three${interior ? " is-furnished" : ""}${props.flatView ? " is-overhead" : ""}`}
+    >
       <Canvas
+        role="img"
+        aria-label={
+          props.flatView
+            ? "가구와 설비가 있는 수직 평면도"
+            : "집 내부 입체 보기"
+        }
+        key={props.flatView ? "overhead" : "orbit"}
+        orthographic={props.flatView}
         frameloop="demand"
         dpr={[1, 1.5]}
         shadows
@@ -498,15 +610,30 @@ export default function PlanThree(props: {
           toneMapping: ACESFilmicToneMapping,
           toneMappingExposure: 1.05,
         }}
-        camera={{ position: [12, 14, 12], fov: 42 }}
-        fallback={<p>3D를 사용할 수 없습니다. 2D 보기를 선택해 주세요.</p>}
+        camera={{
+          position: props.flatView ? [0, 25, 0.001] : [12, 14, 12],
+          fov: 42,
+        }}
+        fallback={<p aria-hidden="true">실내 보기를 사용할 수 없습니다.</p>}
       >
-        <Controls
-          reset={props.reset}
-          zoom={props.zoom}
-          onFailure={props.onFailure}
-          topView={props.topView}
-        />
+        {props.flatView ? (
+          <OverheadControls
+            plan={props.plan}
+            transform={props.transform}
+            reset={props.reset}
+            zoom={props.zoom}
+            onFailure={props.onFailure}
+          />
+        ) : (
+          <Controls
+            plan={props.plan}
+            transform={props.transform}
+            reset={props.reset}
+            zoom={props.zoom}
+            onFailure={props.onFailure}
+            topView={props.topView}
+          />
+        )}
         <Scene {...props} labels={labels} />
       </Canvas>
       <div className="structure-labels" aria-hidden="true">
