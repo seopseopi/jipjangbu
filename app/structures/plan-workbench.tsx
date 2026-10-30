@@ -74,6 +74,7 @@ export function PlanWorkbench({
           <figure className="structure-clean-image">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={image} alt={`${current.revision.type_name} 평면도`} />
+            <figcaption>타입 원본 2D · 3D 재구성 전</figcaption>
           </figure>
         ) : (
           <p role="status">평면도를 불러오는 중…</p>

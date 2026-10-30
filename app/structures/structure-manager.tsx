@@ -188,15 +188,41 @@ export function StructureManager({
           setBusy(true);
           setError("");
           try {
-            const result = await clientJsonFetch<{linked:number;firstIdentityKey:string;errors:unknown[]}>("/api/structures/import", {method:"POST"});
-            if (result.errors.length) setError(`${result.linked}건 연결. ${result.errors.length}건은 원본·연결 상태를 확인해 주세요.`);
-            else if (!result.linked) setError("새로 연결할 단일 타입 매물이 없습니다.");
-            if (result.linked && !result.errors.length) onSaved(result.firstIdentityKey);
-          } catch (error) { setError((error as Error).message); }
-          finally { setBusy(false); }
+            let linked = 0,
+              first = "";
+            for (;;) {
+              const result = await clientJsonFetch<{
+                linked: number;
+                remaining: number;
+                skipped: number;
+                firstIdentityKey: string;
+                errors: unknown[];
+              }>("/api/structures/import", { method: "POST" });
+              linked += result.linked;
+              first ||= result.firstIdentityKey;
+              if (result.errors.length) {
+                setError(
+                  `${linked}건 연결. ${result.errors.length}건은 원본·연결 상태를 확인해 주세요. 다시 실행하면 이어서 연결합니다.`,
+                );
+                break;
+              }
+              if (!result.remaining || !result.linked) {
+                if (linked) onSaved(first);
+                else
+                  setError(
+                    "추가로 연결할 도면이 없습니다. 평형 충돌·타입 구분·원본 누락 자료를 확인해 주세요.",
+                  );
+                break;
+              }
+            }
+          } catch (error) {
+            setError((error as Error).message);
+          } finally {
+            setBusy(false);
+          }
         }}
       >
-        {busy ? "처리 중…" : "현재 매물 도면 연결"}
+        {busy ? "전체 매물 연결 중…" : "전체 매물 도면 연결"}
       </button>
       <label>
         작업
