@@ -839,3 +839,16 @@
 }
 .structure-file-viewer.is-fit { position:relative; }
 .structure-file-viewer.is-fit > p[role="status"] { position:absolute; top:38px; left:10px; z-index:2; margin:0; padding:3px 6px; border-radius:4px; background:#fffffff0; font-size:12px; pointer-events:none; }
+.structure-three.is-furnished .structure-labels span {
+  font-size: 11px;
+  padding: 3px 6px;
+  background: rgba(255, 253, 248, .9);
+  border-color: rgba(169, 157, 137, .35);
+  box-shadow: 0 2px 7px #3d342217;
+  color: #3b3934;
+}
+.structure-three.is-furnished .structure-labels .structure-entry-pin {
+  background: #825e36;
+  color: #fff;
+  font-size: 11px;
+}

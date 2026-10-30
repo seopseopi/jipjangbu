@@ -8,7 +8,7 @@ import {
   type Finish,
 } from "./reference-finishes";
 
-export function useFloorTextures() {
+export function useFloorTextures(natural = false) {
   const textures = useMemo(() => {
     const make = (kind: Finish) => {
       const canvas = document.createElement("canvas");
@@ -16,7 +16,11 @@ export function useFloorTextures() {
       const ctx = canvas.getContext("2d")!;
       if (kind === "wood") {
         for (let row = 0; row < 8; row++) {
-          ctx.fillStyle = ["#c9a878", "#d1b182", "#d6b789", "#c5a273"][row % 4];
+          ctx.fillStyle = (
+            natural
+              ? ["#d5c2a4", "#deccb1", "#d8c7aa", "#cdbb9d"]
+              : ["#c9a878", "#d1b182", "#d6b789", "#c5a273"]
+          )[row % 4];
           ctx.fillRect(0, row * 16, 128, 16);
           ctx.strokeStyle = "#b59368";
           ctx.lineWidth = 0.7;
@@ -26,11 +30,29 @@ export function useFloorTextures() {
           ctx.moveTo(row % 2 ? 45 : 100, row * 16);
           ctx.lineTo(row % 2 ? 45 : 100, row * 16 + 16);
           ctx.stroke();
+          if (natural)
+            for (let i = 0; i < 12; i++) {
+              ctx.strokeStyle = i % 2 ? "#c8b69733" : "#f6ead933";
+              ctx.lineWidth = 0.35;
+              ctx.beginPath();
+              ctx.moveTo(0, row * 16 + i * 1.3);
+              ctx.bezierCurveTo(
+                33,
+                row * 16 + i * 1.3 + 1.8,
+                86,
+                row * 16 + i * 1.3 - 1,
+                128,
+                row * 16 + i * 1.3,
+              );
+              ctx.stroke();
+            }
         }
       } else {
         const colors =
           kind === "bath"
-            ? ["#c2abb0", "#e4d5d6", "#b79ca4", "#d4bec3"]
+            ? natural
+              ? ["#d3d2cc", "#dad9d4", "#d5d4ce", "#deddd7"]
+              : ["#c2abb0", "#e4d5d6", "#b79ca4", "#d4bec3"]
             : kind === "balcony"
               ? ["#c5c5b7", "#cecec1"]
               : kind === "entry"
@@ -43,8 +65,12 @@ export function useFloorTextures() {
             for (let x = 0; x < 4; x++) {
               ctx.fillStyle = colors[(x + y * 3) % colors.length];
               ctx.fillRect(x * 32, y * 32, 32, 32);
-              ctx.strokeStyle = kind === "bath" ? "#99888d" : "#a5a69d";
-              ctx.lineWidth = 1;
+              ctx.strokeStyle = natural
+                ? "#ece9e2"
+                : kind === "bath"
+                  ? "#99888d"
+                  : "#a5a69d";
+              ctx.lineWidth = natural ? 0.6 : 1;
               ctx.strokeRect(x * 32, y * 32, 32, 32);
             }
       }
@@ -64,7 +90,7 @@ export function useFloorTextures() {
       bedroom: make("bedroom"),
       entry: make("entry"),
     };
-  }, []);
+  }, [natural]);
   useEffect(
     () => () => Object.values(textures).forEach((t) => t.dispose()),
     [textures],
@@ -81,7 +107,7 @@ function Block({
   color?: string;
 }) {
   return (
-    <mesh position={position}>
+    <mesh position={position} castShadow receiveShadow>
       <boxGeometry args={size} />
       <meshStandardMaterial color={color} roughness={0.5} />
     </mesh>
@@ -113,9 +139,10 @@ function Oval({
     </mesh>
   );
 }
-function Fitting({ fixture: f }: { fixture: Fixture }) {
+export function Fitting({ fixture: f }: { fixture: Fixture }) {
   const w = f.width,
-    d = f.depth;
+    d = f.depth,
+    cabinetCount = Math.max(1, Math.round(w / 0.55));
   return (
     <group
       position={[f.center[0], 0, -f.center[1]]}
@@ -128,6 +155,33 @@ function Fitting({ fixture: f }: { fixture: Fixture }) {
             size={[w + 0.03, 0.045, d + 0.03]}
             position={[0, 0.8, 0]}
             color="#e8e5dd"
+          />
+          {Array.from({ length: cabinetCount }, (_, i) => (
+            <group key={i}>
+              <Block
+                size={[w / cabinetCount - 0.015, 0.65, 0.016]}
+                position={[
+                  -w / 2 + ((i + 0.5) * w) / cabinetCount,
+                  0.43,
+                  d / 2 + 0.008,
+                ]}
+                color="#e3ded3"
+              />
+              <Block
+                size={[Math.min(0.18, (w / cabinetCount) * 0.55), 0.018, 0.035]}
+                position={[
+                  -w / 2 + ((i + 0.5) * w) / cabinetCount,
+                  0.68,
+                  d / 2 + 0.03,
+                ]}
+                color="#747a7a"
+              />
+            </group>
+          ))}
+          <Block
+            size={[w * 0.96, 0.08, 0.08]}
+            position={[0, 0.06, d / 2 - 0.04]}
+            color="#77726a"
           />
         </>
       )}
