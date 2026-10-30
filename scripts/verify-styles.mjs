@@ -11,7 +11,7 @@ assert.equal(layoutCss.length, 1, "the layout must load one complete application
 const compiled = read(path.join("dist/client", layoutCss[0].replace(/^\//, "")));
 assert.ok(compiled.includes(".renewal-pagination"), "the server-loaded stylesheet must already include the renewed lists");
 assert.ok(compiled.includes(".insights-renewal"), "the server-loaded stylesheet must already include the renewed insights");
-for (const selector of [".journal-day-group", ".listing-renewal-table", ".customer-renewal-table", ".trash-selectable"]) {
+for (const selector of [".journal-day-group", ".listing-renewal-table", ".customer-renewal-table", ".trash-selectable", ".reference-page-heading", ".reference-home-main", ".reference-filters", ".settings-section", ".structure-page-actions"]) {
   assert.ok(compiled.includes(selector), `the server-loaded stylesheet must include ${selector}`);
 }
 assert.ok(compiled.lastIndexOf("--canvas:#efeae1") > compiled.indexOf("--canvas:#e5eaf0"), "renewal tokens must follow the original tokens");
@@ -44,4 +44,7 @@ assert.ok(imports.indexOf("structures/structures.css") < imports.indexOf("renewa
 assert.ok(imports.indexOf("work-reading-list.css") < imports.indexOf("renewal.css"));
 assert.ok(imports.indexOf("renewal.css") < imports.indexOf("management-renewal.css"));
 assert.ok(imports.indexOf("renewal.css") < imports.indexOf("insights-renewal.css"));
+assert.ok(imports.indexOf("management-renewal.css") < imports.indexOf("reference-management.css"));
+assert.ok(imports.indexOf("renewal.css") < imports.indexOf("reference-layout.css"));
+assert.ok(imports.indexOf("work-form-renewal.css") < imports.indexOf("forms-polish.css"));
 console.log(`Verified one server-loaded stylesheet, ${visited.size} source stylesheets and no late client CSS.`);

@@ -853,7 +853,6 @@ export function WorkManager() {
     setWorkReader(null);
     setReaderReference(null);
     if (window.history.state?.record !== recordKey) window.history.pushState({ ...window.history.state, record: recordKey }, "", window.location.href);
-    window.scrollTo({ top: 0 });
   }, [recordKey]);
   useEffect(() => {
     const controller = new AbortController();
@@ -1322,8 +1321,7 @@ export function WorkManager() {
   }
 
   const recordPage = historyModal && isRecordHistory(historyModal) ? historyModal : null;
-  const recordTitle = recordPage ? recordPage.customer?.name ?? recordPage.title.replace(/ 이력$/, "") : "";
-  const sidePanelOpen = wideScreen && Boolean((workReader && !workModal) || (historyModal && !workReader && !recordPage));
+  const sidePanelOpen = wideScreen && Boolean((workReader && !workModal) || (historyModal && !workReader));
   const sidePanel = sidePanelOpen ? recordPage || SIDE_PANEL_LIST_VIEWS.includes(view) ? "beside" : "over" : undefined;
   function closeRecordPage() {
     if (window.history.state?.record) { window.history.back(); return; }
@@ -1338,7 +1336,7 @@ export function WorkManager() {
         page={page}
         workTypes={lookups.workTypes}
         onWorkTypeChange={(historyWorkType) => setHistoryModal((current) => current ? { ...current, historyWorkType } : null)}
-        onClose={page ? closeRecordPage : () => { historyOpenVersion.current += 1; workOpenVersion.current += 1; setHistoryModal(null); }}
+        onClose={historyModal && isRecordHistory(historyModal) ? closeRecordPage : () => { historyOpenVersion.current += 1; workOpenVersion.current += 1; setHistoryModal(null); }}
         onRefresh={() => void refreshHistory(historyModal)}
         onOpenWork={(id) => {
           void readWork(id);
@@ -1356,8 +1354,8 @@ export function WorkManager() {
   const dateLabel = new Intl.DateTimeFormat("ko-KR", {
     timeZone: "Asia/Seoul",
     year: "numeric",
-    month: "long",
-    day: "numeric",
+    month: "2-digit",
+    day: "2-digit",
     weekday: "long",
   }).format(new Date());
   const titles: Record<View, string> = {
@@ -1366,7 +1364,7 @@ export function WorkManager() {
     tasks: "챙겨야 할 일",
     insights: "업무 현황",
     journal: "업무일지",
-    listings: "매물 관리",
+    listings: "매물 장부",
     customers: "고객 관리",
     calendar: "업무 달력",
     trash: "휴지통",
@@ -1378,13 +1376,15 @@ export function WorkManager() {
     ? (view as SearchView)
     : null;
   const query = searchView ? queries[searchView] : "";
+  const breadcrumbGroup = navGroups.find(([, keys]) => keys.includes(view))?.[0] ?? "업무";
+  const breadcrumbTitle = navItems.find(([key]) => key === view)?.[1] ?? titles[view];
   function setQuery(value: string) {
     if (!searchView) return;
     setQueries((current) => ({ ...current, [searchView]: value }));
   }
 
   return (
-    <main className="app-shell" data-view={view} data-readable={readable} data-side-panel={sidePanel}>
+    <main className="app-shell reference-layout" data-view={view} data-readable={readable} data-side-panel={sidePanel}>
       <aside className="sidebar">
         <div className="sidebar-top">
           <button
@@ -1404,6 +1404,16 @@ export function WorkManager() {
             <button className="primary-button sidebar-new-work" aria-label="새 업무 등록" onClick={() => openWork()} type="button"><Icon name="plus" size={18} /> <span>새 업무 등록</span></button>
           </div>
         </div>
+        <select className="reference-mobile-nav" aria-label="화면 선택" value={view} onChange={(event) => {
+          if (event.target.value === "new-work") { void openWork(); return; }
+          if (event.target.value === "readability") { toggleReadable(); return; }
+          navigate(event.target.value as View);
+        }}>
+          <option value="new-work">+ 새 업무 등록</option>
+          {navItems.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+          <option value="tasks">챙겨야 할 일</option>
+          <option value="readability">{readable ? "기본 글씨로 보기" : "큰 글씨로 보기"}</option>
+        </select>
         <nav aria-label="주요 메뉴">
           {navGroups.map(([group, keys]) => (
             <div className="nav-group" key={group} role="group" aria-label={group}>
@@ -1445,17 +1455,14 @@ export function WorkManager() {
       </aside>
       <section className="workspace">
         <header className="topbar">
-          <div className="title-stack">
-            {recordPage && (
-              <button type="button" className="back-link" onClick={closeRecordPage}>
-                <Icon name="back" size={18} /> {titles[view]}
-              </button>
-            )}
-            <h1>{recordPage ? recordTitle : titles[view]}</h1>
-            {view === "today" && !recordPage && <p className="view-purpose"><span className="record-date">{dateLabel}</span></p>}
+          <div className="reference-breadcrumb"><span>{breadcrumbGroup}</span><Icon name="next" size={14} /><span>{breadcrumbTitle}</span></div>
+          <div className="reference-top-right">
+            <time className="topbar-date" dateTime={seoulDate()}>{dateLabel}</time>
+            <button type="button" className="text-button reference-mobile-search" aria-label="통합검색 열기" onClick={showGlobalSearch}>검색</button>
+            <span className="reference-avatar" aria-label="관리자">관리</span>
           </div>
-          <time className="topbar-date" dateTime={seoulDate()}>{dateLabel}</time>
         </header>
+        <div className="workspace-body">
         {notice && (
           <div className="notice" role="status">
             <span>{notice}</span>
@@ -1471,9 +1478,12 @@ export function WorkManager() {
             <span>실제 엑셀 자료는 배포 DB 이관 단계에서 채웁니다.</span>
           </div>
         )}
-        {recordPage && renderHistory(true)}
         <PageToolsSlot.Provider value={null}>
-        <div className="view-content" key={view} hidden={Boolean(recordPage)}>
+        <div className="view-content" key={view}>
+          {view !== "structures" && view !== "calendar" && <div className="reference-page-heading"><div><h1>{titles[view]}</h1></div>
+            {view === "listings" && <button type="button" className="primary-button" onClick={() => void openWork(undefined, undefined, "매물등록")}><Icon name="plus" size={18} />매물 등록</button>}
+            {view === "customers" && <button type="button" className="primary-button" onClick={() => setCustomerModal({ mode: "new" })}>고객 등록</button>}
+          </div>}
           {loading ? (
             <Loading />
           ) : (
@@ -1677,6 +1687,7 @@ export function WorkManager() {
           )}
         </div>
         </PageToolsSlot.Provider>
+        </div>
       </section>
       {globalSearchLoaded && (
         <Suspense
@@ -1709,7 +1720,7 @@ export function WorkManager() {
           />
         </Suspense>
       )}
-      {historyModal && !workReader && !recordPage && renderHistory(false)}
+      {historyModal && !workReader && renderHistory(false)}
       {workReader && !workModal && (
         <Modal title="업무 내용" onClose={closeWorkReader} reading>
           {workReader.loading && <p className="form-help" role="status">업무 내용과 연결된 물건을 불러오고 있습니다…</p>}
@@ -1842,6 +1853,7 @@ function DashboardView({
   );
   return (
     <div className="home-body-grid home-today">
+      <div className="reference-home-main">
       <section className="panel home-schedule" aria-label="오늘과 다가오는 일정">
         <div className="panel-head">
           <div>
@@ -1862,22 +1874,32 @@ function DashboardView({
         ))}
         {!days.length && <p className="home-schedule-empty home-schedule-day">앞으로 7일 동안 잡힌 예정·예약 업무가 없습니다.</p>}
         <div className="home-schedule-foot">
-          <button type="button" className="secondary-button" onClick={onOpenToday}>오늘 업무 보기</button>
-          <button type="button" className="secondary-button" onClick={onOpenSchedule}>7일 일정 확인</button>
+          <button type="button" className="text-button" onClick={onOpenToday}>오늘 업무 보기</button>
+          <button type="button" className="text-button" onClick={onOpenSchedule}>7일 일정 확인</button>
         </div>
       </section>
       <section className="panel recent-panel">
         <div className="panel-head">
           <div>
-            <h2>최근 업무</h2>
-            <p className="sort-summary">업무일 최신순</p>
+            <h2>최근 기록</h2>
           </div>
           <button className="text-button" onClick={() => onNavigate("journal")}>
             전체 보기
           </button>
         </div>
-        <WorkTable items={dashboard.recent} onOpen={onOpen} onCustomerHistory={onCustomerHistory} onListingHistory={onListingHistory} />
+        <div className="reference-recent-list">{dashboard.recent.length ? dashboard.recent.map(item => <article className="reference-recent-row" key={item.id}>
+          <time dateTime={item.work_date}>{displayDate(item.work_date).slice(5)}</time>
+          <div>
+            <div className="reference-recent-heading"><button type="button" onClick={() => onCustomerHistory({ id: item.customer_id, name: item.customer_name })}>{item.customer_name}</button><button type="button" onClick={() => onOpen(item.id)}>{item.work_type}</button></div>
+            <button type="button" className="reference-recent-open" onClick={() => onOpen(item.id)}><span className="reference-recent-note">{item.content || "기록된 내용이 없습니다."}</span></button>
+            {getWorkProperties(item).length > 0 && <details className="reference-recent-properties"><summary>연결 매물 {item.property_count}건</summary><div>{getWorkProperties(item).map((property, index) => {
+              const label = workPropertyLabel(property, true);
+              return property.property_type.trim() && property.building_name.trim() && (property.property_type.trim() === "토지" || property.unit_number.trim()) ? <button type="button" key={property.id || index} onClick={() => onListingHistory({ ...item, ...property, id: item.id })}>{label}</button> : <span key={property.id || index}>{label}</span>;
+            })}</div></details>}
+          </div>
+        </article>) : <EmptyState title="최근 기록한 업무가 없습니다." />}</div>
       </section>
+      </div>
       {followUps}
     </div>
   );
@@ -1956,13 +1978,14 @@ function JournalView({
   const listRef = useResultListRef(paging.page, JSON.stringify([query, workType]));
   return <>
     <div className="renewal-paginated-list" ref={listRef}>
-      <div className="management-filter journal-filter"><Toolbar query={query} setQuery={setQuery} placeholder="고객명, 연락처, 건물명, 동·호수, 내용 검색">
+      <div className="management-filter journal-filter"><Toolbar query={query} setQuery={setQuery} placeholder="고객명, 단지명 또는 업무 내용" /></div>
+      <div className="reference-journal-tools">
         <select aria-label="업무구분 필터" value={workType} onChange={(event) => setWorkType(event.target.value)}>
           <option value="">모든 업무구분</option>
           {lookups.workTypes.map((type) => <option key={type}>{type}</option>)}
         </select>
         {filtered && <button className="filter-reset" onClick={onReset} type="button">초기화</button>}
-      </Toolbar></div>
+      </div>
       {filtered && <div className="active-filter-row"><strong>{status === "loading" ? "검색 중" : status === "refreshing" ? "갱신 중" : status === "error" ? "다시 확인 필요" : "적용 중"}</strong>{query && <span>검색: {query}</span>}{workType && <span>{workType}</span>}</div>}
       <section className="panel data-panel journal-panel" aria-busy={status === "loading" || status === "refreshing"}>
         <div className="panel-head"><h2>업무 기록 <span className="count-badge">{resultsVisible ? `${total.toLocaleString("ko-KR")}건` : status === "loading" ? "검색 중…" : "조회 실패"}</span></h2><p className="sort-summary">업무일 최신순</p></div>
@@ -2127,75 +2150,24 @@ function ListingsView({
   return (
     <>
       <div className="renewal-paginated-list" ref={listRef}>
-      <div className="listing-controls">
-      <Toolbar
-        query={query}
-        setQuery={setQuery}
-        placeholder="건물명, 동·호수, 메모 검색"
-      >
-        <details className="listing-status-filter" name="listing-filters">
-          <summary>매물 상태: {statuses.length ? `${statuses.length}개 선택` : "전체"}</summary>
-          <div className="listing-status-options" role="group" aria-label="매물 상태 필터">
-            <button type="button" className="listing-status-all" aria-pressed={!statuses.length} onClick={() => setStatuses([])}>전체 상태</button>
-            {[...new Set([...LISTING_WORK_TYPES, ...items.map(item => item.status)])].filter(Boolean).map(value => <label key={value}><input type="checkbox" checked={statuses.includes(value)} onChange={event => setStatuses(event.target.checked ? [...statuses, value] : statuses.filter(item => item !== value))} />{value}</label>)}
-          </div>
-        </details>
-        <select
-          aria-label="매물종류 필터"
-          value={propertyType}
-          onChange={(event) => setPropertyType(event.target.value)}
-        >
-          <option value="">모든 매물종류</option>
-          {lookups.propertyTypes.map((type) => (
-            <option key={type}>{type}</option>
-          ))}
-        </select>
-        <details className="listing-price-menu" name="listing-filters">
-          <summary>가격: {prices.length ? `${prices.length}개 선택` : "전체"}</summary>
-          <div className="listing-price-filters" role="group" aria-label="가격 입력 여부 필터">
-            <button type="button" className="secondary-button" aria-pressed={!prices.length} onClick={() => setPrices([])}>전체 가격</button>
-            {[["sale", "매매가 있음"], ["jeonse", "전세가 있음"], ["monthly", "월세가 있음"]].map(([value, label]) => <button key={value} type="button" className="secondary-button" aria-pressed={prices.includes(value)} onClick={() => setPrices(prices.includes(value) ? prices.filter(item => item !== value) : [...prices, value].sort())}>{label}</button>)}
-            <span>선택한 가격 중 하나라도 있는 매물</span>
-          </div>
-        </details>
-        <details className="listing-more-menu" name="listing-filters">
-          <summary>정렬</summary>
-          <div className="listing-more-options">
-            <label htmlFor="listing-sort">정렬 기준</label>
-            <select
-              id="listing-sort"
-              aria-label="매물 정렬"
-              value={sort}
-              onChange={(event) => setSort(event.target.value)}
-            >
-              <option value="type">매물종류 → 이름순 (기본)</option>
-              <option value="type-desc">매물종류 역순 → 이름순</option>
-              <option value="building">이름 가나다순</option>
-              <option value="building-desc">이름 역순</option>
-              <option value="recent">최근 등록순</option>
-              <option value="updated">최근 변경순</option>
-              <option value="oldest">오래 미갱신순</option>
-            </select>
-          </div>
-        </details>
-      </Toolbar>
-      </div>
-      {filtered && <div className="active-filter-row listing-applied-filters" aria-label="현재 매물 조회 조건"><strong>적용 중</strong>{statuses.map(value => <span key={value}>{value}</span>)}{prices.map(price => <span key={price}>{({sale:"매매가 있음",jeonse:"전세가 있음",monthly:"월세가 있음"} as Record<string,string>)[price]}</span>)}{propertyType && <span>{propertyType}</span>}{query && <span>검색: {query}</span>}{sort !== "type" && <span>{sortDescription}</span>}<button className="filter-reset" onClick={onReset} type="button">초기화</button></div>}
-      <section className="panel data-panel" aria-busy={status === "loading" || status === "refreshing"}>
-        <div className="panel-head listing-panel-head">
-          <h2>
-            매물 목록 <span className="count-badge">{resultsVisible ? `${items.length < total ? `${items.length} / ` : ""}${total}건` : status === "error" ? "조회 실패" : "조회 중…"}</span>
-          </h2>
-          <p className="sort-summary">
-              {sortDescription}
-              {!statuses.length && dateSorted ? " · 진행 중 우선" : ""}
-              {!dateSorted ? " · 동·호수는 숫자순" : ""}
-          </p>
+        <div className="reference-filters" role="search" aria-label="매물 검색">
+          <label className="reference-filter reference-filter-search"><span className="reference-filter-label">검색</span><div className="reference-search-field"><Icon name="search" size={20} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="건물명, 동호수 또는 메모" aria-label="건물명 동호수 또는 메모 검색" />{query && <button type="button" aria-label="검색어 지우기" onClick={() => setQuery("")}><Icon name="close" size={18} /></button>}</div></label>
+          <label className="reference-filter"><span className="reference-filter-label">물건 종류</span><select aria-label="매물종류 필터" value={propertyType} onChange={event => setPropertyType(event.target.value)}><option value="">전체 종류</option>{lookups.propertyTypes.map(type => <option key={type}>{type}</option>)}</select></label>
+          <label className="reference-filter"><span className="reference-filter-label">매물 상태</span><select aria-label="매물 상태 필터" value={statuses.length > 1 ? "__multiple" : statuses[0] || ""} onChange={event => setStatuses(event.target.value ? [event.target.value] : [])}><option value="">전체 상태</option>{statuses.length > 1 && <option value="__multiple" disabled>{statuses.length}개 선택</option>}{[...new Set([...LISTING_WORK_TYPES, ...items.map(item => item.status)])].filter(Boolean).map(value => <option key={value}>{value}</option>)}</select></label>
+          <label className="reference-filter"><span className="reference-filter-label">거래 종류</span><select aria-label="가격 입력 여부" value={prices.length > 1 ? "__multiple" : prices[0] || ""} onChange={event => setPrices(event.target.value ? [event.target.value] : [])}><option value="">전체 거래</option><option value="sale">매매가 있음</option><option value="jeonse">전세가 있음</option><option value="monthly">월세가 있음</option>{prices.length > 1 && <option value="__multiple" disabled>{prices.length}개 선택</option>}</select></label>
         </div>
-        <div className="listing-mobile-sort" role="group" aria-label="매물 정렬 기준">
-          {sortButton("type", "매물종류")}
-          {sortButton("building", "이름")}
-        </div>
+        <details className="reference-advanced">
+          <summary>상세 조건</summary>
+          <div className="reference-advanced-body">
+            <fieldset><legend>매물 상태 여러 개 선택</legend><div className="listing-status-options" role="group" aria-label="매물 상태 필터"><button type="button" className="text-button" aria-pressed={!statuses.length} onClick={() => setStatuses([])}>전체 상태</button>{[...new Set([...LISTING_WORK_TYPES, ...items.map(item => item.status)])].filter(Boolean).map(value => <label key={value}><input type="checkbox" checked={statuses.includes(value)} onChange={event => setStatuses(event.target.checked ? [...statuses, value] : statuses.filter(item => item !== value))} />{value}</label>)}</div></fieldset>
+            <fieldset><legend>가격 입력 여부</legend><div className="listing-price-filters" role="group" aria-label="가격 입력 여부 필터"><button type="button" className="secondary-button" aria-pressed={!prices.length} onClick={() => setPrices([])}>전체 가격</button>{[["sale", "매매가 있음"], ["jeonse", "전세가 있음"], ["monthly", "월세가 있음"]].map(([value, label]) => <button key={value} type="button" className="secondary-button" aria-pressed={prices.includes(value)} onClick={() => setPrices(prices.includes(value) ? prices.filter(item => item !== value) : [...prices, value].sort())}>{label}</button>)}<span>선택한 가격 중 하나라도 있는 매물</span></div></fieldset>
+            <div className="listing-mobile-sort" role="group" aria-label="매물 정렬 기준">{sortButton("type", "매물종류")}{sortButton("building", "이름")}</div>
+          </div>
+        </details>
+        {filtered && <div className="active-filter-row listing-applied-filters" aria-label="현재 매물 조회 조건">{statuses.map(value => <span key={value}>{value}</span>)}{prices.map(price => <span key={price}>{({sale:"매매가 있음",jeonse:"전세가 있음",monthly:"월세가 있음"} as Record<string,string>)[price]}</span>)}{propertyType && <span>{propertyType}</span>}{query && <span>검색: {query}</span>}</div>}
+        <div className="reference-list-meta"><div className="reference-total">매물 <strong>{resultsVisible ? total.toLocaleString("ko-KR") : status === "error" ? "조회 실패" : "조회 중…"}</strong>{resultsVisible && "건"}</div><div className="reference-sort">{filtered && <button className="text-button" onClick={onReset} type="button">조건 초기화</button>}<select id="listing-sort" aria-label="매물 정렬" value={sort} onChange={event => setSort(event.target.value)}><option value="type">매물종류 → 이름순</option><option value="type-desc">매물종류 역순 → 이름순</option><option value="building">이름 가나다순</option><option value="building-desc">이름 역순</option><option value="recent">최근 등록순</option><option value="updated">최근 변경순</option><option value="oldest">오래 미갱신순</option></select></div></div>
+        <p className="sort-summary reference-sort-description">{sortDescription}{!statuses.length && dateSorted ? " · 진행 중 우선" : ""}{!dateSorted ? " · 동·호수는 숫자순" : ""}</p>
+      <section className="panel data-panel reference-listings-panel" aria-busy={status === "loading" || status === "refreshing"}>
         <ListReadFeedback status={status} error={error} onRetry={onRetry} label="매물 목록" />
         {resultsVisible && (!items.length ? (
           <EmptyState title="조건에 맞는 매물이 없습니다." />
@@ -2204,8 +2176,10 @@ function ListingsView({
             <div className="table-head">
               {sortButton("building", "매물 · 동호수")}
               <span>가격</span>
+              <span>타입</span>
               <span>상태</span>
               <span>등록·말소</span>
+              <span>메모</span>
             </div>
             {items.slice(paging.start, paging.end).map((item) => (
               <button
@@ -2214,13 +2188,13 @@ function ListingsView({
                 onClick={() => onHistory(item)}
               >
                 <span data-label="이름" className="listing-address">
-                  <b>{targetText(item)}</b>
-                  <small className="listing-row-type" data-label="매물종류">{item.property_type || "미지정"}{item.size_type && ` · 타입 ${item.size_type}`}</small>
-                  {item.notes && <small className="listing-row-note">{item.notes}</small>}
+                  <b>{item.building_name || targetText(item)}</b>
+                  <small className="listing-row-type" data-label="매물종류">{[item.building_dong && `${item.building_dong}동`, item.unit_number && `${item.unit_number}호`, item.property_type || "미지정"].filter(Boolean).join(" · ")}</small>
                 </span>
                 <span data-label="가격" className="listing-price">
                   <Price item={item} />
                 </span>
+                <span data-label="타입" className="listing-size">{item.size_type || "미기재"}</span>
                 <span data-label="상태">
                   <i className={`tag ${statusTone(item.status)}`}>
                     {item.status}
@@ -2234,6 +2208,7 @@ function ListingsView({
                       : "진행 중"}
                   </small>
                 </span>
+                <span data-label="메모" className="listing-memo"><span>{item.notes || "메모 없음"}</span></span>
               </button>
             ))}
           </div>
@@ -2272,7 +2247,6 @@ function CustomersView({
   setSort,
   onReset,
   onEdit,
-  onNew,
   onNewWork,
   onCopy,
   onHistory,
@@ -2315,12 +2289,9 @@ function CustomersView({
             초기화
           </button>
         )}
-        <button className="primary-button" onClick={onNew} type="button">
-          <Icon name="plus" size={18} /> 고객 등록
-        </button>
       </Toolbar></div>
       {query && <div className="active-filter-row"><strong>{status === "loading" ? "조회 중" : "조회 조건"}</strong><span>검색: {query}</span></div>}
-      <section className="panel data-panel" aria-busy={status === "loading" || status === "refreshing"}>
+      <section className="panel data-panel reference-customer-panel" aria-busy={status === "loading" || status === "refreshing"}>
         <div className="panel-head">
           <div>
             <h2>
@@ -2343,9 +2314,9 @@ function CustomersView({
             <div className="table-head">
               <span>고객명</span>
               <span>연락처 · 고객 ID</span>
-              <span>연결 업무 · 최근 업무</span>
+              <span>연결 업무</span>
               <span>메모</span>
-              <span>빠른 관리</span>
+              <span>이력</span>
             </div>
             {items.map((item) => (
               <div className="table-row" key={item.id}>
@@ -2489,6 +2460,7 @@ function CalendarView({
           ))}
         </select>
         <button className="calendar-today" type="button" onClick={() => setMonth(today.slice(0, 7))}>이번 달</button>
+        {resultsVisible && <span className="calendar-visible-total">{Object.values(grouped).reduce((count, rows) => count + rows.length, 0)}건</span>}
       </div>
       <ListReadFeedback status={status} error={error} onRetry={onRetry} label="달력 기록" />
       {resultsVisible && <>
@@ -3540,7 +3512,7 @@ function Modal({
       document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
-    if (!sideRef.current) document.body.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
     const frame = window.requestAnimationFrame(() => {
       const preferred = cardRef.current?.querySelector<HTMLElement>(
         "input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])",
@@ -3557,7 +3529,7 @@ function Modal({
         }
         return;
       }
-      if (event.key !== "Tab" || !cardRef.current || sideRef.current) return;
+      if (event.key !== "Tab" || !cardRef.current) return;
       const focusable = Array.from(
         cardRef.current.querySelectorAll<HTMLElement>(
           "button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex='-1'])",
@@ -3605,7 +3577,7 @@ function Modal({
       ref={cardRef}
       className={side ? "modal-card reading side-panel" : `modal-card ${wide ? "wide" : ""} ${reading ? "reading" : ""}`}
       role="dialog"
-      aria-modal={!side}
+      aria-modal="true"
       aria-label={title}
       aria-busy={locked}
       tabIndex={-1}
@@ -3627,7 +3599,6 @@ function Modal({
       <div className="modal-body">{children}</div>
     </section>
   );
-  if (side) return card;
   return (
     <div
       className={`modal-backdrop ${locked ? "locked" : ""}`}

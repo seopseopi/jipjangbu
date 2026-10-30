@@ -1,0 +1,102 @@
+/* Keep the production plans and controls inside the approved page layout. */
+.app-shell:has(.structure-fit-screen) { display: grid; }
+.app-shell:has(.structure-fit-screen) .workspace > .topbar { display: flex; flex: 0 0 56px; height: 56px; min-height: 56px; }
+.app-shell:has(.structure-fit-screen) .workspace-body { display: flex; flex: 1 1 0; flex-direction: column; min-height: 0; }
+.structures.structure-fit-screen { position: relative; gap: 10px; min-width: 0; }
+.structure-page-actions { display: flex; flex: 0 0 auto; justify-content: space-between; align-items: center; gap: 8px; min-width: 0; }
+.structures .structure-page-actions { margin: 0 0 8px; }
+.structure-page-actions > .secondary-button { min-height: 44px; max-width: 100%; padding: 8px 14px; border-radius: 8px; color: var(--ink-2); font-size: var(--text-small); white-space: normal; }
+.structures .structure-selectors { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, .9fr) minmax(0, 1.2fr); gap: 12px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.structures .structure-selectors label { min-width: 0; gap: 4px; color: #43536a; font-size: max(16px, var(--text-caption)); font-weight: 550; line-height: 1.5; }
+.structures .structure-selectors select { display: block; width: 100%; min-width: 0; min-height: 46px; height: auto; padding: 8px 30px 8px 10px; border: 1px solid #b9c5d5; border-radius: 8px; background-color: #fff; color: #2f4058; font-size: var(--text-base); line-height: 1.5; }
+.structures.structure-fit-screen > .structure-main { min-width: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.structures.structure-fit-screen .structure-detail { min-width: 0; gap: 8px; }
+.structures.structure-fit-screen .structure-plan-panel { min-width: 0; }
+.structures.structure-fit-screen .structure-unit-title { max-width: 100%; margin: 0 0 4px; color: #2d3c51; font-size: max(20px, var(--text-base)); font-weight: 650; line-height: 1.45; white-space: normal; overflow: visible; overflow-wrap: anywhere; text-overflow: clip; }
+.structures.structure-fit-screen .structure-plan-heading { min-width: 0; gap: 6px 10px; margin-bottom: 4px; color: #43536a; font-size: var(--text-base); line-height: 1.5; }
+.structures.structure-fit-screen .structure-plan-heading strong { min-width: 0; overflow-wrap: anywhere; }
+.structures.structure-fit-screen .structure-plan-heading span { max-width: 100%; padding: 2px 7px; border-radius: 6px; color: #4b5d75; background: #f2f5f9; font-size: var(--text-caption); line-height: 1.5; overflow-wrap: anywhere; }
+.structures.structure-fit-screen .structure-notice { min-width: 0; max-width: 100%; margin-bottom: 5px; padding: 7px 10px; border-color: var(--rule); border-radius: 8px; background: #f7f9fc; color: #4b5d75; font-size: var(--text-caption); line-height: 1.5; overflow-wrap: anywhere; }
+/* The viewer keeps its own drawing clip; only its surrounding controls reflow. */
+.structures.structure-fit-screen .structure-viewer { min-width: 0; border-color: var(--line); border-radius: 12px; background: #fff; }
+.structures.structure-fit-screen .structure-viewer-bar { min-width: 0; padding: 7px 8px; gap: 8px; border-bottom-color: var(--line); background: #fff; }
+.structures .structure-segment { flex: 0 1 auto; min-width: 0; max-width: 100%; gap: 3px; padding: 3px; border: 1px solid #c5cfdd; border-radius: 8px; background: #f2f5f9; }
+.structures .structure-segment button { min-width: 54px; min-height: 44px; padding: 7px 11px; border-radius: 6px; color: #42536a; font-size: var(--text-base); line-height: 1.4; }
+.structures .structure-fit-button { min-width: 0; min-height: 44px; margin-left: auto; padding: 7px 12px; border-color: var(--line); border-radius: 8px; color: var(--ink-2); background: #fff; font-size: var(--text-small); line-height: 1.4; white-space: normal; }
+.structures .structure-tools, .structures .structure-reading-tools { min-width: 0; max-width: 100%; flex-wrap: wrap; align-items: center; gap: 8px; }
+.structures .structure-tools button, .structures .structure-reading-tools button { min-width: 0; max-width: 100%; min-height: 44px; padding: 7px 10px; border-color: var(--line); border-radius: 8px; color: #42536a; background: #fff; font-size: var(--text-small); line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
+.structures .structure-reading-tools span { min-width: 0; overflow-wrap: anywhere; }
+.structures.structure-fit-screen .structure-viewer > .structure-help { padding: 7px 10px; margin: 0; color: #52627a; font-size: var(--text-caption); line-height: 1.5; overflow-wrap: anywhere; }
+.structures.structure-fit-screen :is(.structure-plan-options, .structure-source, .structure-record-panel) { min-width: 0; max-width: 100%; color: #4b5d75; font-size: var(--text-caption); line-height: 1.6; overflow-wrap: anywhere; }
+.structures.structure-fit-screen :is(.structure-plan-options, .structure-source, .structure-record-panel) > summary { min-height: 38px; padding: 6px 0; color: #42536a; font-size: var(--text-caption); line-height: 1.5; }
+.structures.structure-fit-screen details[open]:is(.structure-plan-options, .structure-source, .structure-record-panel) { border-color: var(--line); padding: 12px; }
+.structures .structure-plan-options > button, .structures .structure-plan-options > a { min-height: 44px; max-width: 100%; padding: 8px 11px; border-color: var(--line); border-radius: 8px; color: #365678; font-size: var(--text-small); line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
+/* Management forms react to the panel width, rather than only the viewport. */
+.structures .structure-manager { width: 100%; max-width: 950px; container: structure-manager / inline-size; }
+.structures .structure-editor { container: structure-editor / inline-size; }
+.structures .structure-source-library { container: structure-library / inline-size; }
+.structures :is(.structure-manager, .structure-editor, .structure-source-library) { min-width: 0; max-width: 100%; border-color: var(--line); border-radius: 12px; color: var(--ink-2); background: #fff; }
+.structures :is(.structure-manager, .structure-editor, .structure-source-library) label { min-width: 0; max-width: 100%; color: #43536a; font-size: var(--text-small); line-height: 1.5; overflow-wrap: anywhere; }
+.structures :is(.structure-manager, .structure-editor, .structure-source-library) :is(input, select, textarea) { min-width: 0; max-width: 100%; min-height: 46px; padding: 8px 10px; border-color: #b9c5d5; border-radius: 8px; background-color: #fff; color: #2f4058; font-size: var(--text-base); line-height: 1.5; }
+.structures :is(.structure-manager, .structure-editor, .structure-source-library) input[type="file"] { width: 100%; font-size: var(--text-caption); }
+.structures :is(.structure-manager, .structure-editor) .structure-check { min-width: 0; gap: 8px; }
+.structures :is(.structure-manager, .structure-editor) .structure-check input { flex: 0 0 20px; width: 20px; height: 20px; min-height: 20px; margin: 3px 0 0; padding: 0; }
+.structures .structure-form-grid, .structures.structure-fit-screen .structure-source-library > .structure-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; min-width: 0; }
+.structures .structure-form-grid > * { min-width: 0; max-width: 100%; }
+.structures .structure-editor-tools { min-width: 0; max-width: 100%; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+.structures .structure-editor-tools > label { flex: 1 1 180px; }
+.structures .structure-editor-tools > button, .structures .structure-manager > button, .structures .structure-manager form > button, .structures.structure-fit-screen .structure-source-library > button { min-width: 0; max-width: 100%; min-height: 44px; padding: 8px 12px; border-radius: 8px; font-size: var(--text-small); line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
+.structures.structure-fit-screen .structure-source-library > h3 { font-size: max(20px, var(--text-base)); line-height: 1.4; }
+.structures.structure-fit-screen .structure-source-library > p { max-width: 100%; font-size: var(--text-caption); line-height: 1.5; overflow-wrap: anywhere; }
+.structures .structure-file-viewer, .structures .structure-file-toolbar { min-width: 0; max-width: 100%; }
+.structures .structure-file-toolbar { gap: 8px; }
+.structures .structure-file-toolbar label, .structures .structure-file-viewer > label { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; max-width: 100%; font-size: var(--text-small); }
+.structures .structure-file-toolbar input, .structures .structure-file-viewer > label > input { flex: 0 1 72px; width: 72px; min-width: 0; max-width: 100%; min-height: 44px; font-size: var(--text-small); }
+.structures .structure-file-toolbar button, .structures .structure-file-toolbar a { min-width: 0; max-width: 100%; min-height: 44px; border-radius: 8px; font-size: var(--text-small); line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
+.structures .structure-work-filter { min-width: 0; max-width: 100%; font-size: var(--text-small); }
+.structures .structure-work-filter select { min-width: 0; max-width: 100%; min-height: 46px; font-size: var(--text-base); }
+.structures .structure-records button { min-width: 0; max-width: 100%; font-size: var(--text-base); overflow-wrap: anywhere; }
+.structures .structure-records :is(time, strong) { font-size: var(--text-small); }
+.structures .structure-records small { font-size: var(--text-caption); }
+@container structure-manager (max-width: 600px) {
+  .structures .structure-manager .structure-form-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@container structure-editor (max-width: 500px) {
+  .structures .structure-editor .structure-form-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@container structure-library (max-width: 500px) {
+  .structures.structure-fit-screen .structure-source-library > .structure-form-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  .structures .structure-page-actions { margin-bottom: 2px; }
+  .structures .structure-selectors { grid-template-columns: minmax(0, 1.4fr) minmax(64px, .8fr) minmax(0, 1fr); gap: 8px; padding: 8px; }
+  .structures .structure-selectors select { min-height: 46px; padding: 8px 24px 8px 7px; font-size: max(16px, var(--text-small)); }
+  .structures .structure-page-actions > .secondary-button > span { display: inline; }
+  .structures.structure-fit-screen .structure-unit-title { font-size: var(--text-base); }
+  .structures.structure-fit-screen .structure-notice { padding: 6px 8px; }
+  .structures .structure-segment button { min-width: 48px; padding-inline: 9px; }
+}
+/* Short screens follow the preview's document flow instead of squeezing the plan away. */
+@media (max-height: 760px), (max-width: 700px) {
+  .app-shell:has(.structure-fit-screen) { height: auto; min-height: 100dvh; overflow: visible; }
+  .app-shell:has(.structure-fit-screen) .workspace { display: block; height: auto; min-height: 0; overflow: visible; }
+  .app-shell:has(.structure-fit-screen) .workspace-body { display: block; flex: none; height: auto; min-height: 0; }
+  .app-shell:has(.structure-fit-screen) .workspace-body > .view-content { display: block; flex: none; height: auto; min-height: 0; padding-top: 0; }
+  .structures.structure-fit-screen { flex: none; height: auto; min-height: 0; }
+  .structures.structure-fit-screen > .structure-main,
+  .structures.structure-fit-screen .structure-detail,
+  .structures.structure-fit-screen .structure-plan-panel,
+  .structures.structure-fit-screen .structure-clean-view { display: block; flex: none; height: auto; min-height: 0; }
+  .structures.structure-fit-screen > .structure-main { overflow: visible; }
+  .structures.structure-fit-screen .structure-viewer,
+  .structures.structure-fit-screen .structure-file-viewer { flex: none; height: auto; min-height: 300px; }
+  .structures.structure-fit-screen .structure-canvas,
+  .structures.structure-fit-screen .structure-file-frame,
+  .structures.structure-fit-screen .structure-clean-image { flex: none; height: 300px; min-height: 300px; }
+  .structures.structure-fit-screen .structure-management-scroll { flex: none; height: auto; min-height: 0; overflow: visible; }
+  .structures.structure-fit-screen details[open]:is(.structure-plan-options, .structure-source, .structure-record-panel) { position: static; max-height: none; margin-top: 8px; overflow: visible; }
+}
+@media (max-width: 700px) {
+  .app-shell:has(.structure-fit-screen) { display: block; }
+  .app-shell:has(.structure-fit-screen) .workspace > .topbar { flex-basis: 48px; height: 48px; min-height: 48px; }
+}

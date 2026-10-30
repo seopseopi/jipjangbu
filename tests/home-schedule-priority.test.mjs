@@ -56,22 +56,23 @@ function button(tree, label) {
   return found;
 }
 
-test("홈은 오늘·다가오는 일정, 최근 업무, 할 일을 한 화면에 두고 소개·빠른등록은 두지 않는다", () => {
-  const opened = [], customerHistory = noop, listingHistory = noop;
-  const tree = render({ onOpen: (id) => opened.push(id), onCustomerHistory: customerHistory, onListingHistory: listingHistory });
+test("홈은 오늘·다가오는 일정과 최근 기록을 왼쪽에, 할 일을 오른쪽에 두고 소개·빠른등록은 두지 않는다", () => {
+  const opened = [];
+  const tree = render({ onOpen: (id) => opened.push(id) });
   const grid = descendants(tree).find((item) => item.props.className === "home-body-grid home-today");
   const children = React.Children.toArray(grid.props.children);
-  assert.equal(children.length, 3);
-  assert.match(children[0].props.className, /home-schedule/);
-  assert.match(children[1].props.className, /recent-panel/);
-  assert.equal(children[2].props.className, "synthetic-followups");
-  assert.deepEqual(descendants(tree).filter((item) => item.type === production.WorkTable).map((item) => item.props.items), [dashboard.recent]);
+  assert.equal(children.length, 2);
+  assert.equal(children[0].props.className, "reference-home-main");
+  const main = React.Children.toArray(children[0].props.children);
+  assert.equal(main.length, 2);
+  assert.match(main[0].props.className, /home-schedule/);
+  assert.match(main[1].props.className, /recent-panel/);
+  assert.equal(children[1].props.className, "synthetic-followups");
+  assert.match(html(main[1]), /최근 기록/);
   assert.doesNotMatch(html(tree), /home-hero|자주 하는 업무|전화 상담|방문 예약/);
-  const recent = descendants(tree).find((item) => item.type === production.WorkTable && item.props.items === dashboard.recent);
-  assert.equal(recent.props.onCustomerHistory, customerHistory);
-  assert.equal(recent.props.onListingHistory, listingHistory);
-  recent.props.onOpen("recent-work");
-  for (const item of descendants(children[0]).filter((node) => node.props.className === "home-schedule-item")) item.props.onClick();
+  const recentHeading = descendants(main[1]).find((item) => item.props.className === "reference-recent-heading");
+  React.Children.toArray(recentHeading.props.children)[1].props.onClick();
+  for (const item of descendants(main[0]).filter((node) => node.props.className === "home-schedule-item")) item.props.onClick();
   assert.deepEqual(opened, ["recent-work", "today-work", "next-work"]);
   assert.doesNotMatch(html(tree), /오늘 업무와 다가오는 일정을 한눈에/);
 });
@@ -87,27 +88,55 @@ test("일정 칸의 오늘 업무·7일 일정 버튼은 팝업을 열고 달력
   assert.deepEqual(scheduled, [7]);
 });
 
-test("최근 업무는 고객명을 한 번 표시하며 고객 이력과 업무 내용을 각각 원래 ID로 연다", () => {
+test("최근 기록은 고객명을 한 번 표시하며 고객 이력·업무구분·본문을 각각 원래 ID로 연다", () => {
   const opened = [], customers = [];
   const tree = render({ onOpen: (id) => opened.push(id), onCustomerHistory: (customer) => customers.push(customer) });
-  const schedules = descendants(tree).filter((item) => item.type === production.WorkTable);
-  assert.equal(schedules.length, 1);
-  for (const schedule of schedules) {
-    const rows = production.WorkTable(schedule.props);
-    const item = schedule.props.items[0];
-    const customer = descendants(rows).find((node) => node.props.className === "work-record-customer-link");
-    assert.ok(customer);
-    const children = React.Children.toArray(customer.props.children);
-    assert.equal(children.length, 1, "the first-line customer identity is not duplicated below");
-    assert.equal(children[0].type, "b");
-    assert.equal(children[0].props.children, item.customer_name);
-    customer.props.onClick();
-    const workButton = descendants(rows).find((node) => node.type === "button" && node.props.className?.split(/\s+/).includes("work-record-open"));
-    assert.equal(workButton.props.children, item.work_type);
-    workButton.props.onClick();
-  }
+  const records = descendants(tree).filter((item) => item.props.className === "reference-recent-row");
+  assert.equal(records.length, 1);
+  const record = records[0], item = dashboard.recent[0];
+  const heading = descendants(record).find((node) => node.props.className === "reference-recent-heading");
+  const [customer, workButton] = React.Children.toArray(heading.props.children);
+  assert.equal(customer.type, "button");
+  assert.equal(customer.props.children, item.customer_name);
+  assert.equal(html(record).split(item.customer_name).length - 1, 1, "the first-line customer identity is not duplicated below");
+  assert.equal(workButton.type, "button");
+  assert.equal(workButton.props.children, item.work_type);
+  customer.props.onClick();
+  workButton.props.onClick();
+  const contentButton = descendants(record).find((node) => node.props.className === "reference-recent-open");
+  assert.ok(html(contentButton).includes(item.content));
+  contentButton.props.onClick();
   assert.deepEqual(customers, [{ id: "synthetic-customer-recent-work", name: "합성 고객" }]);
-  assert.deepEqual(opened, ["recent-work"]);
+  assert.deepEqual(opened, ["recent-work", "recent-work"]);
+});
+
+test("최근 기록의 연결 매물을 펼치면 모든 주소가 원래 업무 ID와 개별 매물 정보로 연결된다", () => {
+  const properties = Array.from({ length: 7 }, (_, index) => ({
+    id: `synthetic-property-${index}`, sequence: index + 1, property_type: "아파트",
+    building_name: index % 2 ? "다른 합성 아파트" : "합성 아파트", building_dong: String(101 + index), unit_number: String(201 + index),
+    size_type: "84A", sale_price: "45000", jeonse_price: "", monthly_rent: "", source: `합성 출처 ${index}`,
+  }));
+  properties.push({ ...properties[0], id: "synthetic-land", sequence: 8, property_type: "토지", building_name: "합성 토지 123-4", building_dong: "", unit_number: "" });
+  properties.push({ ...properties[0], id: "synthetic-incomplete", sequence: 9, building_name: "호수 미입력 합성 아파트", unit_number: "" });
+  const recent = { ...work("synthetic-multi-property-work", "2026-09-12"), property_count: properties.length, properties_json: JSON.stringify(properties) };
+  const opened = [];
+  const tree = render({ dashboard: { ...dashboard, recent: [recent] }, onListingHistory: (item) => opened.push(item) });
+  const details = descendants(tree).find((item) => item.type === "details" && item.props.className === "reference-recent-properties");
+  assert.ok(details, "the compact record retains an expandable entry to every connected property");
+  assert.match(html(details), /연결 매물 9건/);
+  const links = descendants(details).filter((item) => item.type === "button");
+  assert.equal(links.length, 8, "every complete apartment and land identity is reachable");
+  assert.deepEqual(links.map((item) => item.props.children), properties.slice(0, -1).map((item) => workPropertyLabel(item, true)));
+  for (const link of links) link.props.onClick();
+  assert.deepEqual(opened, getWorkProperties(recent).slice(0, -1).map((property) => ({ ...recent, ...property, id: recent.id })));
+  assert.ok(descendants(details).some((item) => item.type === "span" && item.props.children === workPropertyLabel(properties.at(-1), true)), "incomplete addresses stay visible without a broken history link");
+});
+
+test("최근 기록이 비어 있으면 compact 목록 안에 빈 상태 안내를 유지한다", () => {
+  const tree = render({ dashboard: { ...dashboard, recent: [] } });
+  const recent = descendants(tree).find((item) => /\brecent-panel\b/.test(item.props.className ?? ""));
+  assert.match(html(recent), /최근 기록한 업무가 없습니다\./);
+  assert.equal(descendants(recent).filter((item) => item.props.className === "reference-recent-row").length, 0);
 });
 
 test("고객 ID가 없어도 이름을 유지하고 긴 고객명은 줄바꿈하며 긴 ID의 이력 연결도 보존한다", () => {

@@ -240,13 +240,14 @@ test("빈 날짜별 목록은 현재 업무구분 필터에 맞는 안내를 보
   assert.match(renderToStaticMarkup(findByClass(renderCalendar({ workType: "상담" }), "calendar-agenda")[0]), /선택한 달에 해당 업무구분의 기록이 없습니다/);
 });
 
-test("모바일은 월 그리드 대신 전체 폭 일정 목록을 보여주고 큰 글씨와 긴 내용 줄바꿈을 지원한다", () => {
+test("기준 HTML처럼 작은 화면도 월 달력을 유지하고 긴 고객명과 주소를 숨기지 않는다", () => {
   const css = readFileSync(new URL("../app/calendar.css", import.meta.url), "utf8");
+  const reference = readFileSync(new URL("../app/reference-management.css", import.meta.url), "utf8");
   const subjectsCss = readFileSync(new URL("../app/calendar-subjects.css", import.meta.url), "utf8");
-  assert.match(css, /\.calendar-agenda\s*\{\s*display:\s*none/);
-  assert.match(css, /@media\s*\(max-width:\s*1180px\)/);
-  assert.match(css, /\.calendar-panel\.calendar-desktop-panel\s*\{\s*display:\s*none/);
-  assert.match(css, /\.calendar-agenda\s*\{\s*display:\s*block/);
+  assert.match(reference, /\.app-shell\.reference-layout \.calendar-panel\.calendar-desktop-panel\s*\{[^}]*display:\s*block/);
+  assert.match(reference, /\.reference-layout \.calendar-agenda\s*\{\s*display:\s*none/);
+  assert.match(reference, /\.reference-layout \.calendar-week, \.reference-layout \.calendar-grid\s*\{[^}]*min-width:\s*850px/);
+  assert.match(reference, /\.calendar-panel\.calendar-desktop-panel\s*\{[^}]*overflow-x:\s*auto/);
   assert.match(css, /\.calendar-agenda-notes\s*\{[^}]*font-size:\s*var\(--text-small\)[^}]*white-space:\s*pre-wrap[^}]*overflow-wrap:\s*anywhere/);
   assert.match(subjectsCss, /\.calendar-agenda-event \.calendar-subject-customer[^}]*font-size:\s*var\(--text-base\)/);
   assert.doesNotMatch(css, /min-width:\s*770px|text-overflow:\s*ellipsis/);
@@ -261,6 +262,7 @@ test("모바일은 월 그리드 대신 전체 폭 일정 목록을 보여주고
   const styles = readFileSync(new URL("../app/application.css", import.meta.url), "utf8");
   const calendarIndex = styles.indexOf('@import "./calendar.css"');
   assert.ok(calendarIndex >= 0 && calendarIndex < styles.indexOf('@import "./renewal.css"'), "server-loaded renewal rules override the original three-line preview");
+  assert.ok(styles.indexOf('@import "./reference-management.css"') > styles.indexOf('@import "./renewal.css"'), "the reference month layout wins over the former agenda breakpoint");
 });
 
 test("데스크톱 달력은 모든 업무 제목을 표시하며 리뉴얼의 기본·큰 글씨 토큰을 사용한다", () => {

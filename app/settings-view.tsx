@@ -84,107 +84,83 @@ function SettingsView({
     }
   }
   return (
-    <div className="settings-grid">
-      <section className="panel settings-panel">
-        <div className="panel-head">
-          <div>
-            <h2>업무구분</h2>
-          </div>
-          <span className="count-badge">{lookups.workTypes.length}</span>
-        </div>
-        <div className="chip-list">
-          {lookups.workTypes.map((type) => (
-            <span key={type}>{type}</span>
-          ))}
+    <div className="settings-stack settings-renewal">
+      <section className="settings-section">
+        <h2>업무구분 <small>{lookups.workTypes.length}개</small></h2>
+        <div className="settings-section-content">
+          <div className="settings-items">{lookups.workTypes.join(" · ")}</div>
         </div>
       </section>
-      <section className="panel settings-panel">
-        <div className="panel-head">
-          <div>
-            <h2>물건·건물 분류</h2>
+      <section className="settings-section">
+        <h2>물건·건물 분류</h2>
+        <div className="settings-section-content">
+          <div className="building-groups">
+            {lookups.propertyTypes.map((type) => (
+              <details key={type}>
+                <summary><Icon name="next" size={18} /><span>{type}</span><small>{lookups.buildings.filter((item) => item.property_type === type).length}개</small></summary>
+                <ul className="building-name-list">{lookups.buildings.filter((item) => item.property_type === type).map((item) => <li key={item.id}>{item.building_name}</li>)}</ul>
+              </details>
+            ))}
           </div>
-          <span className="count-badge">{lookups.buildings.length}</span>
-        </div>
-        <div className="building-groups">
-          {lookups.propertyTypes.map((type) => (
-            <details key={type}>
-              <summary>
-                <Icon name="next" size={18} />
-                <span>{type}</span>
-                <small>
-                  {
-                    lookups.buildings.filter(
-                      (item) => item.property_type === type,
-                    ).length
-                  }
-                  개
-                </small>
-              </summary>
-              <ul className="building-name-list">
-                {lookups.buildings
-                  .filter((item) => item.property_type === type)
-                  .map((item) => <li key={item.id}>{item.building_name}</li>)}
-              </ul>
-            </details>
-          ))}
+          <details className="settings-addition">
+            <summary><Icon name="plus" size={17} /> 업무구분·건물명 추가</summary>
+            <form className="add-setting settings-addition-form" onSubmit={submit}>
+              <label>
+                분류 <b className="required-mark" aria-hidden="true">*</b>
+                <select
+                  value={kind}
+                  aria-required="true"
+                  disabled={saving}
+                  onChange={(event) => setKind(event.target.value)}
+                >
+                  <option value="workType">업무구분</option>
+                  <option value="building">건물명</option>
+                </select>
+              </label>
+              {kind === "building" && (
+                <label>
+                  물건구분 <b className="required-mark" aria-hidden="true">*</b>
+                  <select
+                    value={propertyType}
+                    aria-required="true"
+                    disabled={saving}
+                    onChange={(event) => setPropertyType(event.target.value)}
+                  >
+                    {lookups.propertyTypes.map((type) => (
+                      <option key={type}>{type}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <label>
+                이름 <b className="required-mark" aria-hidden="true">*</b>
+                <input
+                  value={name}
+                  disabled={saving}
+                  onChange={(event) => setName(event.target.value)}
+                  required
+                />
+              </label>
+              {error && <div className="form-error" role="alert">{error}</div>}
+              {savedMessage && <div className="form-help" role="status">{savedMessage}</div>}
+              {refreshError && <div className="form-error" role="alert"><p>{refreshError}</p><button type="button" className="secondary-button" onClick={retryRefresh} disabled={saving}><Icon name="refresh" size={17} /> 목록 다시 불러오기</button></div>}
+              <button className="primary-button" disabled={saving}>
+                {saving ? savedMessage ? "목록 불러오는 중…" : "추가 중…" : "추가"}
+              </button>
+            </form>
+          </details>
         </div>
       </section>
-      <form className="panel add-setting" onSubmit={submit}>
-        <div>
-          <h2>새 분류 추가</h2>
+      <section className="settings-section">
+        <h2>데이터 안전 백업</h2>
+        <div className="settings-section-content"><BackupPanel /></div>
+      </section>
+      <section className="settings-section">
+        <h2>화면·계정</h2>
+        <div className="settings-section-content">
+          <button className="secondary-button" type="button" onClick={onLogout}>로그아웃</button>
+          <p className="settings-section-note">현재 기기에서 안전하게 로그아웃합니다.</p>
         </div>
-        <label>
-          분류 <b className="required-mark" aria-hidden="true">*</b>
-          <select
-            value={kind}
-            aria-required="true"
-            disabled={saving}
-            onChange={(event) => setKind(event.target.value)}
-          >
-            <option value="workType">업무구분</option>
-            <option value="building">건물명</option>
-          </select>
-        </label>
-        {kind === "building" && (
-          <label>
-            물건구분 <b className="required-mark" aria-hidden="true">*</b>
-            <select
-              value={propertyType}
-              aria-required="true"
-              disabled={saving}
-              onChange={(event) => setPropertyType(event.target.value)}
-            >
-              {lookups.propertyTypes.map((type) => (
-                <option key={type}>{type}</option>
-              ))}
-            </select>
-          </label>
-        )}
-        <label>
-          이름 <b className="required-mark" aria-hidden="true">*</b>
-          <input
-            value={name}
-            disabled={saving}
-            onChange={(event) => setName(event.target.value)}
-            required
-          />
-        </label>
-        {error && <div className="form-error" role="alert">{error}</div>}
-        {savedMessage && <div className="form-help" role="status">{savedMessage}</div>}
-        {refreshError && <div className="form-error" role="alert"><p>{refreshError}</p><button type="button" className="secondary-button" onClick={retryRefresh} disabled={saving}><Icon name="refresh" size={17} /> 목록 다시 불러오기</button></div>}
-        <button className="primary-button" disabled={saving}>
-          {saving ? savedMessage ? "목록 불러오는 중…" : "추가 중…" : "추가"}
-        </button>
-      </form>
-      <BackupPanel />
-      <section className="panel account-panel">
-        <div>
-          <h2>관리자 계정</h2>
-          <p>현재 기기에서 안전하게 로그아웃합니다.</p>
-        </div>
-        <button className="secondary-button" type="button" onClick={onLogout}>
-          로그아웃
-        </button>
       </section>
     </div>
   );
@@ -312,10 +288,9 @@ function BackupPanel() {
     }).format(date);
   };
   return (
-    <section className="panel backup-panel">
+    <div className="backup-panel">
       <div className="backup-head">
         <div>
-          <h2>데이터 안전 백업</h2>
           <span>
             이용 시 일일 백업과 정보 변경 전·후 백업을 암호화해 보관합니다.
             예약 실행은 배포 환경에 따라 적용되며, 90일이 지난 백업은 정리합니다.
@@ -394,7 +369,7 @@ function BackupPanel() {
           <small>{backups.length - visibleCount}개 남음</small>
         </button>
       )}
-    </section>
+    </div>
   );
 }
 

@@ -165,7 +165,7 @@ test("매물·고객·백업 목록과 홈 날짜도 공통 날짜 스타일에 
     assert.ok(source.includes(`<time className="record-date" dateTime={${field}`), field);
   }
   assert.ok(settings.includes('<time className="record-date" dateTime={backup.createdAt}'));
-  assert.ok(source.includes('<span className="record-date">{dateLabel}</span>'));
+  assert.ok(source.includes('<time className="topbar-date" dateTime={seoulDate()}>{dateLabel}</time>'));
 });
 
 test("큰 업무 배지는 좁은 표와 모바일에서도 줄바꿈할 수 있다", () => {

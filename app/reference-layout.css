@@ -1,0 +1,156 @@
+/* Geometry from the approved standalone preview. Keep existing production behavior. */
+.app-shell { display: grid; grid-template-columns: 224px minmax(0, 1fr); }
+.app-shell .workspace { min-width: 0; padding: 0; background: var(--canvas); }
+/* Reading drawers overlay the page; opening one keeps the page geometry stable. */
+.app-shell[data-side-panel="beside"] .workspace { padding-right: 0; }
+.app-shell .workspace > .topbar { position: relative; top: auto; min-height: 56px; height: 56px; margin: 0; padding: 0 28px; display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid #d1d8e3; background: #fff; color: #4c5869; font-size: 16px; backdrop-filter: none; }
+.reference-breadcrumb { display: flex; flex: 0 1 auto; align-items: center; gap: 8px; min-width: 0; font-size: 16px; line-height: 1.5; }
+.reference-breadcrumb > span { min-width: 0; overflow-wrap: anywhere; }
+.reference-breadcrumb > span:last-child { color: #344358; font-weight: 550; }
+.reference-breadcrumb .ui-icon { width: 14px; height: 14px; }
+.reference-top-right { display: flex; flex: 0 0 auto; align-items: center; gap: 14px; min-width: 0; }
+.reference-top-right time { color: #4c5869; font-size: 16px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.reference-top-right .reference-avatar, .reference-top-right .avatar { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 50%; background: #e5e6e7; color: #46484b; font-size: 14px; font-weight: 550; }
+.workspace-body { width: 100%; max-width: 1760px; min-width: 0; margin: 0; padding: 24px 28px 16px; }
+.reference-page-heading { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 16px; min-width: 0; min-height: 42px; margin: 0 0 18px; padding: 0; border: 0; background: transparent; }
+.reference-page-heading > div { min-width: 0; }
+.reference-page-heading h1 { min-width: 0; margin: 0; color: #2b384a; font-size: 28px; font-weight: 650; line-height: 1.35; letter-spacing: -.045em; overflow-wrap: anywhere; }
+.reference-page-heading .sub { display: none; }
+.reference-page-heading > button { flex: 0 1 auto; max-width: 100%; }
+.reference-mobile-nav { display: none; }
+.reference-mobile-search { display: none; }
+/* The desktop menu stays a quiet left rail; phones use the preview's single picker. */
+.app-shell .sidebar { position: sticky; top: 0; z-index: 3; display: flex; flex-direction: column; height: 100svh; padding: 20px 12px 14px; overflow-y: auto; border-right: 1px solid #d3cdc2; background: var(--canvas); }
+.app-shell .sidebar-top { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+.app-shell .sidebar .brand { gap: 9px; width: 100%; min-height: 36px; padding: 0 10px; }
+.app-shell .brand strong { font-size: 25px; }
+.app-shell .brand-mark { width: 34px; height: 34px; }
+.app-shell .brand-office { display: block; margin: 8px 10px 0; font-size: 16px; }
+.app-shell .sidebar-actions { display: grid; grid-template-columns: 52px max-content; justify-content: start; gap: 7px; margin: 19px 4px 10px; }
+.app-shell .sidebar-actions .global-search-trigger { flex: none; width: 52px; min-height: 44px; padding: 8px 4px; }
+.app-shell .sidebar-actions .sidebar-new-work { padding-inline: 10px; }
+.app-shell .sidebar nav { display: grid; grid-column: auto; grid-row: auto; gap: 6px; margin: 3px 0 0; padding: 0; overflow: visible; mask-image: none; -webkit-mask-image: none; }
+.app-shell .nav-group { display: grid; }
+.app-shell .nav-group-label { display: block; }
+.app-shell .nav-group > .nav-item { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; width: 100%; min-width: 0; min-height: 41px; padding: 7px 8px; gap: 10px; font-size: 17px; line-height: 1.45; text-align: left; }
+.app-shell .sidebar-foot { display: flex; flex-wrap: wrap; grid-column: auto; grid-row: auto; align-self: stretch; gap: 5px 14px; margin-top: auto; padding: 12px 10px 0; }
+.app-shell .sidebar-foot .font-size-toggle, .app-shell .sidebar-foot .logout-link { display: inline-flex; justify-content: flex-start; width: auto; min-height: 44px; padding: 8px 0; border: 0; background: transparent; }
+.app-shell .sidebar-foot .font-size-toggle > span { position: static; width: auto; height: auto; overflow: visible; clip-path: none; white-space: nowrap; }
+/* Each page scrolls within the same frame when it has a fixed pagination footer. */
+.app-shell:is([data-view="journal"], [data-view="listings"]):has(.view-content:not([hidden]) .renewal-pagination) .workspace { padding-bottom: 0; }
+.app-shell:is([data-view="journal"], [data-view="listings"]):has(.view-content:not([hidden]) .renewal-pagination) .workspace-body { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; }
+.app-shell:is([data-view="journal"], [data-view="listings"]):has(.view-content:not([hidden]) .renewal-pagination) .workspace-body > .view-content:not([hidden]) { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; }
+.app-shell .renewal-pagination { min-width: 0; margin-top: 10px; padding: 0; border: 0; border-radius: 0; background: transparent; color: #4b5b71; }
+.app-shell .renewal-pagination-controls { gap: 10px; }
+/* The left home column contains both schedule and recent records. */
+.app-shell.reference-layout .home-body-grid.home-today { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr); grid-template-areas: none; gap: 24px; align-items: start; min-width: 0; }
+.reference-home-main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; }
+.app-shell .home-today > .reference-home-main, .app-shell .home-today > .followup-compact { grid-area: auto; min-width: 0; }
+.reference-home-main > .home-schedule, .reference-home-main > .recent-panel { min-width: 0; margin: 0; padding: 12px; border: 1px solid #bfc9d6; border-radius: 12px; background: #fff; }
+.reference-home-main .panel-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; min-height: 36px; margin: 0 0 7px; padding: 0; border-bottom: 1px solid #ccd5e2; border-radius: 0; background: transparent; }
+.reference-home-main .panel-head h2 { color: #2d3c51; font-size: 20px; font-weight: 600; line-height: 1.4; }
+.reference-home-main .panel-head .sort-summary { display: none; }
+.reference-home-main .home-schedule-day { padding: 8px 4px; }
+.reference-home-main .home-schedule-day h3 { margin-bottom: 5px; color: #4b5d75; font-size: var(--text-caption); font-weight: 550; }
+.reference-home-main .home-schedule-item { padding: 9px 4px; }
+.reference-home-main .home-schedule-foot { padding: 10px 4px 0; }
+.reference-recent-list { display: grid; gap: 4px; min-width: 0; }
+.reference-recent-row { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 12px; align-items: start; min-width: 0; padding: 9px 3px; border-bottom: 1px solid #dce2eb; color: #4b5d75; }
+.reference-recent-row:last-child { border-bottom: 0; }
+.reference-recent-row > time { padding-top: 4px; color: #526176; font-size: var(--text-caption); font-variant-numeric: tabular-nums; line-height: 1.5; }
+.reference-recent-row > div { min-width: 0; }
+.reference-recent-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-width: 0; }
+.reference-recent-heading > button { display: inline-flex; align-items: center; max-width: 100%; min-width: 0; min-height: 34px; padding: 0; border: 0; border-radius: 0; background: transparent; color: #2f4d72; font-size: var(--text-base); font-weight: 600; line-height: 1.4; text-align: left; white-space: normal; overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: 4px; }
+.reference-recent-heading > button + button { min-width: 44px; padding: 3px 9px; border: 1px solid #ccd6e4; border-radius: 6px; color: #3a5577; font-size: var(--text-caption); font-weight: 550; text-decoration: none; }
+.reference-recent-open { display: block; width: 100%; min-width: 0; min-height: 0; padding: 3px 0; border: 0; border-radius: 0; background: transparent; color: #4d5d73; font-size: var(--text-small); line-height: 1.5; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+.reference-recent-open:hover { color: #2f4d72; }
+.reference-recent-note { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; max-height: 3em; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; }
+.reference-recent-properties { min-width: 0; margin: 1px 0 0; color: #425c7e; font-size: var(--text-caption); }
+.reference-recent-properties > summary { width: fit-content; max-width: 100%; min-height: 34px; padding: 4px 0; line-height: 1.5; cursor: pointer; overflow-wrap: anywhere; }
+.reference-recent-properties > div { display: grid; gap: 2px; min-width: 0; margin: 0 0 3px; }
+.reference-recent-properties > div > button, .reference-recent-properties > div > span { display: block; min-width: 0; max-width: 100%; min-height: 36px; padding: 5px 0; border: 0; border-radius: 0; background: transparent; color: #425c7e; font-size: var(--text-small); line-height: 1.5; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+.reference-recent-properties > div > button { text-decoration: underline; text-underline-offset: 3px; }
+.reference-recent-properties > div > button:hover { color: #2f4d72; }
+.app-shell .home-today > .followup-compact { padding: 12px; border: 1px solid #bfc9d6; border-radius: 12px; background: #fff; }
+.home-today > .followup-compact .followup-heading { min-height: 36px; margin: 0 0 7px; padding: 0; border-bottom: 1px solid #ccd5e2; }
+.home-today > .followup-compact .followup-heading h2 { font-size: 20px; font-weight: 600; }
+.home-today > .followup-compact .followup-urgency { display: none; }
+/* The journal has one white card per date, without an extra enclosing card. */
+.app-shell .journal-panel { padding: 0; border: 0; border-radius: 0; background: transparent; overflow: visible; }
+.app-shell .journal-panel > .panel-head { display: none; }
+.app-shell .journal-filter { margin-bottom: 10px; }
+.app-shell .journal-filter .toolbar { min-height: 48px; padding: 0; border-radius: 8px; }
+.app-shell .journal-filter .toolbar .search-box { min-height: 46px; }
+.app-shell .journal-filter .toolbar .search-box input { min-height: 46px; padding-block: 8px; }
+.reference-journal-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 8px 0 12px; }
+.reference-journal-tools > select { max-width: 100%; min-width: 0; min-height: 44px; padding: 7px 36px 7px 10px; border: 1px solid #bec8d6; border-radius: 8px; background-color: #fff; color: #354962; font-size: var(--text-small); }
+.app-shell .journal-day-list { min-width: 0; padding: 0; }
+.app-shell .journal-day-group { grid-template-columns: 90px minmax(0, 1fr); gap: 16px; min-width: 0; margin-bottom: 10px; padding: 10px 12px; border: 1px solid #bfc9d6; border-radius: 12px; background: #fff; }
+.app-shell .journal-day-group:last-child { margin-bottom: 0; }
+.app-shell .journal-day-date { padding-top: 10px; }
+.app-shell .journal-day-date strong { font-size: var(--text-base); }
+.app-shell .journal-panel .journal-day-list .work-record-row { padding: 9px 6px; border: 0; background: #fff; }
+.app-shell .journal-panel .journal-day-list .work-record-row + .work-record-row { border-top: 1px solid #ccd6e5; }
+@media (min-width: 701px) {
+  .app-shell .nav-group > .nav-item + .nav-item { border-top: 1px solid #e8ecf1 !important; }
+  .app-shell:is([data-view="journal"], [data-view="listings"]):has(.view-content:not([hidden]) .renewal-pagination) { grid-template-columns: 224px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .app-shell:is([data-view="journal"], [data-view="listings"]):has(.view-content:not([hidden]) .renewal-pagination) .workspace { height: 100dvh; }
+}
+@media (min-width: 1600px) {
+  .app-shell.reference-layout .home-body-grid.home-today { gap: 28px; }
+}
+@media (max-width: 1250px) {
+  .app-shell .sidebar { padding-inline: 10px; }
+  .workspace-body { padding-inline: 20px; }
+  .app-shell .workspace > .topbar { padding-inline: 20px; }
+  .app-shell.reference-layout .home-body-grid.home-today { grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: 20px; }
+  .reference-top-right time { font-size: 15px; }
+}
+@media (max-height: 820px) and (min-width: 901px) {
+  .app-shell .sidebar { padding-top: 12px; padding-bottom: 12px; }
+  .app-shell .sidebar-actions { margin-top: 10px; margin-bottom: 5px; }
+  .workspace-body { padding-top: 16px; }
+  .reference-page-heading { min-height: 38px; margin-bottom: 12px; }
+  .reference-page-heading h1 { font-size: 27px; }
+}
+@media (max-width: 1050px) {
+  .workspace-body { padding: 18px; }
+  .app-shell .workspace > .topbar { padding-inline: 18px; }
+  .reference-top-right time { display: none; }
+  .app-shell.reference-layout .home-body-grid.home-today { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .app-shell .journal-day-group { grid-template-columns: 76px minmax(0, 1fr); gap: 12px; }
+}
+@media (max-width: 900px) {
+  .workspace-body { padding: 18px; }
+}
+@media (max-width: 700px) {
+  .app-shell { display: block; }
+  .app-shell .sidebar { position: sticky; top: 0; z-index: 3; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; height: 62px; min-height: 62px; padding: 0 16px; overflow: visible; border-right: 0; border-bottom: 1px solid #d3cdc2; }
+  .app-shell .sidebar-top { display: contents; }
+  .app-shell .sidebar .brand { width: auto; min-height: 32px; padding: 0; gap: 7px; }
+  .app-shell .brand strong { font-size: 24px; }
+  .app-shell .brand-mark { width: 30px; height: 30px; }
+  .app-shell .sidebar .brand-office, .app-shell .sidebar-actions, .app-shell .sidebar nav, .app-shell .sidebar-foot { display: none; }
+  .app-shell .reference-mobile-nav { display: block; flex: 0 1 156px; width: 156px; max-width: 156px; min-width: 0; min-height: 44px; padding: 8px 28px 8px 8px; border: 1px solid #979899; border-radius: 3px; background-color: #393b3d; color: #fff; font-size: 18px; font-weight: 500; }
+  .app-shell .workspace > .topbar { height: 48px; min-height: 48px; padding: 0 16px; gap: 10px; }
+  .reference-mobile-search { display: inline-flex; min-height: 42px; padding: 4px 7px; font-size: 17px; }
+  .reference-breadcrumb > :first-child:not(:last-child), .reference-breadcrumb > .ui-icon { display: none; }
+  .reference-top-right { gap: 8px; }
+  .reference-top-right time, .reference-top-right .reference-avatar, .reference-top-right .avatar { display: none; }
+  .workspace-body { padding: 16px; }
+  .reference-page-heading { min-height: 42px; margin-bottom: 12px; gap: 12px; }
+  .reference-page-heading h1 { font-size: 27px; }
+  .reference-page-heading > button { min-height: 44px; padding: 8px 11px; font-size: 16px; }
+  .reference-home-main { gap: 16px; }
+  .reference-recent-row { grid-template-columns: 50px minmax(0, 1fr); gap: 10px; }
+  .app-shell .journal-day-group { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 10px 12px; }
+  .app-shell .journal-day-date { flex-direction: row; gap: 7px; padding: 0 0 4px; }
+}
+@media (max-width: 370px) {
+  .app-shell .sidebar { padding-inline: 12px; }
+  .app-shell .brand strong { font-size: 22px; }
+  .app-shell .brand-mark { width: 27px; height: 27px; }
+  .app-shell .reference-mobile-nav { flex-basis: 148px; width: 148px; font-size: 17px; }
+  .workspace-body { padding-inline: 12px; }
+  .app-shell .workspace > .topbar { padding-inline: 12px; }
+}

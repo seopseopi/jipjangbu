@@ -97,14 +97,15 @@ test("매물·고객 목록은 다른 조건 조회 중과 오류에서 이전 �
       if (View === Listings) assert.match(html, /aria-label="다음 페이지" disabled=""/);
       assert.match(html, status === "loading" ? /조회 중…/ : /조회 실패/);
       assert.match(html, status === "loading" ? /role="status"/ : /role="alert"/);
-      assert.doesNotMatch(html, /class="count-badge">1[건명]/);
+      assert.doesNotMatch(html, View === Listings ? /class="reference-total">매물 <strong>1<\/strong>건/ : /class="count-badge">1명/);
     }
     const ready = renderToStaticMarkup(React.createElement(View, { ...props, status: "ready", items: [] }));
     assert.ok(ready.includes(empty));
-    assert.match(ready, /class="count-badge">0[건명]/);
+    assert.match(ready, View === Listings ? /class="reference-total">매물 <strong>0<\/strong>건/ : /class="count-badge">0명/);
     assert.doesNotMatch(ready, /조회 실패|role="alert"/);
     const refreshing = renderToStaticMarkup(React.createElement(View, { ...props, status: "refreshing" }));
     assert.ok(refreshing.includes(marker));
+    assert.match(refreshing, View === Listings ? /class="reference-total">매물 <strong>1<\/strong>건/ : /class="count-badge">1명/);
     assert.match(refreshing, /같은 조건의 이전 결과/);
     assert.doesNotMatch(refreshing, /CSV|export-button/);
     if (View === Listings) assert.match(refreshing, /aria-label="다음 페이지" disabled=""/);
@@ -146,7 +147,7 @@ test("매물 정렬 선택·요약·모바일 제목 버튼은 같은 정렬 상
     assert.deepEqual(React.Children.toArray(select.props.children).map((item) => item.props.value), ["type", "type-desc", "building", "building-desc", "recent", "updated", "oldest"]);
     select.props.onChange({ target: { value: "updated" } });
     assert.deepEqual(changed, ["updated"]);
-    const summary = descendants(tree).find((item) => item.props.className === "sort-summary");
+    const summary = descendants(tree).find((item) => item.props.className?.split(/\s+/).includes("sort-summary"));
     assert.equal(renderToStaticMarkup(summary).includes("진행 중 우선"), ["recent", "updated", "oldest"].includes(sort));
     const mobile = descendants(tree).find((item) => item.props.className === "listing-mobile-sort");
     assert.equal(mobile.props["aria-label"], "매물 정렬 기준");
@@ -166,30 +167,39 @@ test("매물관리 초기화는 상태·가격을 전체로 되돌리고 상태 
   assert.deepEqual(changes, [["setQuery", ""], ["setListingStatuses", []], ["setListingPrices", []], ["setPropertyTypeFilter", ""], ["setListingSort", "type"]]);
   assert.match(source, /\[listingStatuses, setListingStatuses\] = useState<string\[\]>\(\[\]\)/);
   const base = Listings({ ...listingProps, query: "", sort: "type", statuses: [] });
-  assert.equal(descendants(base).some((item) => item.props.className === "filter-reset"), false);
-  const sorted = [], states = [];
-  const view = Listings({ ...listingProps, statuses: ["매물등록"], sort: "oldest", setStatuses: (value) => states.push(value), setSort: (value) => sorted.push(value) });
-  const options = descendants(view).find((item) => item.props["aria-label"] === "매물 상태 필터");
+  assert.equal(descendants(base).some((item) => item.type === "button" && renderToStaticMarkup(item).includes("조건 초기화")), false);
+  const sorted = [], states = [], resets = [];
+  const view = Listings({ ...listingProps, statuses: ["매물등록"], sort: "oldest", setStatuses: (value) => states.push(value), setSort: (value) => sorted.push(value), onReset: () => resets.push(true) });
+  const options = descendants(view).find((item) => item.props.role === "group" && item.props["aria-label"] === "매물 상태 필터");
   assert.doesNotMatch(renderToStaticMarkup(options), /active|closed|stale/);
   const extra = descendants(options).find((item) => item.type === "label" && renderToStaticMarkup(item).includes("잔금"));
   descendants(extra).find(item => item.type === "input").props.onChange({ target: { checked: true } });
   assert.deepEqual(states, [["매물등록", "잔금"]]);
   assert.deepEqual(sorted, []);
+  button(view, "조건 초기화").props.onClick();
+  assert.deepEqual(resets, [true]);
   const other = Listings({ ...listingProps, items: [{ ...listing, status: "잔금" }] });
   assert.ok(descendants(other).some(item => item.props.className === "table-row is-other-status"));
 });
 
-test("매물 목록은 CSV 없이 이름·종류·상태 셀과 원래 이력 연결을 유지한다", () => {
+test("매물 목록은 CSV 없이 이름·가격·타입·상태·날짜·메모 6열과 원래 이력 연결을 유지한다", () => {
   const items = [
-    { ...listing, id: "villa", property_type: "빌라", building_name: "가람", building_dong: "2", unit_number: "10" },
-    { ...listing, id: "apartment", property_type: "아파트", building_name: "나래", building_dong: "10", unit_number: "2" },
+    { ...listing, id: "villa", property_type: "빌라", building_name: "가람", building_dong: "2", unit_number: "10", size_type: "84A", sale_price: "45000", notes: "합성 빌라 메모" },
+    { ...listing, id: "apartment", property_type: "아파트", building_name: "나래", building_dong: "10", unit_number: "2", size_type: "59", notes: "합성 아파트 메모" },
   ];
   const opened = [];
   const tree = Listings({ ...listingProps, items, sort: "type", onHistory: (item) => opened.push(item) });
   assert.doesNotMatch(renderToStaticMarkup(tree), /CSV|export-button/);
   const rows = descendants(tree).filter((item) => item.props.className === "table-row");
-  assert.deepEqual(React.Children.toArray(rows[0].props.children).map((item) => item.props["data-label"]), ["이름", "가격", "상태", "등록·말소"]);
-  assert.match(renderToStaticMarkup(React.Children.toArray(rows[0].props.children)[0]), /가람 2동 10호/);
+  const cells = React.Children.toArray(rows[0].props.children);
+  assert.deepEqual(cells.map((item) => item.props["data-label"]), ["이름", "가격", "타입", "상태", "등록·말소", "메모"]);
+  const [name, address] = React.Children.toArray(cells[0].props.children);
+  assert.equal(name.type, "b");
+  assert.equal(name.props.children, "가람");
+  assert.equal(address.type, "small");
+  assert.equal(address.props.children, "2동 · 10호 · 빌라");
+  assert.equal(cells[2].props.children, "84A");
+  assert.match(renderToStaticMarkup(cells[5]), /합성 빌라 메모/);
   const typeCell = descendants(rows[0]).find((item) => item.props["data-label"] === "매물종류");
   assert.ok(typeCell, "the property type stays below its address rather than disappearing");
   assert.match(renderToStaticMarkup(typeCell), /빌라/);

@@ -134,6 +134,22 @@ export function StructureView({
   };
   return (
     <div className="structures structure-fit-screen">
+      <div className="reference-page-heading structure-page-actions">
+        <div><h1>집 구조 보기</h1></div>
+        <button
+          type="button"
+          className="secondary-button"
+          aria-label={manager ? "관리 닫기" : "도면 관리"}
+          aria-pressed={manager}
+          onClick={() => {
+            setSourceSelection(undefined);
+            setManager((v) => !v);
+          }}
+        >
+          <Settings2 size={17} />
+          <span>{manager ? "닫기" : "도면 관리"}</span>
+        </button>
+      </div>
       <div className="structure-selectors">
         <label>
           단지
@@ -205,19 +221,6 @@ export function StructureView({
             ))}
           </select>
         </label>
-        <button
-          type="button"
-          className="secondary-button"
-          aria-label={manager ? "관리 닫기" : "도면 관리"}
-          aria-pressed={manager}
-          onClick={() => {
-            setSourceSelection(undefined);
-            setManager((v) => !v);
-          }}
-        >
-          <Settings2 size={17} />
-          <span>{manager ? "닫기" : "도면 관리"}</span>
-        </button>
       </div>
       {error && (
         <p className="form-error" role="alert">

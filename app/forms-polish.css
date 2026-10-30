@@ -1,0 +1,124 @@
+/* Match the approved inset drawers and section rows without changing form behavior. */
+.modal-card.reading,
+.modal-card.reading.side-panel {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  bottom: 16px;
+  width: min(580px, calc(100vw - 32px));
+  height: calc(100dvh - 32px);
+  min-height: 0;
+  max-height: calc(100dvh - 32px);
+  margin: 0;
+  border: 1px solid #c8d1dd;
+  border-radius: 14px;
+  box-shadow: 0 16px 60px #26354626;
+}
+.modal-card.reading > .modal-body { flex: 1 1 0; min-width: 0; min-height: 0; }
+.modal-card.reading > header h2 { font-size: 24px; line-height: 1.4; }
+.modal-backdrop:has(> .modal-card > .modal-body > .work-form) { padding: 16px; }
+.modal-backdrop > .modal-card:has(> .modal-body > .work-form) { width: min(1080px, 100%); max-width: 100%; max-height: calc(100dvh - 32px); }
+.work-form .detail-head { flex-wrap: wrap; }
+.work-form .detail-head > div, .work-form .field-label, .customer-form .modal-actions > span { min-width: 0; }
+.work-form .detail-head .secondary-button,
+.work-form .detail-history-tools button,
+.work-form .modal-actions button,
+.customer-form .modal-actions button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.related-history-heading > div,
+.listing-picker-header > div,
+.history-record-meta > span { min-width: 0; overflow-wrap: anywhere; }
+.history-record-toggle,
+.listing-picker-row > button,
+.work-read-actions > button { min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.work-read-view { container: work-reader / inline-size; }
+.work-read-meta, .work-read-type, .work-read-actions { min-width: 0; max-width: 100%; }
+.work-read-type { white-space: normal; overflow-wrap: anywhere; }
+@container work-reader (max-width: 650px) {
+  .work-read-view .work-read-columns { display: none; }
+  .work-read-view .work-read-property { grid-template-columns: 22px minmax(0, 1fr); gap: 6px 10px; padding-block: 14px; }
+  .work-read-view .work-read-number { grid-column: 1; grid-row: 1; }
+  .work-read-view .work-read-address { grid-column: 2; grid-row: 1; }
+  .work-read-view .work-read-prices,
+  .work-read-view .work-read-price-empty { grid-column: 2; grid-row: 2; }
+  .work-read-view .work-read-prices { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .work-read-view .work-read-prices > div { grid-template-columns: auto minmax(0, 1fr); min-width: 0; max-width: 100%; }
+  .work-read-view .work-read-source { display: flex; flex-wrap: wrap; gap: 2px 8px; grid-column: 2; grid-row: 3; }
+  .work-read-view .work-read-source dt { display: block; }
+  .work-read-view .work-read-source dd { min-width: 0; }
+  .work-read-view .work-read-property-actions { grid-column: 2; grid-row: 4; justify-content: flex-start; margin-top: 0; }
+  .work-read-view .work-read-property-actions .work-read-link { min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+}
+/* Settings keep the reference's label/content rows, including every backup action. */
+.settings-stack.settings-renewal { display: grid; gap: 12px; width: 100%; max-width: 1100px; min-width: 0; container: settings-area / inline-size; }
+.settings-renewal > .settings-section { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 20px; min-width: 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.settings-renewal > .settings-section > h2 { margin: 3px 0 0; color: #303e52; font-size: max(20px, var(--text-base)); font-weight: 600; line-height: 1.5; }
+.settings-renewal > .settings-section > h2 small { display: block; color: #52627a; font-size: var(--text-caption); font-weight: 450; }
+.settings-section-content { min-width: 0; }
+.settings-renewal .settings-items { color: var(--ink-2); font-size: var(--text-base); line-height: 1.85; overflow-wrap: anywhere; }
+.settings-renewal .settings-section-note { margin: 8px 0 0; color: var(--muted); font-size: var(--text-caption); line-height: 1.65; }
+.settings-renewal .building-groups { padding: 0; }
+.settings-renewal .building-groups summary { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 8px 12px; min-height: 44px; padding: 9px 0; }
+.settings-renewal .building-groups summary small { margin: 0; }
+.settings-renewal .building-name-list { gap: 5px 16px; padding: 0 0 12px 30px; }
+.settings-renewal .building-name-list li { padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--ink-2); font-size: var(--text-small); }
+.settings-addition { margin-top: 10px; }
+.settings-addition > summary { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: #365678; font-size: var(--text-small); cursor: pointer; list-style: none; }
+.settings-addition > summary::-webkit-details-marker { display: none; }
+.settings-addition[open] > summary .ui-icon { transform: rotate(45deg); }
+.settings-renewal .settings-addition-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; min-width: 0; padding: 10px 0 0; }
+.settings-addition-form label { min-width: 0; }
+.settings-addition-form .primary-button { grid-column: 1 / -1; justify-self: start; min-width: 90px; max-width: 100%; white-space: normal; }
+.settings-renewal .backup-panel { min-width: 0; }
+.settings-renewal .backup-head { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; padding: 0 0 12px; border: 0; }
+.settings-renewal .backup-head > div { min-width: 0; }
+.settings-renewal .backup-head > div > span { max-width: none; margin: 0; }
+.settings-renewal .backup-head > .primary-button { order: -1; width: auto; max-width: 100%; white-space: normal; }
+.settings-renewal .backup-row { flex-wrap: wrap; gap: 10px 16px; padding: 12px 0; }
+.settings-renewal .backup-row > div { flex: 1 1 220px; min-width: 0; overflow-wrap: anywhere; }
+.settings-renewal .backup-row > button { min-width: 0; max-width: 100%; white-space: normal; }
+.settings-renewal .backup-row .record-date { white-space: normal; overflow-wrap: anywhere; }
+.settings-renewal .backup-row span { font-size: var(--text-caption); }
+.settings-renewal .backup-latest { min-width: 0; padding: 12px 0; background: transparent; }
+.settings-renewal .backup-latest > span { min-width: 0; overflow-wrap: anywhere; }
+.settings-renewal .backup-download-help { padding: 10px 0; }
+.settings-renewal .backup-empty { padding: 18px 0; }
+.settings-renewal .backup-show-more { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 5px; width: auto; max-width: 100%; margin: 12px 0 0; white-space: normal; }
+.settings-renewal .backup-show-more small { margin: 0; font-size: var(--text-caption); }
+.settings-renewal .backup-message,
+.settings-renewal .backup-action-error,
+.settings-renewal .backup-load-error { border-radius: 8px; overflow-wrap: anywhere; }
+@container settings-area (max-width: 700px) {
+  .settings-renewal > .settings-section { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px; }
+  .settings-renewal > .settings-section > h2 small { display: inline; margin-left: 7px; }
+}
+@container settings-area (max-width: 430px) {
+  .settings-renewal .settings-addition-form { grid-template-columns: minmax(0, 1fr); }
+}
+/* Search results fold according to their own available width rather than just the window. */
+.global-search-dialog { min-width: 0; container: global-search-results / inline-size; }
+.global-search-dialog .global-search-result { min-width: 0; max-width: 100%; }
+.global-search-dialog .global-search-result > span { min-width: 0; }
+.global-search-group-head { flex-wrap: wrap; gap: 5px 10px; }
+.global-search-group-head h3 { font-size: var(--text-small); }
+.global-search-group-head > span,
+.global-search-idle p,
+.global-search-loading p,
+.global-search-empty p,
+.global-search-error p { font-size: var(--text-caption); }
+@container global-search-results (max-width: 640px) {
+  .global-search-dialog .global-search-result { grid-template-columns: minmax(0, 1fr) 18px; gap: 6px 10px; }
+  .global-search-dialog .global-search-result-copy { grid-column: 1; grid-row: 1; }
+  .global-search-dialog .global-search-result-meta { grid-column: 1; grid-row: 2; justify-self: start; max-width: 100%; }
+  .global-search-dialog .global-search-result-arrow { grid-column: 2; grid-row: 1 / span 3; }
+  .global-search-dialog .global-search-work .global-search-result-date { grid-column: 1; grid-row: 1; margin: 0; }
+  .global-search-dialog .global-search-work .global-search-result-copy { grid-row: 2; }
+  .global-search-dialog .global-search-work .global-search-result-meta { grid-row: 3; }
+}
+.safety-dialog-heading h2 { overflow-wrap: anywhere; }
+.safety-dialog-actions > button { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+@media (max-width: 720px) {
+  .modal-card.reading, .modal-card.reading.side-panel { top: 10px; right: 10px; bottom: 10px; width: calc(100vw - 20px); height: calc(100dvh - 20px); max-height: calc(100dvh - 20px); border-radius: 14px; }
+  .modal-card.reading > .modal-body { padding: 16px; }
+  .modal-backdrop:has(> .modal-card > .modal-body > .work-form) { display: grid; place-items: center; padding: 10px; }
+  .modal-backdrop > .modal-card:has(> .modal-body > .work-form) { height: auto; max-height: calc(100dvh - 20px); border-radius: 14px; }
+}
