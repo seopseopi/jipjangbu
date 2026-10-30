@@ -20,7 +20,7 @@ export function StructureManager({
   sourceSelection?: SourceSelection;
   property?: PropertyRow;
   unit?: Catalog["units"][number];
-  onSaved: () => void;
+  onSaved: (focusKey?: string) => void;
 }) {
   const [tab, setTab] = useState(sourceSelection ? "revision" : "assign"),
     [processedRevision, setProcessedRevision] = useState<RevisionData | null>(
@@ -180,6 +180,24 @@ export function StructureManager({
   }
   return (
     <div className="structure-manager">
+      <button
+        type="button"
+        className="secondary-button"
+        disabled={busy}
+        onClick={async () => {
+          setBusy(true);
+          setError("");
+          try {
+            const result = await clientJsonFetch<{linked:number;firstIdentityKey:string;errors:unknown[]}>("/api/structures/import", {method:"POST"});
+            if (result.errors.length) setError(`${result.linked}건 연결. ${result.errors.length}건은 원본·연결 상태를 확인해 주세요.`);
+            else if (!result.linked) setError("새로 연결할 단일 타입 매물이 없습니다.");
+            if (result.linked && !result.errors.length) onSaved(result.firstIdentityKey);
+          } catch (error) { setError((error as Error).message); }
+          finally { setBusy(false); }
+        }}
+      >
+        {busy ? "처리 중…" : "현재 매물 도면 연결"}
+      </button>
       <label>
         작업
         <select

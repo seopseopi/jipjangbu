@@ -1,4 +1,16 @@
 import type { Catalog, PropertyRow } from "./contracts";
+import { apartmentSources, APARTMENT_SOURCES } from "./source-contract.ts";
+
+function knownComplex(catalog: Catalog, name: string) {
+  const sources = apartmentSources(name);
+  const matches = catalog.complexes.filter((c) => sources.some((s) => s.name === c.name && s.address === c.address));
+  return matches.length === 1 ? matches[0] : undefined;
+}
+export function structureGroupKey(catalog: Catalog, property: PropertyRow) {
+  const linked = linkedStructureUnit(catalog, property.identity_key);
+  const id = linked?.complex_id ?? knownComplex(catalog, property.building_name)?.id;
+  return id ? `complex:${id}` : `listing:${property.building_name}`;
+}
 
 export function linkedStructureUnit(catalog: Catalog, propertyKey: string) {
   return catalog.units.find(
@@ -14,14 +26,14 @@ export function structureGroups(catalog: Catalog) {
   );
   const registered = catalog.complexes.map((c) => ({
     key: `complex:${c.id}`,
-    name: c.name,
+    name: APARTMENT_SOURCES.find((s) => s.name === c.name && s.address === c.address)?.alias ?? c.name,
     address: c.address,
     properties: catalog.properties.filter(
-      (p) => linked.get(p.identity_key)?.complex_id === c.id,
+      (p) => (linked.get(p.identity_key)?.complex_id ?? knownComplex(catalog, p.building_name)?.id) === c.id,
     ),
     units: catalog.units.filter((u) => u.complex_id === c.id),
   }));
-  const pending = catalog.properties.filter((p) => !linked.get(p.identity_key));
+  const pending = catalog.properties.filter((p) => !linked.get(p.identity_key) && !knownComplex(catalog, p.building_name));
   return [
     ...registered,
     ...[
@@ -29,7 +41,7 @@ export function structureGroups(catalog: Catalog) {
         ...pending.map((p) => p.building_name),
         ...(catalog.managedBuildings ?? [])
           .map((b) => b.building_name)
-          .filter((name) => !catalog.complexes.some((c) => c.name === name)),
+          .filter((name) => !catalog.complexes.some((c) => c.name === name) && !knownComplex(catalog, name)),
       ]),
     ].map((name) => ({
       key: `listing:${name}`,
