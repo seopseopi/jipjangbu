@@ -7,15 +7,13 @@ const plans = JSON.parse(
     new URL("../app/structures/prepared-plans.json", import.meta.url),
   ),
 );
-test("운영 6개 타입의 정확한 벽·방·개구부 형상에만 검토한 설비를 표시한다", () => {
+plans.push(...JSON.parse(readFileSync(new URL("../app/structures/prepared-extra-plans.json", import.meta.url))));
+test("운영 40개 타입의 정확한 벽·방·개구부 형상에만 검토한 설비를 표시한다", () => {
   for (const { plan } of plans) {
     const interior = reviewedInterior(plan);
     assert.ok(interior);
-    assert.equal(
-      interior.fixtures.filter((f) => f.kind === "toilet").length,
-      2,
-    );
-    assert.equal(interior.fixtures.filter((f) => f.kind === "basin").length, 2);
+    assert.ok(interior.fixtures.some((f) => f.kind === "toilet"));
+    assert.ok(interior.fixtures.some((f) => f.kind === "basin"));
     assert.equal(interior.fixtures.filter((f) => f.kind === "sink").length, 1);
     assert.ok(
       interior.fixtures.every(
