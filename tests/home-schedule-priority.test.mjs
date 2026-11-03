@@ -280,3 +280,36 @@ test("홈 연결 매물은 주소 옆에 매매·전세·월세 원문을 모두
   assert.ok(html(line).includes("101동 203호"));
   assert.ok(html(line).includes("매매 4.3억 협의 · 전세 3억 · 월세 3000/115"));
 });
+
+test("오늘·다가오는 일정은 연결 매물 전체와 가격·타입·출처를 펼쳐 보이고 원래 매물 이력으로 연결한다", () => {
+  const properties = Array.from({ length: 8 }, (_, index) => ({ id: `home-property-${index}`, property_type: "아파트", building_name: `합성단지${index}`, building_dong: String(101 + index), unit_number: String(201 + index), size_type: "84A", sale_price: "4.1억 협의", jeonse_price: "3억", monthly_rent: "3000/115", source: `합성업소${index}` }));
+  properties.push({ ...properties[0], id: "home-land", property_type: "토지", building_name: "합성리 123-4", building_dong: "", unit_number: "" });
+  properties.push({ ...properties[0], id: "home-incomplete", building_name: "호수 미입력 합성단지", unit_number: "" });
+  const make = (id, date) => ({ ...work(id, date), customer_name: "부동산", customer_id: "합성 중개사", property_count: properties.length, properties_json: JSON.stringify(properties) });
+  const today = make("today-linked", "2026-09-13"), upcoming = make("upcoming-linked", "2026-09-14"), opened = [], homes = [];
+  const tree = render({ dashboard: { ...dashboard, today: [today], upcoming: [upcoming], recent: [] }, onOpen: id => opened.push(id), onListingHistory: item => homes.push(item) });
+  const schedule = descendants(tree).find(node => node.props.className === "panel home-schedule");
+  const contexts = descendants(schedule).filter(node => node.props.className === "home-schedule-properties");
+  assert.equal(contexts.length, 2);
+  for (const context of contexts) {
+    assert.equal(descendants(context).filter(node => node.props.className === "reference-recent-property-line").length, 10);
+    const markup = html(context);
+    assert.doesNotMatch(markup, /<details|外|외 \d+건/);
+    assert.match(markup, /연결 매물 10건/);
+    for (const property of properties) assert.ok(markup.includes(workPropertyLabel(property, true)));
+    assert.match(markup, /매매 4.1억 협의 · 전세 3억 · 월세 3000\/115/);
+    assert.match(markup, /아파트 · 84A/);
+    assert.match(markup, /토지 · 84A/);
+    descendants(context).filter(node => node.type === "button").forEach(node => node.props.onClick());
+  }
+  assert.equal(homes.length, 18);
+  for (const [index, item] of homes.entries()) {
+    assert.equal(item.id, index < 9 ? today.id : upcoming.id);
+    assert.equal(item.building_name, properties[index % 9].building_name);
+    assert.equal(item.unit_number, properties[index % 9].unit_number);
+    assert.equal(item.sale_price, properties[index % 9].sale_price);
+  }
+  for (const button of descendants(schedule).filter(node => node.props.className === "home-schedule-item")) button.props.onClick();
+  assert.deepEqual(opened, [today.id, upcoming.id]);
+  for (const button of descendants(schedule).filter(node => node.type === "button")) assert.equal(descendants(button).filter(node => node.type === "button").length, 1, "property links must not be nested inside the work button");
+});

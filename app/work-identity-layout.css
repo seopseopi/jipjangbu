@@ -16,6 +16,13 @@
 .app-shell .reference-recent-properties > div > .reference-recent-property-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 12px; min-height: 32px; padding: 0; }
 .app-shell .reference-recent-property-line > button { display: inline-flex; flex: 0 1 auto; min-width: 0; max-width: 100%; min-height: 32px; padding: 2px 0; border: 0; background: transparent; color: #365678; font-size: var(--text-small); line-height: 1.6; text-align: left; overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: 3px; }
 .app-shell .reference-recent-property-line > .work-property-price { display: inline; flex: 0 1 auto; min-width: 0; margin: 0; color: #34465f; font-size: var(--text-small); line-height: 1.6; }
+.app-shell .home-schedule-properties { min-width: 0; padding: 0 4px 12px; border-bottom: 1px solid #dce2eb; }
+.app-shell .home-schedule-day li:last-child > .home-schedule-properties { padding-bottom: 4px; border-bottom: 0; }
+.app-shell .home-schedule-day li:has(> .home-schedule-properties) > .home-schedule-item { padding-bottom: 5px; border-bottom: 0; }
+.app-shell .home-schedule-property-heading { display: block; margin-bottom: 3px; color: #526176; font-size: var(--text-caption); font-weight: 500; }
+.app-shell .home-schedule-properties > div { display: grid; gap: 3px; min-width: 0; }
+.app-shell .home-schedule-properties .reference-recent-property-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 12px; min-width: 0; }
+.app-shell .schedule-property-type { color: #526176; font-size: var(--text-caption); line-height: 1.6; overflow-wrap: anywhere; }
 @container journal-reading (min-width: 800px) {
   .app-shell[data-view="journal"] .journal-day-list .work-record-body.has-properties { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; }
   .app-shell[data-view="journal"] .journal-day-list .work-record-body.has-properties .work-record-content { grid-template-columns: 48px minmax(0, 1fr); }

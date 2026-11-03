@@ -49,4 +49,5 @@ assert.ok(imports.indexOf("renewal.css") < imports.indexOf("reference-layout.css
 assert.ok(imports.indexOf("work-form-renewal.css") < imports.indexOf("forms-polish.css"));
 assert.ok(imports.indexOf("journal-readability.css") < imports.indexOf("work-identity-layout.css"), "customer identity and inline property-price rules must follow journal overrides");
 assert.ok(compiled.includes(".reference-recent-property-line"), "home property rows must ship in the first server-loaded stylesheet");
+assert.ok(compiled.includes(".home-schedule-properties"), "today and upcoming property context must ship with the initial home layout");
 console.log(`Verified one server-loaded stylesheet, ${visited.size} source stylesheets and no late client CSS.`);

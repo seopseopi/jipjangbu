@@ -1853,6 +1853,12 @@ function DashboardView({
     else days.push([item.work_date, [item]]);
   }
   const weekday = (date: string) => new Intl.DateTimeFormat("ko-KR", { weekday: "short", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`));
+  const propertyRows = (item: WorkSummary, showType = false) => getWorkProperties(item).map((property, index) => {
+    const label = workPropertyLabel(property, true);
+    const prices = [["매매", property.sale_price], ["전세", property.jeonse_price], ["월세", property.monthly_rent]].filter(([, value]) => value.trim()).map(([kind, value]) => `${kind} ${value}`).join(" · ");
+    const type = showType ? [property.property_type, property.size_type].filter(Boolean).join(" · ") : "";
+    return <span className="reference-recent-property-line" key={property.id || index}>{property.property_type.trim() && property.building_name.trim() && (property.property_type.trim() === "토지" || property.unit_number.trim()) ? <button type="button" onClick={() => onListingHistory({ ...item, ...property, id: item.id })}>{label}</button> : <span>{label}</span>}{prices && <span className="work-property-price">{prices}</span>}{type && <span className="schedule-property-type">{type}</span>}</span>;
+  });
   const scheduleItem = (item: WorkSummary) => (
     <li key={item.id}>
       <button type="button" className="home-schedule-item" onClick={() => onOpen(item.id)}>
@@ -1863,6 +1869,11 @@ function DashboardView({
         </span>
         {item.content && <span className="home-schedule-note">{item.content}</span>}
       </button>
+      {getWorkProperties(item).length > 0 && <div className="home-schedule-properties" aria-label="연결 매물">
+        <strong className="home-schedule-property-heading">연결 매물 {Math.max(item.property_count || 0, getWorkProperties(item).length)}건</strong>
+        <div>{propertyRows(item, true)}</div>
+        {item.property_count > getWorkProperties(item).length && <span className="schedule-property-type">전체 매물 정보는 업무 내용을 열어 확인하세요.</span>}
+      </div>}
     </li>
   );
   return (
@@ -1906,11 +1917,7 @@ function DashboardView({
           <div>
             <div className="reference-recent-heading"><button type="button" onClick={() => onCustomerHistory({ id: item.customer_id, name: item.customer_name })}>{item.customer_name}{item.customer_id && <small className="work-customer-id">{item.customer_id}</small>}</button><button type="button" onClick={() => onOpen(item.id)}>{item.work_type}</button></div>
             <button type="button" className="reference-recent-open" onClick={() => onOpen(item.id)}><span className="reference-recent-note">{item.content || "기록된 내용이 없습니다."}</span></button>
-            {getWorkProperties(item).length > 0 && <details className="reference-recent-properties"><summary>연결 매물 {item.property_count}건</summary><div>{getWorkProperties(item).map((property, index) => {
-              const label = workPropertyLabel(property, true);
-              const prices = [["매매", property.sale_price], ["전세", property.jeonse_price], ["월세", property.monthly_rent]].filter(([, value]) => value.trim()).map(([kind, value]) => `${kind} ${value}`).join(" · ");
-              return <span className="reference-recent-property-line" key={property.id || index}>{property.property_type.trim() && property.building_name.trim() && (property.property_type.trim() === "토지" || property.unit_number.trim()) ? <button type="button" onClick={() => onListingHistory({ ...item, ...property, id: item.id })}>{label}</button> : <span>{label}</span>}{prices && <span className="work-property-price">{prices}</span>}</span>;
-            })}</div></details>}
+            {getWorkProperties(item).length > 0 && <details className="reference-recent-properties"><summary>연결 매물 {item.property_count}건</summary><div>{propertyRows(item)}</div></details>}
           </div>
         </article>) : <EmptyState title="최근 기록한 업무가 없습니다." />}</div>
       </section>
