@@ -313,3 +313,12 @@ test("오늘·다가오는 일정은 연결 매물 전체와 가격·타입·출
   assert.deepEqual(opened, [today.id, upcoming.id]);
   for (const button of descendants(schedule).filter(node => node.type === "button")) assert.equal(descendants(button).filter(node => node.type === "button").length, 1, "property links must not be nested inside the work button");
 });
+
+test("다가오는 일정이 14건이어도 모든 일정과 각 일정의 연결 매물을 자르지 않는다", () => {
+  const upcoming = Array.from({ length: 14 }, (_, index) => ({ ...work(`upcoming-${index}`, `2026-09-${String(14 + index % 7).padStart(2, '0')}`), property_count: 1, properties_json: JSON.stringify([{ property_type: "아파트", building_name: `합성일정단지${index}`, building_dong: "101", unit_number: String(201 + index), sale_price: "4.3억" }]) }));
+  const tree = render({ dashboard: { ...dashboard, today: [], recent: [], upcoming, metrics: { ...dashboard.metrics, upcoming_count: 14 } } });
+  const schedule = descendants(tree).find(node => node.props.className === "panel home-schedule");
+  assert.equal(descendants(schedule).filter(node => node.props.className === "home-schedule-item").length, 14);
+  assert.equal(descendants(schedule).filter(node => node.props.className === "reference-recent-property-line").length, 14);
+  for (let index = 0; index < 14; index++) assert.ok(html(schedule).includes(`합성일정단지${index} 101동 ${201 + index}호`));
+});

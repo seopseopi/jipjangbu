@@ -241,7 +241,7 @@ test("오늘 업무는 업무구분보다 최근 수정순을 먼저 적용하�
   assert.deepEqual(ids((await (await bootstrapRoute.GET()).json()).today), ids(result.today));
 });
 
-test("앞으로 7일은 우선 정렬 후 6건을 고르고 전체 보기·페이지·업무 현황도 같은 순서를 유지한다", async (t) => {
+test("앞으로 7일은 6건으로 자르지 않고 전체 일정을 우선 정렬하며 전체 보기·페이지와 순서가 같다", async (t) => {
   const { date, customer, work } = database(t);
   customer("customer", "합성 고객");
   // Eight earlier ordinary appointments would hide all priorities if the
@@ -264,7 +264,7 @@ test("앞으로 7일은 우선 정렬 후 6건을 고르고 전체 보기·페�
   work("cancelled-visit", "customer", date(2), date(), date(), "집방문예약취소");
   const expected = ["visit-reserved", "visit-planned", "balance-soon", "balance-a", "balance-z", "balance-new", ...Array.from({ length: 8 }, (_, index) => `ordinary-${index}`)];
   const home = await (await bootstrapRoute.GET()).json();
-  assert.deepEqual(ids(home.upcoming), expected.slice(0, 6));
+  assert.deepEqual(ids(home.upcoming), expected);
   assert.equal(home.metrics.upcoming_count, expected.length);
   const paged = [];
   for (const offset of [0, 4, 8, 12, 16]) {

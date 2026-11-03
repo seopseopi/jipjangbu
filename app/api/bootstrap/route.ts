@@ -29,7 +29,7 @@ export async function GET() {
         `${WORK_SUMMARY_SQL} WHERE ${HOME_RECENT_WHERE} ORDER BY ${WORK_RECENT_ORDER} LIMIT 8`,
       ),
       db.prepare(
-        `${WORK_SUMMARY_SQL} WHERE w.work_date > date('now','+9 hours') AND w.work_date <= date('now','+9 hours','+7 days') AND (w.work_type LIKE '%예정' OR w.work_type LIKE '%예약') ORDER BY ${HOME_UPCOMING_ORDER} LIMIT 6`,
+        `${WORK_SUMMARY_SQL} WHERE w.work_date > date('now','+9 hours') AND w.work_date <= date('now','+9 hours','+7 days') AND (w.work_type LIKE '%예정' OR w.work_type LIKE '%예약') ORDER BY ${HOME_UPCOMING_ORDER}`,
       ),
     ]);
     const { has_real_work, ...metrics } = metricRows.results[0];
