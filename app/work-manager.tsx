@@ -1859,7 +1859,7 @@ function DashboardView({
         <span className="home-schedule-line">
           <i className={`tag ${statusTone(item.work_type)}`}>{item.work_type}</i>
           <strong>{item.customer_name}</strong>
-          {item.customer_id && <span className="schedule-customer-id">ID {item.customer_id}</span>}
+          {item.customer_id && <span className="schedule-customer-id">{item.customer_id}</span>}
         </span>
         {item.content && <span className="home-schedule-note">{item.content}</span>}
       </button>
@@ -1904,7 +1904,7 @@ function DashboardView({
         <div className="reference-recent-list">{dashboard.recent.length ? dashboard.recent.map(item => <article className="reference-recent-row" key={item.id}>
           <time dateTime={item.work_date}>{displayDate(item.work_date).slice(5)}</time>
           <div>
-            <div className="reference-recent-heading"><button type="button" onClick={() => onCustomerHistory({ id: item.customer_id, name: item.customer_name })}>{item.customer_name}{item.customer_id && <small className="work-customer-id">ID {item.customer_id}</small>}</button><button type="button" onClick={() => onOpen(item.id)}>{item.work_type}</button></div>
+            <div className="reference-recent-heading"><button type="button" onClick={() => onCustomerHistory({ id: item.customer_id, name: item.customer_name })}>{item.customer_name}{item.customer_id && <small className="work-customer-id">{item.customer_id}</small>}</button><button type="button" onClick={() => onOpen(item.id)}>{item.work_type}</button></div>
             <button type="button" className="reference-recent-open" onClick={() => onOpen(item.id)}><span className="reference-recent-note">{item.content || "기록된 내용이 없습니다."}</span></button>
             {getWorkProperties(item).length > 0 && <details className="reference-recent-properties"><summary>연결 매물 {item.property_count}건</summary><div>{getWorkProperties(item).map((property, index) => {
               const label = workPropertyLabel(property, true);
@@ -2052,7 +2052,7 @@ function WorkTable({
         const groups = getPropertyDisplayGroups(properties);
         return <article className="table-row work-record-row" key={item.id}>
           <div className="work-record-meta">
-            <span data-label="고객" className="work-record-customer"><span className="work-record-meta-label">고객</span><button type="button" className="work-record-customer-link" onClick={() => onCustomerHistory({ id: item.customer_id, name: item.customer_name })} aria-label={`${item.customer_name}${item.customer_id ? ` · ${item.customer_id}` : ""} 고객 이력 보기`}><b>{item.customer_name}</b>{item.customer_id && <small className="work-customer-id">ID {item.customer_id}</small>}</button></span>
+            <span data-label="고객" className="work-record-customer"><span className="work-record-meta-label">고객</span><button type="button" className="work-record-customer-link" onClick={() => onCustomerHistory({ id: item.customer_id, name: item.customer_name })} aria-label={`${item.customer_name}${item.customer_id ? ` · ${item.customer_id}` : ""} 고객 이력 보기`}><b>{item.customer_name}</b>{item.customer_id && <small className="work-customer-id">{item.customer_id}</small>}</button></span>
             <span className="work-record-task"><span className="work-record-meta-label">업무</span><button type="button" className={`work-record-open tag ${statusTone(item.work_type)}`} onClick={() => onOpen(item.id)} aria-label={`${item.work_type} 업무 내용 보기`}>{item.work_type}</button></span>
             {!hideDates && <span data-label="일자"><button type="button" className="work-record-date" onClick={() => onOpen(item.id)} aria-label={`${displayDate(item.work_date)} ${item.customer_name} 업무 내용 보기`}><time dateTime={item.work_date}>{displayDate(item.work_date)}</time></button></span>}
           </div>

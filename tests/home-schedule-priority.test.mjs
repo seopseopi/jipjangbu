@@ -98,7 +98,7 @@ test("최근 기록은 고객명을 한 번 표시하며 고객 이력·업무�
   const [customer, workButton] = React.Children.toArray(heading.props.children);
   assert.equal(customer.type, "button");
   assert.equal(React.Children.toArray(customer.props.children)[0], item.customer_name);
-  assert.match(html(customer), /ID synthetic-customer-recent-work/);
+  assert.match(html(customer), /work-customer-id">synthetic-customer-recent-work/);
   assert.equal(html(record).split(item.customer_name).length - 1, 1, "the first-line customer identity is not duplicated below");
   assert.equal(workButton.type, "button");
   assert.equal(workButton.props.children, item.work_type);
@@ -191,7 +191,7 @@ test("홈 일정은 오늘을 먼저, 다가오는 일정을 날짜별로 그 �
   const days = descendants(schedule).filter((item) => /^home-schedule-day/.test(item.props.className ?? "") && item.type === "div");
   assert.equal(days[0].props.className, "home-schedule-day is-today");
   assert.ok(html(days[1]).includes("2026-09-14"));
-  assert.ok(markup.includes("ID synthetic-customer-today-work") && markup.indexOf("합성 업무 내용") > 0);
+  assert.ok(markup.includes("synthetic-customer-today-work") && markup.indexOf("합성 업무 내용") > 0);
 });
 
 test("오늘 건수 버튼은 오늘 전체 업무를 최근 수정순으로 재조회하고 저장 후 갱신도 같은 조건을 유지한다", async () => {
@@ -266,9 +266,10 @@ test("같은 이름의 부동산도 오늘·다가오는 일정·최근 기록�
   const make = (id, date) => ({ ...work(id, date), customer_name: "부동산", customer_id: id });
   const example = { ...dashboard, today: [make("합성-중개사-A", "2026-09-13")], upcoming: [make("합성-중개사-B", "2026-09-14")], recent: [make("합성-중개사-C", "2026-09-12")] };
   const tree = render({ dashboard: example });
-  for (const id of ["합성-중개사-A", "합성-중개사-B", "합성-중개사-C"]) assert.ok(html(tree).includes(`ID ${id}`));
+  for (const id of ["합성-중개사-A", "합성-중개사-B", "합성-중개사-C"]) assert.ok(html(tree).includes(id));
   const links = descendants(tree).filter(node => node.props.className === "reference-recent-heading").flatMap(node => React.Children.toArray(node.props.children));
-  assert.ok(html(links[0]).includes("ID 합성-중개사-C"));
+  assert.ok(html(links[0]).includes("합성-중개사-C"));
+  assert.doesNotMatch(html(tree), />ID /);
 });
 
 test("홈 연결 매물은 주소 옆에 매매·전세·월세 원문을 모두 표시한다", () => {

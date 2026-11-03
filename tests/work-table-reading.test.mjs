@@ -400,7 +400,8 @@ test("부동산 고객명이 같아도 업무일지는 ID와 원래 고객 이�
   const links = byClass(tree, "work-record-customer-link");
   assert.equal(links.length, 2);
   links.forEach((link, index) => {
-    assert.ok(markup(link).includes(`ID ${entries[index].customer_id}`));
+    assert.ok(markup(link).includes(entries[index].customer_id));
+    assert.doesNotMatch(markup(link), />ID /);
     assert.ok(link.props["aria-label"].includes(entries[index].customer_id));
     link.props.onClick();
   });
