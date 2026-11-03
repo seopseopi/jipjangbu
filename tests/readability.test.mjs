@@ -190,3 +190,12 @@ test("큰 업무 배지는 좁은 표와 모바일에서도 줄바꿈할 수 있
     assert.equal(value["overflow-wrap"], "anywhere");
   }
 });
+
+test("연결 매물 가격은 동호수와 같은 행에서 시작하고 좁을 때만 자연스럽게 줄바꿈한다", () => {
+  const prefix = '.app-shell[data-view="journal"] .journal-day-list';
+  const row = style("work-identity-layout", `${prefix} .work-property-list > li`);
+  assert.equal(row.display, "flex");
+  assert.equal(row["flex-wrap"], "wrap");
+  assert.equal(style("work-identity-layout", `${prefix} .work-property-list .history-link`).width, "auto");
+  assert.equal(style("work-identity-layout", `${prefix} .work-property-price`).display, "inline");
+});

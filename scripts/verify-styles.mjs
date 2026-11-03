@@ -47,4 +47,6 @@ assert.ok(imports.indexOf("renewal.css") < imports.indexOf("insights-renewal.css
 assert.ok(imports.indexOf("management-renewal.css") < imports.indexOf("reference-management.css"));
 assert.ok(imports.indexOf("renewal.css") < imports.indexOf("reference-layout.css"));
 assert.ok(imports.indexOf("work-form-renewal.css") < imports.indexOf("forms-polish.css"));
+assert.ok(imports.indexOf("journal-readability.css") < imports.indexOf("work-identity-layout.css"), "customer identity and inline property-price rules must follow journal overrides");
+assert.ok(compiled.includes(".reference-recent-property-line"), "home property rows must ship in the first server-loaded stylesheet");
 console.log(`Verified one server-loaded stylesheet, ${visited.size} source stylesheets and no late client CSS.`);

@@ -36,7 +36,8 @@ test("집장부 핵심 화면과 데이터 기능이 연결되어 있다", async
     assert.match(manager, new RegExp(feature));
   }
   assert.doesNotMatch(manager, /업무 기간 필터|CSV 저장|CSV 준비 중|nav-test-badge/, "removed UI controls stay absent from the renewal");
-  assert.match(manager, /<ResultPagination/);
+  assert.match(manager, /<ListingScrollLoader/);
+  assert.doesNotMatch(manager, /<ResultPagination/);
   assert.match(manager, /이전 페이지/);
   assert.match(manager, /다음 페이지/);
   assert.match(manager, /history\.pushState/);

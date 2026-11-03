@@ -1,0 +1,25 @@
+/* Shared reading rules: identify the customer and keep each home's price beside its address. */
+.app-shell[data-view="journal"] .journal-scroll-list { flex: none; overflow: visible; overscroll-behavior: auto; scrollbar-gutter: auto; }
+.app-shell .schedule-customer-id,
+.app-shell .reference-recent-heading .work-customer-id,
+.app-shell[data-view="journal"] .journal-day-list .work-record-customer-link .work-customer-id { color: #34465f; font-size: var(--text-small); font-weight: 450; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; text-decoration: none; }
+.app-shell .home-schedule-line { flex-wrap: wrap; gap: 5px 10px; }
+.app-shell .reference-recent-heading > button:first-child { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.app-shell[data-view="journal"] .journal-day-list .work-record-customer-link { display: inline-flex; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.app-shell[data-view="journal"] .journal-day-list .work-record-customer-link b { text-decoration: underline; text-underline-offset: 4px; }
+.app-shell[data-view="journal"] .journal-day-list .work-property-groups { grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); }
+.app-shell[data-view="journal"] .journal-day-list .work-property-list { display: flex; flex-direction: column; align-items: stretch; gap: 5px; }
+.app-shell[data-view="journal"] .journal-day-list .work-property-list > li { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-start; gap: 3px 12px; min-width: 0; max-width: 100%; }
+.app-shell[data-view="journal"] .journal-day-list .work-property-list .history-link { display: inline-flex; flex: 0 1 auto; width: auto; max-width: 100%; min-height: 32px; padding: 2px 0; }
+.app-shell[data-view="journal"] .journal-day-list .work-property-incomplete { flex: 0 1 auto; max-width: 100%; }
+.app-shell[data-view="journal"] .journal-day-list .work-property-price { display: inline; flex: 0 1 auto; min-width: 0; margin: 0; color: #34465f; font-size: var(--text-small); line-height: 1.6; overflow-wrap: anywhere; }
+.app-shell .reference-recent-properties > div > .reference-recent-property-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 12px; min-height: 32px; padding: 0; }
+.app-shell .reference-recent-property-line > button { display: inline-flex; flex: 0 1 auto; min-width: 0; max-width: 100%; min-height: 32px; padding: 2px 0; border: 0; background: transparent; color: #365678; font-size: var(--text-small); line-height: 1.6; text-align: left; overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: 3px; }
+.app-shell .reference-recent-property-line > .work-property-price { display: inline; flex: 0 1 auto; min-width: 0; margin: 0; color: #34465f; font-size: var(--text-small); line-height: 1.6; }
+@container journal-reading (min-width: 800px) {
+  .app-shell[data-view="journal"] .journal-day-list .work-record-body.has-properties { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; }
+  .app-shell[data-view="journal"] .journal-day-list .work-record-body.has-properties .work-record-content { grid-template-columns: 48px minmax(0, 1fr); }
+  .app-shell[data-view="journal"] .journal-day-list .work-record-body.has-properties .work-record-properties { display: block; align-self: stretch; padding: 0 0 0 20px; border-top: 0; border-left: 1px solid #dce2eb; }
+  .app-shell[data-view="journal"] .journal-day-list .work-record-body.has-properties .work-record-property-heading { margin-bottom: 5px; }
+  .app-shell[data-view="journal"] .journal-day-list .work-record-body.has-properties .work-property-groups { grid-template-columns: minmax(0, 1fr); }
+}

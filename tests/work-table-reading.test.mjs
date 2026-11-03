@@ -392,3 +392,17 @@ test("리뉴얼 업무일지는 같은 날짜를 묶고 날짜별 원래 업무�
   assert.ok(html.indexOf("같은 날 두번째 고객") < html.indexOf("이전 날짜 고객"));
   for (const property of properties) assert.equal(html.split(workPropertyLabel(property)).length - 1 >= 3, true);
 });
+
+test("부동산 고객명이 같아도 업무일지는 ID와 원래 고객 이력 연결을 함께 유지한다", () => {
+  const entries = ["합성업소-A", "합성업소-B"].map(id => ({ ...work, id: `work-${id}`, customer_id: id, customer_name: "부동산" }));
+  const opened = [];
+  const tree = table(entries, { onCustomerHistory: customer => opened.push(customer) });
+  const links = byClass(tree, "work-record-customer-link");
+  assert.equal(links.length, 2);
+  links.forEach((link, index) => {
+    assert.ok(markup(link).includes(`ID ${entries[index].customer_id}`));
+    assert.ok(link.props["aria-label"].includes(entries[index].customer_id));
+    link.props.onClick();
+  });
+  assert.deepEqual(opened, entries.map(item => ({ id: item.customer_id, name: "부동산" })));
+});

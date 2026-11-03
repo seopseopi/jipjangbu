@@ -8,6 +8,7 @@ import { canAppendPage } from "../app/client-paging.ts";
 import { getWorkProperties, workPropertyLabel } from "../app/work-property-summary.ts";
 import { getPropertyDisplayGroups } from "../app/property-display.ts";
 import { initialResultPage, initialResultListRef, ResultPagination } from "./helpers/result-pagination.mjs";
+import { ListingScrollLoader } from "./helpers/listing-scroll-loader.mjs";
 
 // Execute the production handlers and markup with synthetic records and controlled I/O.
 const source = readFileSync(new URL("../app/work-manager.tsx", import.meta.url), "utf8");
@@ -30,7 +31,7 @@ function compile(names, environment = {}, callback = false) {
 }
 const status = compile(["journalSearchStatus"]);
 const JournalView = compile(["displayDate", "targetText", "statusTone", "EmptyState", "Toolbar", "WorkTable", "ListReadFeedback", "JournalView"], {
-  React,
+  React, ListingScrollLoader,
   useContext: () => null, PageToolsSlot: null, createPortal: (node) => node,
   Icon: () => null, useResultPage: initialResultPage, useResultListRef: initialResultListRef, ResultPagination,
   getWorkProperties,
@@ -80,7 +81,7 @@ test("검색 중과 실패 화면은 이전 업무·건수를 숨기고 페이�
     const html = renderToStaticMarkup(React.createElement(JournalView, props({ status: searchStatus, error: "합성 연결 실패" })));
     assert.doesNotMatch(html, /이전 검색에만 속한 내용|1 \/ 222|100건 더 보기/);
     assert.doesNotMatch(html, /조건에 맞는 업무가 없습니다/);
-    assert.match(html, /aria-label="다음 페이지" disabled=""/);
+    assert.doesNotMatch(html, /다음 페이지|이전 페이지/);
     assert.doesNotMatch(html, /CSV|업무 기간 필터/);
     assert.match(html, searchStatus === "loading" ? /role="status"/ : /role="alert"/);
     assert.match(html, searchStatus === "loading" ? /aria-busy="true"/ : /다시 불러오기/);
@@ -109,7 +110,7 @@ test("같은 조건의 갱신은 읽던 목록을 유지하되 갱신 상태와 
   assert.match(html, /222건/);
   assert.match(html, /같은 조건의 이전 결과/);
   assert.match(html, /aria-busy="true"/);
-  assert.match(html, /aria-label="다음 페이지" disabled=""/);
+  assert.doesNotMatch(html, /다음 페이지|이전 페이지/);
   assert.doesNotMatch(html, /CSV|업무 기간 필터/);
 });
 
@@ -142,7 +143,7 @@ function loadHarness() {
   const calls = [];
   const loader = (query, response) => compile(["loadWorkLogs"], {
     requestVersion: version, workFirstRequest: firstRequest,
-    setWorkFirstPageLoading: loading.set, setWorkSearchError: error.set,
+    setWorkFirstPageLoading: loading.set, setWorkSearchError: error.set, setWorkMoreError() {},
     journalSearch: query, workTypeFilter: "전화",
     fetchWorkWindow: (_read, params, count, signal) => { calls.push({ params, count, signal }); return response.promise; },
     jsonFetch: assert.fail, loadedWorkQueryRef: loadedRef, setLoadedWorkQuery: loaded.set,
@@ -198,7 +199,7 @@ test("업무 추가 페이지는 최신 성공 조건에서만 읽고 중복 요
     canAppendPage, loadedWorkQueryRef: { current: "current" }, workQueryKey: "current",
     workFirstRequest: first, workMorePending: more, requestVersion: version,
     queries: { journal: "106동 1503호" }, journalSearch: "106동 1503호", workTypeFilter: "전화",
-    setLoadingMore: loading.set, setWorkLogs: rows.set, setWorkTotal: total.set,
+    setLoadingMore: loading.set, setWorkLogs: rows.set, setWorkTotal: total.set, setWorkMoreError() {},
     jsonFetch: (url) => { requests.push(new URL(url, "https://local.invalid").searchParams); return pending.promise; },
     showLoadError: (error) => notices.push(error.message),
   };
@@ -226,4 +227,33 @@ test("업무 추가 페이지는 최신 성공 조건에서만 읽고 중복 요
   assert.equal(await old, undefined);
   assert.equal(rows.current.some((row) => row.id === "stale-work"), false);
   assert.deepEqual(notices, []);
+});
+
+test("업무일지는 불러온 기록 전체를 날짜별로 이어서 표시하고 스크롤로 추가 조회한다", () => {
+  const items = Array.from({ length: 137 }, (_, i) => ({ ...synthetic, id: `continuous-${i}`, work_date: i < 90 ? "2026-09-13" : "2026-09-12", content: `합성 기록 ${i}` }));
+  const tree = JournalView(props({ items, total: 222 }));
+  const markup = renderToStaticMarkup(tree);
+  assert.doesNotMatch(markup, /다음 페이지|이전 페이지|renewal-pagination/);
+  assert.equal((markup.match(/class="table-row work-record-row"/g) || []).length, 137);
+  assert.match(markup, /합성 기록 136/);
+  const loader = descendants(tree).find(node => node.type === ListingScrollLoader);
+  assert.equal(loader.props.loaded, 137);
+  assert.equal(loader.props.hasMore, true);
+  assert.equal(loader.props.enabled, true);
+  assert.equal(loader.props.label, "업무");
+  const refreshed = JournalView(props({ items, total: 222, status: "refreshing" }));
+  assert.equal(descendants(refreshed).find(node => node.type === ListingScrollLoader).props.enabled, false);
+});
+
+test("추가 업무 조회 실패 시 기존 기록을 유지하고 자동 재요청을 멈춘 뒤 재시도한다", () => {
+  let retries = 0;
+  const tree = JournalView(props({ moreError: "합성 추가 조회 실패", onLoadMore: async () => { retries++; } }));
+  const markup = renderToStaticMarkup(tree);
+  assert.match(markup, /이전 검색에만 속한 내용/);
+  assert.match(markup, /합성 추가 조회 실패/);
+  const loader = descendants(tree).find(node => node.type === ListingScrollLoader);
+  assert.equal(loader.props.error, "합성 추가 조회 실패");
+  const retry = descendants(tree).find(node => node.type === "button" && renderToStaticMarkup(node).includes("다시 불러오기"));
+  retry.props.onClick();
+  assert.equal(retries, 1);
 });
