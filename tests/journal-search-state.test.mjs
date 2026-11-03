@@ -241,6 +241,7 @@ test("업무일지는 불러온 기록 전체를 날짜별로 이어서 표시�
   assert.equal(loader.props.hasMore, true);
   assert.equal(loader.props.enabled, true);
   assert.equal(loader.props.label, "업무");
+  assert.match(renderToStaticMarkup(React.createElement(JournalView, props({ loadingMore: true }))), /업무를 더 불러오는 중/);
   const refreshed = JournalView(props({ items, total: 222, status: "refreshing" }));
   assert.equal(descendants(refreshed).find(node => node.type === ListingScrollLoader).props.enabled, false);
 });

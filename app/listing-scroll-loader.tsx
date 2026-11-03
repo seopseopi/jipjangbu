@@ -81,6 +81,6 @@ export function ListingScrollLoader({
   }, [queryKey, loaded, hasMore, enabled, busy, error, onLoadMore]);
 
   return <div ref={sentinelRef} className="listing-scroll-loader" style={{ minHeight: 1 }}>
-    {busy && <p role="status">{label}을 더 불러오는 중…</p>}
+    {busy && <p role="status">{label === "업무" ? "업무를" : `${label}을`} 더 불러오는 중…</p>}
   </div>;
 }
