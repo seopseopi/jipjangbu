@@ -1,0 +1,19 @@
+.multi-select-filter { position: relative; min-width: 0; width: 100%; color: #2f4059; }
+.multi-select-filter > summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 34px; padding: 0; list-style: none; cursor: pointer; font-size: max(18px, var(--text-small)); }
+.multi-select-filter > summary::-webkit-details-marker { display: none; }
+.multi-select-filter > summary > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.multi-select-filter > summary:focus-visible { outline: 2px solid #334f73; outline-offset: 4px; border-radius: 4px; }
+.multi-select-filter[open] { z-index: 30; }
+.multi-select-options { position: absolute; z-index: 30; top: calc(100% + 8px); left: 0; width: max(100%, 240px); max-width: calc(100vw - 40px); max-height: min(440px, 60vh); overflow-y: auto; padding: 8px; border: 1px solid #bfc9d6; border-radius: 10px; background: #fff; box-shadow: 0 8px 24px #263b5526; }
+.multi-select-options > label { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px; border-radius: 6px; color: #2f4059; font-size: 18px; cursor: pointer; }
+.multi-select-options > label:hover { background: #f2f5f9; }
+.multi-select-options input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: #334f73; }
+.multi-select-options > label > span { overflow-wrap: anywhere; }
+.multi-select-all { width: 100%; min-height: 42px; padding: 8px; text-align: left; border: 0; border-bottom: 1px solid #e0e5ec; background: #fff; color: #2f4059; font-size: 18px; cursor: pointer; }
+.multi-select-all[aria-pressed="true"] { font-weight: 700; }
+.reference-journal-tools > .multi-select-filter { width: 250px; max-width: 100%; padding: 4px 12px; border: 1px solid #bfc9d6; border-radius: 8px; background: #fff; }
+.reference-filter:last-child .multi-select-options { left: auto; right: 0; }
+@media (max-width: 600px) {
+  .reference-filter .multi-select-filter > summary { font-size: 17px; }
+  .reference-filter:nth-child(3) .multi-select-options { left: auto; right: 0; }
+}

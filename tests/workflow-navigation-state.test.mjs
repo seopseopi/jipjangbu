@@ -1,3 +1,4 @@
+import { MultiSelectFilter } from "./helpers/multi-select-filter.mjs";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -64,7 +65,7 @@ const loaderAst = ts.createSourceFile("listing-scroll-loader.tsx", loaderSource,
 const loaderDeclaration = loaderAst.statements.find((node) => ts.isFunctionDeclaration(node) && node.name?.text === "ListingScrollLoader");
 assert.ok(loaderDeclaration);
 const ListingScrollLoader = evaluate(`${loaderDeclaration.getText(loaderAst).replace(/^export /, "")}\nconst result = ListingScrollLoader;`, { React, useRef: React.useRef, useEffect: React.useEffect });
-const environment = { React, ListingScrollLoader, useResultPage: initialResultPage, useResultListRef: initialResultListRef, ResultPagination, useContext: () => null, PageToolsSlot: null, createPortal: (node) => node, LISTING_WORK_TYPES: new Set(["매물등록", "매물수정", "가계약", "잔금"]), Icon: () => null, useMemo: (callback) => callback(), useRef: React.useRef, useEffect: React.useEffect, seoulDate: () => "2026-09-13", calendarWorkPresentation, CalendarSubjects };
+const environment = { React, MultiSelectFilter, ListingScrollLoader, useResultPage: initialResultPage, useResultListRef: initialResultListRef, ResultPagination, useContext: () => null, PageToolsSlot: null, createPortal: (node) => node, LISTING_WORK_TYPES: new Set(["매물등록", "매물수정", "가계약", "잔금"]), Icon: () => null, useMemo: (callback) => callback(), useRef: React.useRef, useEffect: React.useEffect, seoulDate: () => "2026-09-13", calendarWorkPresentation, CalendarSubjects };
 const common = ["displayDate", "targetText", "statusTone", "EmptyState", "Toolbar", "ListReadFeedback"];
 const Feedback = compile(["ListReadFeedback"], environment);
 const Listings = compile([...common, "Price", "ListingsView"], environment);
@@ -74,7 +75,7 @@ const lookups = { workTypes: ["계약예정", "전화"], propertyTypes: ["아파
 const listing = { id: "listing", identity_key: "synthetic", property_type: "아파트", building_name: "이전결과 합성단지", building_dong: "106", unit_number: "1503", status: "매물등록" };
 const customer = { id: "synthetic-customer", name: "이전결과 합성고객", notes: "확인 메모", history_count: 1 };
 const work = { id: "work", work_date: "2026-09-13", work_type: "계약예정", content: "이전결과 합성업무", customer_name: "예시 고객", building_name: "예시단지", property_count: 1 };
-const listingProps = { items: [listing], lookups, query: "새 검색", setQuery: noop, statuses: [], setStatuses: noop, prices: [], setPrices: noop, propertyType: "", setPropertyType: noop, sort: "building", setSort: noop, onReset: noop, onHistory: noop };
+const listingProps = { items: [listing], lookups, query: "새 검색", setQuery: noop, statuses: [], setStatuses: noop, prices: [], setPrices: noop, propertyType: [], setPropertyType: noop, sort: "building", setSort: noop, onReset: noop, onHistory: noop };
 const customerProps = { items: [customer], query: "새 검색", setQuery: noop, sort: "recent", setSort: noop, onReset: noop, onEdit: noop, onNew: noop, onNewWork: noop, onCopy: noop, onHistory: noop };
 const calendarProps = { month: "2026-09", setMonth: noop, workType: "", setWorkType: noop, items: [work], lookups, onOpen: noop, onShowDay: noop };
 
@@ -177,7 +178,7 @@ test("매물관리 초기화는 상태·가격을 전체로 되돌리고 상태 
   assert.match(source, /\[listingSort, setListingSort\] = useState\("type"\)/);
   const changes = [];
   callback("ListingsView", "onReset", Object.fromEntries(["setQuery", "setListingStatuses", "setListingPrices", "setPropertyTypeFilter", "setListingSort"].map((name) => [name, (value) => changes.push([name, value])])) )();
-  assert.deepEqual(changes, [["setQuery", ""], ["setListingStatuses", []], ["setListingPrices", []], ["setPropertyTypeFilter", ""], ["setListingSort", "type"]]);
+  assert.deepEqual(changes, [["setQuery", ""], ["setListingStatuses", []], ["setListingPrices", []], ["setPropertyTypeFilter", []], ["setListingSort", "type"]]);
   assert.match(source, /\[listingStatuses, setListingStatuses\] = useState<string\[\]>\(\[\]\)/);
   const base = Listings({ ...listingProps, query: "", sort: "type", statuses: [] });
   assert.equal(descendants(base).some((item) => item.type === "button" && renderToStaticMarkup(item).includes("조건 초기화")), false);
@@ -247,9 +248,9 @@ function navigationHarness(allow = true) {
 }
 test("홈의 의미형 바로가기는 해당 화면 필터만 초기화하고 사용자가 이동을 취소하면 그대로 둔다", () => {
   const expected = {
-    listings: { ListingStatuses: [], ListingPrices: [], PropertyTypeFilter: "", ListingSort: "type" },
+    listings: { ListingStatuses: [], ListingPrices: [], PropertyTypeFilter: [], ListingSort: "type" },
     customers: { CustomerSort: "recent" },
-    journal: { WorkTypeFilter: "" },
+    journal: { WorkTypeFilter: [] },
     calendar: { CalendarMonth: "2026-09", CalendarWorkType: "" },
   };
   for (const destination of Object.keys(expected)) {
@@ -273,7 +274,7 @@ test("전체 검색 결과 이동은 검색어와 해당 유형 기본 필터를
     assert.equal(show("journal","같은검색"),allow);
     assert.equal(queries.current.journal,allow?"같은검색":"old-work");
     assert.equal(queries.current.listings,"old-listing");
-    assert.deepEqual(changes,allow?[["WorkTypeFilter",""]]:[]);
+    assert.deepEqual(changes,allow?[["WorkTypeFilter",[]]]:[]);
   }
 });
 
@@ -386,7 +387,7 @@ function managedLoadHarness(key) {
     setManagedPages: () => {},
     readManagedWindow: compile(["appendManagedRows", "readManagedWindow"], { MANAGEMENT_PAGE_SIZE: 100 }),
     requestVersion: version, setManagedReads: managed.set,
-    listingsSearch: query, listingStatuses: [], listingPrices: [], propertyTypeFilter: "", listingSort: "building",
+    listingsSearch: query, listingStatuses: [], listingPrices: [], propertyTypeFilter: [], listingSort: "building",
     customersSearch: query, customerSort: "recent", calendarMonth: "2026-09", calendarWorkType: query,
     jsonFetch: () => pending.promise, fetchAllWorkLogs: () => pending.promise, collectOffsetPages,
     setListings: rows.set, setCustomerResults: rows.set, setCalendarLogs: rows.set,
@@ -502,4 +503,27 @@ test("리뉴얼 고객 목록은 고객·ID·업무·수정의 원래 연결을 
   const html = renderToStaticMarkup(row);
   assert.match(html, /확인 메모/); assert.match(html, /1건/);
   assert.doesNotMatch(html, /눌러서 복사|전체 이력 보기/);
+});
+
+test("매물 상단 세 필터는 모두 복수 선택 컴포넌트에 현재 선택과 변경 함수를 연결한다", () => {
+  const changed = {};
+  const values = {propertyType:["아파트","빌라"], statuses:["매물등록","매물수정"], prices:["sale","jeonse"]};
+  const tree = Listings({...listingProps,...values,setPropertyType:value=>changed.types=value,setStatuses:value=>changed.statuses=value,setPrices:value=>changed.prices=value});
+  const filters = descendants(tree).filter(node=>node.type===MultiSelectFilter);
+  assert.equal(filters.length,3);
+  for (const [index,key,target] of [[0,"propertyType","types"],[1,"statuses","statuses"],[2,"prices","prices"]]) {
+    assert.deepEqual(filters[index].props.value,values[key]);
+    filters[index].props.onChange([...values[key],"합성추가"]);
+    assert.deepEqual(changed[target],[...values[key],"합성추가"]);
+  }
+});
+
+test("매물 스크롤 추가 조회도 모든 복수 선택 조건을 반복 파라미터로 유지한다", () => {
+  const params = compile(["managedQueryParams"], {
+    queries:{listings:"검증 검색",customers:""}, customerSort:"recent", listingStatuses:["매물등록","매물수정"], listingPrices:["sale","jeonse"], propertyTypeFilter:["아파트","빌라"], listingSort:"building",
+  })("listings");
+  assert.deepEqual(params.getAll("type"),["아파트","빌라"]);
+  assert.deepEqual(params.getAll("status"),["매물등록","매물수정"]);
+  assert.deepEqual(params.getAll("price"),["sale","jeonse"]);
+  assert.equal(params.get("q"),"검증 검색");
 });

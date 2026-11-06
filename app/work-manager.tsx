@@ -37,6 +37,7 @@ import { canCloseCustomerDraft, customerDraftChanged } from "./customer-draft";
 import { Icon } from "./icons";
 import { canAppendPage } from "./client-paging";
 import { ListingScrollLoader } from "./listing-scroll-loader";
+import { MultiSelectFilter } from "./multi-select-filter";
 import { BrandMark } from "./brand-mark";
 import { SettingsView, type Lookups } from "./settings-view";
 import { createPropertyHistoryTarget } from "./history-query";
@@ -445,11 +446,11 @@ export function WorkManager() {
     listings: "",
     customers: "",
   });
-  const [workTypeFilter, setWorkTypeFilter] = useState("");
+  const [workTypeFilter, setWorkTypeFilter] = useState<string[]>([]);
   const [calendarWorkType, setCalendarWorkType] = useState("");
   const [listingStatuses, setListingStatuses] = useState<string[]>([]);
   const [listingPrices, setListingPrices] = useState<string[]>([]);
-  const [propertyTypeFilter, setPropertyTypeFilter] = useState("");
+  const [propertyTypeFilter, setPropertyTypeFilter] = useState<string[]>([]);
   const [listingSort, setListingSort] = useState("type");
   const [customerSort, setCustomerSort] = useState("recent");
   const [calendarMonth, setCalendarMonth] = useState(seoulDate().slice(0, 7));
@@ -588,7 +589,7 @@ export function WorkManager() {
       setWorkMoreError("");
       const params = new URLSearchParams({ limit: "100" });
       if (journalSearch) params.set("q", journalSearch);
-      if (workTypeFilter) params.set("workType", workTypeFilter);
+      workTypeFilter.forEach(value => params.append("workType", value));
       const queryKey = JSON.stringify([
         journalSearch,
         workTypeFilter,
@@ -659,7 +660,7 @@ export function WorkManager() {
       listingStatuses.forEach(status => params.append("status", status));
       listingPrices.forEach(price => params.append("price", price));
       if (listingsSearch) params.set("q", listingsSearch);
-      if (propertyTypeFilter) params.set("type", propertyTypeFilter);
+      propertyTypeFilter.forEach(value => params.append("type", value));
       try {
         const page = await readManagedWindow(async (offset, limit) => {
           const pageParams = new URLSearchParams(params);
@@ -1070,7 +1071,7 @@ export function WorkManager() {
         offset: String(workLogs.length),
       });
       if (queries.journal) params.set("q", queries.journal);
-      if (workTypeFilter) params.set("workType", workTypeFilter);
+      workTypeFilter.forEach(value => params.append("workType", value));
       const data = await jsonFetch<{ workLogs: WorkSummary[]; total: number }>(
         `/api/work-logs?${params}`,
       );
@@ -1105,7 +1106,7 @@ export function WorkManager() {
     listingStatuses.forEach((status) => params.append("status", status));
     listingPrices.forEach((price) => params.append("price", price));
     if (queries.listings) params.set("q", queries.listings);
-    if (propertyTypeFilter) params.set("type", propertyTypeFilter);
+    propertyTypeFilter.forEach(value => params.append("type", value));
     return params;
   }
   async function loadMoreManaged(target: ManagedView) {
@@ -1286,11 +1287,11 @@ export function WorkManager() {
     if (!navigate(next)) return;
     if (next === "listings") {
       setQueries((current) => ({ ...current, listings: "" }));
-      setListingStatuses([]); setListingPrices([]); setPropertyTypeFilter(""); setListingSort("type");
+      setListingStatuses([]); setListingPrices([]); setPropertyTypeFilter([]); setListingSort("type");
     } else if (next === "customers") {
       setQueries((current) => ({ ...current, customers: "" })); setCustomerSort("recent");
     } else if (next === "journal") {
-      setQueries((current) => ({ ...current, journal: "" })); setWorkTypeFilter("");
+      setQueries((current) => ({ ...current, journal: "" })); setWorkTypeFilter([]);
     } else if (next === "calendar") {
       setCalendarMonth(seoulDate().slice(0, 7)); setCalendarWorkType("");
     }
@@ -1298,10 +1299,10 @@ export function WorkManager() {
   function showAllSearchResults(next: SearchView, search: string) {
     if (!navigate(next)) return false;
     setQueries((current) => ({ ...current, [next]: search }));
-    if (next === "journal") { setWorkTypeFilter(""); }
+    if (next === "journal") { setWorkTypeFilter([]); }
     if (next === "customers") setCustomerSort("recent");
     if (next === "listings") {
-      setListingStatuses([]); setListingPrices([]); setPropertyTypeFilter(""); setListingSort("type");
+      setListingStatuses([]); setListingPrices([]); setPropertyTypeFilter([]); setListingSort("type");
     }
     return true;
   }
@@ -1575,7 +1576,7 @@ export function WorkManager() {
                   setWorkType={setWorkTypeFilter}
                   onReset={() => {
                     setQuery("");
-                    setWorkTypeFilter("");
+                    setWorkTypeFilter([]);
                   }}
                   onLoadMore={loadMoreWorkLogs}
                   loadingMore={loadingMore}
@@ -1623,7 +1624,7 @@ export function WorkManager() {
                     setQuery("");
                     setListingStatuses([]);
                     setListingPrices([]);
-                    setPropertyTypeFilter("");
+                    setPropertyTypeFilter([]);
                     setListingSort("type");
                   }}
                   onHistory={showListingHistory}
@@ -1989,27 +1990,24 @@ function JournalView({
 }: {
   items: WorkSummary[]; total: number; lookups: Lookups;
   query: string; setQuery: (v: string) => void;
-  workType: string; setWorkType: (v: string) => void;
+  workType: string[]; setWorkType: (v: string[]) => void;
   onReset: () => void; onLoadMore: () => Promise<number | undefined>;
   loadingMore: boolean; status: JournalSearchStatus; error: string;
   moreError?: string;
   onRetry: () => void | Promise<void>; canLoadMore: boolean;
   onOpen: (id?: string) => void;
 } & WorkHistoryActions) {
-  const filtered = Boolean(query || workType);
+  const filtered = Boolean(query || workType.length);
   const resultsVisible = status === "ready" || status === "refreshing";
   const queryKey = JSON.stringify([query, workType]);
   return <>
     <div className="renewal-paginated-list journal-scroll-list">
       <div className="management-filter journal-filter"><Toolbar query={query} setQuery={setQuery} placeholder="고객명, 단지명 또는 업무 내용" /></div>
       <div className="reference-journal-tools">
-        <select aria-label="업무구분 필터" value={workType} onChange={(event) => setWorkType(event.target.value)}>
-          <option value="">모든 업무구분</option>
-          {lookups.workTypes.map((type) => <option key={type}>{type}</option>)}
-        </select>
+        <MultiSelectFilter label="업무구분 필터" allLabel="모든 업무구분" options={lookups.workTypes.map(value => ({ value, label: value }))} value={workType} onChange={setWorkType} />
         {filtered && <button className="filter-reset" onClick={onReset} type="button">초기화</button>}
       </div>
-      {filtered && <div className="active-filter-row"><strong>{status === "loading" ? "검색 중" : status === "refreshing" ? "갱신 중" : status === "error" ? "다시 확인 필요" : "적용 중"}</strong>{query && <span>검색: {query}</span>}{workType && <span>{workType}</span>}</div>}
+      {filtered && <div className="active-filter-row"><strong>{status === "loading" ? "검색 중" : status === "refreshing" ? "갱신 중" : status === "error" ? "다시 확인 필요" : "적용 중"}</strong>{query && <span>검색: {query}</span>}{workType.map(value => <span key={value}>{value}</span>)}</div>}
       <section className="panel data-panel journal-panel" aria-busy={status === "loading" || status === "refreshing"}>
         <div className="panel-head"><h2>업무 기록 <span className="count-badge">{resultsVisible ? `${total.toLocaleString("ko-KR")}건` : status === "loading" ? "검색 중…" : "조회 실패"}</span></h2><p className="sort-summary">업무일 최신순</p></div>
         <ListReadFeedback status={status} error={error} onRetry={() => { void onRetry(); }} label="업무 기록" />
@@ -2135,8 +2133,8 @@ function ListingsView({
   setStatuses: (v: string[]) => void;
   prices: string[];
   setPrices: (v: string[]) => void;
-  propertyType: string;
-  setPropertyType: (v: string) => void;
+  propertyType: string[];
+  setPropertyType: (v: string[]) => void;
   sort: string;
   setSort: (v: string) => void;
   onReset: () => void;
@@ -2146,7 +2144,7 @@ function ListingsView({
   const resultsVisible = status === "ready" || status === "refreshing";
   const queryKey = JSON.stringify([query, statuses, prices, propertyType, sort]);
   const filtered = Boolean(
-    query || statuses.length || propertyType || sort !== "type" || prices.length,
+    query || statuses.length || propertyType.length || sort !== "type" || prices.length,
   );
   const dateSorted = ["recent", "updated", "oldest"].includes(sort);
   const sortDescription = ({
@@ -2178,9 +2176,9 @@ function ListingsView({
       <div className="renewal-paginated-list listing-scroll-list">
         <div className="reference-filters" role="search" aria-label="매물 검색">
           <label className="reference-filter reference-filter-search"><span className="reference-filter-label">검색</span><div className="reference-search-field"><Icon name="search" size={20} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="건물명, 동호수 또는 메모" aria-label="건물명 동호수 또는 메모 검색" />{query && <button type="button" aria-label="검색어 지우기" onClick={() => setQuery("")}><Icon name="close" size={18} /></button>}</div></label>
-          <label className="reference-filter"><span className="reference-filter-label">물건 종류</span><select aria-label="매물종류 필터" value={propertyType} onChange={event => setPropertyType(event.target.value)}><option value="">전체 종류</option>{lookups.propertyTypes.map(type => <option key={type}>{type}</option>)}</select></label>
-          <label className="reference-filter"><span className="reference-filter-label">매물 상태</span><select aria-label="매물 상태 필터" value={statuses.length > 1 ? "__multiple" : statuses[0] || ""} onChange={event => setStatuses(event.target.value ? [event.target.value] : [])}><option value="">전체 상태</option>{statuses.length > 1 && <option value="__multiple" disabled>{statuses.length}개 선택</option>}{[...new Set([...LISTING_WORK_TYPES, ...items.map(item => item.status)])].filter(Boolean).map(value => <option key={value}>{value}</option>)}</select></label>
-          <label className="reference-filter"><span className="reference-filter-label">거래 종류</span><select aria-label="가격 입력 여부" value={prices.length > 1 ? "__multiple" : prices[0] || ""} onChange={event => setPrices(event.target.value ? [event.target.value] : [])}><option value="">전체 거래</option><option value="sale">매매가 있음</option><option value="jeonse">전세가 있음</option><option value="monthly">월세가 있음</option>{prices.length > 1 && <option value="__multiple" disabled>{prices.length}개 선택</option>}</select></label>
+          <div className="reference-filter"><span className="reference-filter-label">물건 종류</span><MultiSelectFilter label="매물종류 필터" allLabel="전체 종류" value={propertyType} onChange={setPropertyType} options={lookups.propertyTypes.map(value => ({ value, label: value }))} /></div>
+          <div className="reference-filter"><span className="reference-filter-label">매물 상태</span><MultiSelectFilter label="매물 상태 필터" allLabel="전체 상태" value={statuses} onChange={setStatuses} options={[...new Set([...LISTING_WORK_TYPES, ...items.map(item => item.status), ...statuses])].filter(Boolean).map(value => ({ value, label: value }))} /></div>
+          <div className="reference-filter"><span className="reference-filter-label">거래 종류</span><MultiSelectFilter label="가격 입력 여부" allLabel="전체 거래" value={prices} onChange={setPrices} options={[["sale", "매매가 있음"], ["jeonse", "전세가 있음"], ["monthly", "월세가 있음"]].map(([value, label]) => ({value, label}))} /></div>
         </div>
         <div className="reference-list-meta listing-condition-row">
         <details className="reference-advanced">
@@ -2192,7 +2190,7 @@ function ListingsView({
           </div>
         </details>
         <div className="reference-total">매물 <strong>{resultsVisible ? total.toLocaleString("ko-KR") : status === "error" ? "조회 실패" : "조회 중…"}</strong>{resultsVisible && "건"}</div><div className="reference-sort">{filtered && <button className="text-button" onClick={onReset} type="button">조건 초기화</button>}<select id="listing-sort" aria-label="매물 정렬" value={sort} onChange={event => setSort(event.target.value)}><option value="type">매물종류 → 이름순</option><option value="type-desc">매물종류 역순 → 이름순</option><option value="building">이름 가나다순</option><option value="building-desc">이름 역순</option><option value="recent">최근 등록순</option><option value="updated">최근 변경순</option><option value="oldest">오래 미갱신순</option></select></div></div>
-        {filtered && <div className="active-filter-row listing-applied-filters" aria-label="현재 매물 조회 조건">{statuses.map(value => <span key={value}>{value}</span>)}{prices.map(price => <span key={price}>{({sale:"매매가 있음",jeonse:"전세가 있음",monthly:"월세가 있음"} as Record<string,string>)[price]}</span>)}{propertyType && <span>{propertyType}</span>}{query && <span>검색: {query}</span>}</div>}
+        {filtered && <div className="active-filter-row listing-applied-filters" aria-label="현재 매물 조회 조건">{statuses.map(value => <span key={value}>{value}</span>)}{prices.map(price => <span key={price}>{({sale:"매매가 있음",jeonse:"전세가 있음",monthly:"월세가 있음"} as Record<string,string>)[price]}</span>)}{propertyType.map(value => <span key={value}>{value}</span>)}{query && <span>검색: {query}</span>}</div>}
         <p className="sort-summary reference-sort-description">{sortDescription}{!statuses.length && dateSorted ? " · 진행 중 우선" : ""}{!dateSorted ? " · 동·호수는 숫자순" : ""}</p>
       <section className="panel data-panel reference-listings-panel" aria-busy={status === "loading" || status === "refreshing"}>
         <ListReadFeedback status={status} error={error} onRetry={onRetry} label="매물 목록" />

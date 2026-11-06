@@ -27,3 +27,5 @@
 @import "./journal-readability.css";
 @import "./calendar-today.css";
 @import "./work-identity-layout.css";
+
+@import "./multi-select-filter.css";

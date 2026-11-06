@@ -359,3 +359,38 @@ test("같은 기한의 할 일은 먼저 등록한 순서, 완료한 일은 최�
   assert.deepEqual(ids(result.items), ["overdue", "old-a", "old-z", "new", "undated", "complete-a", "complete-z", "complete-old"]);
   assert.deepEqual(ids((await getFollowUps(db, new URLSearchParams("status=completed"))).items), ["complete-a", "complete-z", "complete-old"]);
 });
+
+test("업무구분 복수 선택은 합집합이며 검색·고객 조건과 페이지 전체 건수도 유지한다", async t => {
+  const { customer, work, date } = database(t);
+  customer("c1", "검증고객"); customer("c2", "다른고객");
+  work("a", "c1", date(), undefined, undefined, "전화");
+  work("b", "c1", date(-1), undefined, undefined, "집방문");
+  work("c", "c1", date(-2), undefined, undefined, "계약");
+  work("d", "c2", date(-3), undefined, undefined, "집방문");
+  const params = new URLSearchParams([["workType", "전화"], ["workType", "집방문"], ["workType", "전화"], ["customerId", "c1"], ["q", "검증고객"], ["limit", "1"]]);
+  const read = async () => (await (await workRoute.GET(new Request(`https://test.invalid/api/work-logs?${params}`))).json());
+  const first = await read();
+  assert.equal(first.total, 2); assert.deepEqual(ids(first.workLogs), ["a"]);
+  params.set("offset", "1"); assert.deepEqual(ids((await read()).workLogs), ["b"]);
+  params.delete("workType"); params.delete("offset"); params.set("limit", "100");
+  assert.equal((await read()).total, 3);
+  params.set("workType", "전화"); assert.equal((await read()).total, 1);
+  params.set("workType", "없는구분"); assert.equal((await read()).total, 0);
+});
+
+test("매물 종류·상태·거래 복수 선택은 분류 내 OR 및 분류 간 AND로 조회한다", async t => {
+  const { sqlite, listing } = database(t);
+  listing("a", { type: "아파트" }); listing("b", { type: "빌라" }); listing("c", { type: "토지" });
+  listing("d", { type: "빌라" }); listing("e", { type: "아파트" });
+  sqlite.exec("UPDATE listings SET sale_price='1' WHERE id IN ('a','c','d'); UPDATE listings SET jeonse_price='2',status='매물수정' WHERE id='b'; UPDATE listings SET status='매물취소' WHERE id='d'");
+  const params = new URLSearchParams([["type", "아파트"], ["type", "빌라"], ["type", "아파트"], ["status", "매물등록"], ["status", "매물수정"], ["price", "sale"], ["price", "jeonse"], ["limit", "1"]]);
+  const read = async () => (await (await listingsRoute.GET(new Request(`https://test.invalid/api/listings?${params}`))).json());
+  const first = await read(); assert.equal(first.total, 2); assert.equal(first.hasMore, true);
+  params.set("offset", "1"); const second = await read();
+  assert.deepEqual(new Set([...ids(first.listings), ...ids(second.listings)]), new Set(["a", "b"]));
+  assert.equal(second.hasMore, false);
+  params.delete("offset"); params.set("limit", "100"); params.delete("type"); params.delete("status"); params.delete("price");
+  assert.equal((await read()).total, 5);
+  params.set("type", "빌라"); assert.equal((await read()).total, 2);
+  params.set("type", "' OR 1=1 --"); assert.equal((await read()).total, 0);
+});

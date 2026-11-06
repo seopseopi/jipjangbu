@@ -12,14 +12,14 @@ export async function GET(request: Request) {
     const params = new URL(request.url).searchParams;
     const q = params.get("q")?.trim() ?? "";
     const state = params.get("state") ?? "all";
-    const type = params.get("type")?.trim() ?? "";
+    const types = [...new Set(params.getAll("type").map(value => value.trim()).filter(Boolean))];
     const sort = params.get("sort") ?? "type";
     const limit = integerQueryParam(params.get("limit"), 1000, 1, 1000);
     const offset = integerQueryParam(params.get("offset"), 0, 0, Number.MAX_SAFE_INTEGER);
     const statuses = [...new Set(params.getAll("status").map(value => value.trim()))];
     const prices = [...new Set(params.getAll("price"))];
     const priceColumns: Record<string, string> = { sale: "sale_price", jeonse: "jeonse_price", monthly: "monthly_rent" };
-    if (prices.some(price => !Object.hasOwn(priceColumns, price)) || statuses.some(status => !status || status.length > 100) || statuses.length > 30) {
+    if (types.length > 100 || types.some(value => value.length > 100) || prices.some(price => !Object.hasOwn(priceColumns, price)) || statuses.some(status => !status || status.length > 100) || statuses.length > 30) {
       return Response.json({ error: "매물 조회 조건을 확인해 주세요." }, { status: 400 });
     }
     const orderBy = sort === "recent" ? LISTING_RECENT_ORDER
@@ -32,9 +32,9 @@ export async function GET(request: Request) {
     const binds: unknown[] = [];
     if (statuses.length) { where.push(`status IN (${statuses.map(() => "?").join(", ")})`); binds.push(...statuses); }
     if (prices.length) where.push(`(${prices.map(price => `LENGTH(TRIM(COALESCE(${priceColumns[price]}, ''), char(9)||char(10)||char(13)||' ')) > 0`).join(" OR ")})`);
-    if (type) {
-      where.push("property_type = ?");
-      binds.push(type);
+    if (types.length) {
+      where.push(`property_type IN (${types.map(() => "?").join(", ")})`);
+      binds.push(...types);
     }
     if (state === "active") where.push("closed_at IS NULL");
     if (state === "closed") where.push("closed_at IS NOT NULL");

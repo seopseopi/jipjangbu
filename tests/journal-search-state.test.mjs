@@ -8,6 +8,7 @@ import { canAppendPage } from "../app/client-paging.ts";
 import { getWorkProperties, workPropertyLabel } from "../app/work-property-summary.ts";
 import { getPropertyDisplayGroups } from "../app/property-display.ts";
 import { initialResultPage, initialResultListRef, ResultPagination } from "./helpers/result-pagination.mjs";
+import { MultiSelectFilter } from "./helpers/multi-select-filter.mjs";
 import { ListingScrollLoader } from "./helpers/listing-scroll-loader.mjs";
 
 // Execute the production handlers and markup with synthetic records and controlled I/O.
@@ -30,8 +31,9 @@ function compile(names, environment = {}, callback = false) {
   return new Function(...Object.keys(environment), `${compiled}; return ${names.at(-1)};`)(...Object.values(environment));
 }
 const status = compile(["journalSearchStatus"]);
+
 const JournalView = compile(["displayDate", "targetText", "statusTone", "EmptyState", "Toolbar", "WorkTable", "ListReadFeedback", "JournalView"], {
-  React, ListingScrollLoader,
+  React, ListingScrollLoader, MultiSelectFilter,
   useContext: () => null, PageToolsSlot: null, createPortal: (node) => node,
   Icon: () => null, useResultPage: initialResultPage, useResultListRef: initialResultListRef, ResultPagination,
   getWorkProperties,
@@ -45,7 +47,7 @@ const synthetic = {
 };
 function props(overrides = {}) {
   return {
-    items: [synthetic], total: 222, lookups: { workTypes: ["전화"] }, query: "106동 1503호", workType: "",
+    items: [synthetic], total: 222, lookups: { workTypes: ["전화"] }, query: "106동 1503호", workType: [],
     setQuery() {}, setWorkType() {}, onReset() {}, onLoadMore() {}, loadingMore: false,
     status: "ready", error: "", onRetry() {}, canLoadMore: true, onOpen() {},
     onCustomerHistory() {}, onListingHistory() {}, ...overrides,
@@ -144,7 +146,7 @@ function loadHarness() {
   const loader = (query, response) => compile(["loadWorkLogs"], {
     requestVersion: version, workFirstRequest: firstRequest,
     setWorkFirstPageLoading: loading.set, setWorkSearchError: error.set, setWorkMoreError() {},
-    journalSearch: query, workTypeFilter: "전화",
+    journalSearch: query, workTypeFilter: ["전화", "집방문"],
     fetchWorkWindow: (_read, params, count, signal) => { calls.push({ params, count, signal }); return response.promise; },
     jsonFetch: assert.fail, loadedWorkQueryRef: loadedRef, setLoadedWorkQuery: loaded.set,
     setWorkLogs: rows.set, setWorkTotal: total.set,
@@ -160,7 +162,7 @@ test("실제 업무 로더는 실패를 조건 키에 묶고 재시도 성공 �
   failed.reject(new Error("합성 요청 실패"));
   await assert.rejects(request, /합성 요청 실패/);
   assert.equal(h.loading.current, false);
-  assert.deepEqual(h.error.current, { queryKey: JSON.stringify(["106동 1503호", "전화"]), message: "합성 요청 실패" });
+  assert.deepEqual(h.error.current, { queryKey: JSON.stringify(["106동 1503호", ["전화", "집방문"]]), message: "합성 요청 실패" });
   assert.equal(status(h.loaded.current, h.error.current.queryKey, h.loading.current, false, h.error.current), "error");
   const retried = deferred();
   const retry = h.loader("106동 1503호", retried)(undefined, 200);
@@ -169,7 +171,7 @@ test("실제 업무 로더는 실패를 조건 키에 묶고 재시도 성공 �
   assert.equal(h.calls.at(-1).params.get("q"), "106동 1503호");
   assert.equal(h.calls.at(-1).params.has("from"), false);
   assert.equal(h.calls.at(-1).params.has("to"), false);
-  assert.equal(h.calls.at(-1).params.get("workType"), "전화");
+  assert.deepEqual(h.calls.at(-1).params.getAll("workType"), ["전화", "집방문"]);
   retried.resolve({ workLogs: [], total: 0 });
   await retry;
   assert.equal(h.error.current, null);
@@ -198,7 +200,7 @@ test("업무 추가 페이지는 최신 성공 조건에서만 읽고 중복 요
     journalStatus: "ready", workTotal: total.current, workLogs: rows.current,
     canAppendPage, loadedWorkQueryRef: { current: "current" }, workQueryKey: "current",
     workFirstRequest: first, workMorePending: more, requestVersion: version,
-    queries: { journal: "106동 1503호" }, journalSearch: "106동 1503호", workTypeFilter: "전화",
+    queries: { journal: "106동 1503호" }, journalSearch: "106동 1503호", workTypeFilter: ["전화", "집방문"],
     setLoadingMore: loading.set, setWorkLogs: rows.set, setWorkTotal: total.set, setWorkMoreError() {},
     jsonFetch: (url) => { requests.push(new URL(url, "https://local.invalid").searchParams); return pending.promise; },
     showLoadError: (error) => notices.push(error.message),
@@ -211,7 +213,7 @@ test("업무 추가 페이지는 최신 성공 조건에서만 읽고 중복 요
   assert.equal(requests[0].get("offset"), "100");
   assert.equal(requests[0].get("limit"), "100");
   assert.equal(requests[0].get("q"), "106동 1503호");
-  assert.equal(requests[0].get("workType"), "전화");
+  assert.deepEqual(requests[0].getAll("workType"), ["전화", "집방문"]);
   pending.resolve({ workLogs: [{ ...synthetic, id: "next-work" }], total: 222 });
   assert.equal(await started, 101, "the pagination hook receives the usable loaded count");
   assert.equal(rows.current.length, 101);
@@ -257,4 +259,14 @@ test("추가 업무 조회 실패 시 기존 기록을 유지하고 자동 재�
   const retry = descendants(tree).find(node => node.type === "button" && renderToStaticMarkup(node).includes("다시 불러오기"));
   retry.props.onClick();
   assert.equal(retries, 1);
+});
+
+test("업무일지 업무구분은 여러 선택을 그대로 표시하고 변경 함수에 전달한다", () => {
+  const changed=[];
+  const tree=JournalView(props({query:"",workType:["전화","집방문"],setWorkType:value=>changed.push(value)}));
+  const filter=descendants(tree).find(node=>node.type===MultiSelectFilter);
+  assert.deepEqual(filter.props.value,["전화","집방문"]);
+  filter.props.onChange(["전화","집방문","계약"]);
+  assert.deepEqual(changed,[["전화","집방문","계약"]]);
+  assert.match(renderToStaticMarkup(tree),/전화 외 1개/);
 });

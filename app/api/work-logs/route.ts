@@ -11,7 +11,8 @@ export async function GET(request: Request) {
     const params = new URL(request.url).searchParams;
     const q = params.get("q")?.trim() ?? "";
     const month = params.get("month")?.trim() ?? "";
-    const workType = params.get("workType")?.trim() ?? "";
+    const workTypes = [...new Set(params.getAll("workType").map(value => value.trim()).filter(Boolean))];
+    if (workTypes.length > 100 || workTypes.some(value => value.length > 100)) return Response.json({ error: "업무구분 조회 조건을 확인해 주세요." }, { status: 400 });
     const schedule = params.get("schedule") === "1";
     const customerId = params.get("customerId")?.trim() ?? "";
     const from = params.get("from")?.trim() ?? "";
@@ -28,9 +29,9 @@ export async function GET(request: Request) {
     const where: string[] = [];
     const binds: (string | number)[] = [];
     if (schedule) where.push("(w.work_type LIKE '%예정' OR w.work_type LIKE '%예약')");
-    if (workType) {
-      where.push("w.work_type = ?");
-      binds.push(workType);
+    if (workTypes.length) {
+      where.push(`w.work_type IN (${workTypes.map(() => "?").join(", ")})`);
+      binds.push(...workTypes);
     }
     if (customerId) {
       // Resolve the small set of related work IDs before reading summaries.

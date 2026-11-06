@@ -1,3 +1,4 @@
+import { MultiSelectFilter } from "./helpers/multi-select-filter.mjs";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -52,12 +53,12 @@ const loaderNode=loaderAst.statements.find(node=>ts.isFunctionDeclaration(node)&
 assert.ok(loaderNode);
 const ListingScrollLoader=evaluate(loaderNode.getText(loaderAst).replace(/^export /,"")+"\nconst actual=ListingScrollLoader;",{React,useRef:React.useRef,useEffect:React.useEffect});
 const Listings=evaluate(["displayDate","targetText","statusTone","EmptyState","ListReadFeedback","Price","ListingsView"].map(declaration).join("\n")+"\nconst actual=ListingsView;",{
-  React,ListingScrollLoader,Icon:()=>null,LISTING_WORK_TYPES:new Set(["매물등록","매물수정","가계약","잔금"]),
+  React,MultiSelectFilter,ListingScrollLoader,Icon:()=>null,LISTING_WORK_TYPES:new Set(["매물등록","매물수정","가계약","잔금"]),
 });
 function listingView(network,extra={}) {
   return Listings({
     items:network.listings.current,...network.pages.current.listings,lookups:{propertyTypes:["아파트","빌라"]},
-    query:"same-query",setQuery:()=>{},statuses:[],setStatuses:()=>{},prices:[],setPrices:()=>{},propertyType:"",setPropertyType:()=>{},
+    query:"same-query",setQuery:()=>{},statuses:[],setStatuses:()=>{},prices:[],setPrices:()=>{},propertyType:[],setPropertyType:()=>{},
     sort:"type",setSort:()=>{},onReset:()=>{},onHistory:()=>{},status:"ready",onRetry:()=>{},canLoadMore:true,onLoadMore:()=>network.load("listings"),...extra,
   });
 }
